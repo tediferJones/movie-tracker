@@ -7,12 +7,19 @@ export default function Login() {
     // console.log(e)
     console.log(e.target.username.value)
     console.log(e.target.password.value)
-
-    // const username = e.target.username.value;
-    // const password = e.target.password.value;
-    const test = await fetch('/test')
-    const result = await test.json();
-    console.log(result);
+    const username = e.target.username.value;
+    const password = e.target.password.value;
+    const result = await fetch('/api/user/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password }),
+    })
+    console.log(result)
+    // if login fails, send errors to client
+    //    - Username not found
+    //    - Username correct, but password wrong
   }
 
   return (

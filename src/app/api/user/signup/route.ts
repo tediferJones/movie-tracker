@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
-export async function GET() {
+export async function GET(req: Request) {
+  console.log(req.json())
   return NextResponse.json({ test: 'YEET' })
 }
 
@@ -19,12 +20,9 @@ export async function POST(req: Request) {
   // THIS IS HOW YOU ACCESS THE DATABASE
   // const test = await prisma.user.findMany();
   const test = await prisma.$queryRaw`SELECT * FROM user`
-  const insert = await prisma.$queryRaw`INSERT INTO user (email, username, password)
-      VALUES (
-        ${reqBody.email},
-        ${reqBody.username}, 
-        ${reqBody.password}
-      );`
+  const insert = await prisma.$queryRaw
+      `INSERT INTO user (email, username, password)
+      VALUES (${reqBody.email}, ${reqBody.username}, ${reqBody.password});`
   console.log('');
   // console.log(reqBody);
   console.log(insert)

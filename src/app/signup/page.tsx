@@ -18,10 +18,15 @@ export default function Signup() {
       },
       body: JSON.stringify(newUserData),
     }
-    const response = await fetch('/api', fetchOptions)
-    const result = await response.json();
-    console.log(result)
 
+    const response = await fetch('/api', fetchOptions)
+    if (response.ok) {
+      const result = await response.json();
+      console.log(result)
+    } else {
+      console.log('API/DATABASE ERROR')
+      console.log(response)
+    }
   }
 
   return (

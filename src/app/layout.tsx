@@ -19,6 +19,7 @@ export default function RootLayout({
         <div className='flex justify-between'>
           <a href='/'>HOME PAGE</a>
           <a href='/login'>LOGIN PAGE</a>
+          <a href='/signup'>SIGNUP PAGE</a>
         </div>
         {children}
       </body>

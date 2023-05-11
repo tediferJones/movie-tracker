@@ -1,5 +1,6 @@
 'use client';
 // import { signIn } from 'next-auth/react';
+// import { cookies } from 'next/headers';
 
 export default function Login() {
   async function formHandler(e: any) {
@@ -17,9 +18,18 @@ export default function Login() {
       body: JSON.stringify({ username, password }),
     })
     console.log(result)
+    if (result.ok) {
+      const test = await result.json()
+      console.log(test)
+      // if (test.authKey) {
+      //   cookies().set('authKey', 'someValue')
+      // }
+    }
     // if login fails, send errors to client
     //    - Username not found
     //    - Username correct, but password wrong
+    // if login succeeds, send client their cookie with key
+    // also need to have cookie set on db
   }
 
   return (

@@ -18,3 +18,8 @@ model user {
   password String
 }
 
+model session {
+  id Int @id @default(autoincrement())
+  username String
+  authKey String
+}

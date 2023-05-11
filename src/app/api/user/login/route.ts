@@ -1,5 +1,6 @@
-// import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { cookies } from 'next/headers';
 
 export async function POST(req: Request) {
   const prisma = new PrismaClient();
@@ -17,8 +18,26 @@ export async function POST(req: Request) {
 
   if (result.length > 0 && result.length < 2) {
     console.log('SUCCESSFULL LOGIN')
+    // use crypto.randomUUID();
+    // console.log(crypto.randomUUID());
+    const authKey = crypto.randomUUID();
+    await prisma.$queryRaw
+      `INSERT INTO session (username, authKey) 
+      VALUES (${username}, ${authKey})`
+
+    const test = cookies().get('authKey');
+    console.log(test)
+    const realRes = NextResponse.json({ YES: 'true' });
+    realRes.cookies.set('authKey', authKey, { secure: true, httpOnly: true })
+    return realRes
+    
+    // cookies().set('authKey', authKey)
+    // return NextResponse.json({ authKey }).cookies.set('authKey', authKey)
+
+    // return NextResponse.json({ authKey })
   } else {
     console.log('FAILURE TO LOGIN')
+    return NextResponse.json({ error: 'Failed to login' })
   }
   // return NextResponse.json('idkHi')
 }

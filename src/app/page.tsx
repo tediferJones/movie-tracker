@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { UserButton } from '@clerk/nextjs';
+// import { UserButton } from '@clerk/nextjs';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function Home() {
@@ -40,6 +40,12 @@ export default function Home() {
 
     return () => clearTimeout(delaySetState)
   }, [searchTerm])
+
+  // This would be a good place to have filters for movies in the list attached to "this" account
+  //   For Example: 
+  //      - Show recent movies added to my list
+  //      - Pick a random movie for me
+  //      - Show movies with rating above 6.0 and length less than 120 mins
   
   // const [state, setState] = useState(1);
   // <div>{state}</div>
@@ -48,7 +54,6 @@ export default function Home() {
   return (
     <div>
       <h1>Home Page</h1>
-      <UserButton />
       <label>SEARCH</label>
       <input className='border-8 border-color-gray-400'
         type='text'
@@ -60,6 +65,8 @@ export default function Home() {
           <div key={uuidv4()}>
             <hr />
             {JSON.stringify(item.Title)}
+            {item.Title}
+            <a href={`/movies/${item.imdbID}`}>LINK</a>
           </div>
         )
       })}

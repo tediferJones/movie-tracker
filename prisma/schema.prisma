@@ -11,15 +11,7 @@ datasource db {
   relationMode = "prisma"
 }
 
-model user {
+model Movies {
   id Int @id @default(autoincrement())
-  email String @unique
-  username String @unique
-  password String
-}
-
-model session {
-  id Int @id @default(autoincrement())
-  username String
-  authKey String
+  name String
 }

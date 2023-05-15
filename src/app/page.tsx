@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 // import { UserButton } from '@clerk/nextjs';
 import { v4 as uuidv4 } from 'uuid';
+import { omdbSearch, omdbSearchResult } from '@/types';
 
 export default function Home() {
   // IF YOU MAKE THIS AN ASYNC FUNCTION SET STATE WILL BREAK THE APP
@@ -21,21 +22,27 @@ export default function Home() {
   // How to delay fetch until user is done typing: 
   // https://stackoverflow.com/questions/42217121/how-to-start-search-only-when-user-stops-typing
 
+  const defaultState: omdbSearch = {
+    Search: [],
+    Response: 'False',
+    totalResults: '0',
+  }
+
   const [searchTerm, setSearchTerm] = useState('The Deluge');
-  const [searchResult, setSearchResult] = useState({ Search: [] });
+  const [searchResult, setSearchResult] = useState(defaultState);
 
   useEffect(() => {
     const delaySetState = setTimeout(() => {
       console.log(searchTerm)
       fetch(`http://www.omdbapi.com/?apikey=8e1df54b&s=${searchTerm}`)
           .then((res: any) => res.json())
-          .then((data: any) => {
+          .then((data: omdbSearch) => {
             console.log(data)
             if (data.Response === 'True') {
               console.log('SETTING STATE')
               setSearchResult(data);
             } else {
-              setSearchResult({ Search: [] });
+              setSearchResult(defaultState);
             }
           })
     }, 1000)
@@ -63,7 +70,7 @@ export default function Home() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          {searchResult.Search.map((item: any) => {
+          {searchResult.Search.map((item: omdbSearchResult) => {
             return (
               <div className='flex justify-between'
                 key={uuidv4()}

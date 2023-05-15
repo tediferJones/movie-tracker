@@ -21,7 +21,7 @@ export default function Home() {
   // How to delay fetch until user is done typing: 
   // https://stackoverflow.com/questions/42217121/how-to-start-search-only-when-user-stops-typing
 
-  const [searchTerm, setSearchTerm] = useState('hello');
+  const [searchTerm, setSearchTerm] = useState('The Deluge');
   const [searchResult, setSearchResult] = useState({ Search: [] });
 
   useEffect(() => {
@@ -34,6 +34,8 @@ export default function Home() {
             if (data.Response === 'True') {
               console.log('SETTING STATE')
               setSearchResult(data);
+            } else {
+              setSearchResult({ Search: [] });
             }
           })
     }, 1000)
@@ -52,24 +54,30 @@ export default function Home() {
   // <button onClick={() => setState(state + 1)}>Add</button>
   
   return (
-    <div>
-      <h1>Home Page</h1>
-      <label>SEARCH</label>
-      <input className='border-8 border-color-gray-400'
-        type='text'
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      {searchResult.Search.map((item: any) => {
-        return (
-          <div key={uuidv4()}>
-            <hr />
-            {JSON.stringify(item.Title)}
-            {item.Title}
-            <a href={`/movies/${item.imdbID}`}>LINK</a>
-          </div>
-        )
-      })}
+    <div className='flex flex-col items-center'>
+      <div className='w-4/5 flex'>
+        <label className='flex justify-center items-center'>SEARCH</label>
+        <div className='flex-1 flex flex-col'>
+          <input className='flex-1 text-2xl border-8 border-color-gray-400'
+            type='text'
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchResult.Search.map((item: any) => {
+            return (
+              <div className='flex justify-between'
+                key={uuidv4()}
+              >
+                <p className='flex-[2]'>{item.Title}</p>
+                <p className='flex-1'>{item.Year}</p>
+                <a className='flex-1' 
+                  href={`/movies/${item.imdbID}`}
+                >LINK</a>
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }

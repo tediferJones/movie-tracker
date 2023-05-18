@@ -1,5 +1,6 @@
 import { rawMovieInfo, cleanMovieInfo, ratingObj } from '@/types';
 import { auth } from '@clerk/nextjs';
+import { v4 as uuidv4 } from 'uuid';
 import AddToMyList from '@/components/AddToMyList';
 
 export default async function Movie({ params }: { params: any }) {
@@ -38,21 +39,22 @@ export default async function Movie({ params }: { params: any }) {
   // ADD AN UPDATE BUTTON, when pressed it will fetch a new copy of the movie
   // <div>{JSON.stringify(data)}</div>
 
+      // <form method='POST' action='/api/' encType='application/json'>
+      //   <input type='hidden' value='idkYeet'/>
+      //   <button type='submit' className='p-4 bg-gray-200'>Add to my list</button>
+      // </form>
+
   return (
     <div>
       <h1>Individual movie really this time</h1>
       {Object.keys(data).map((key: string) => {
         return (
-          <div>
+          <div key={uuidv4()}>
             {`${key}: ${data[key]}`}
           </div>
         )
       })}
       <img src={data.Poster} />
-      <form method='POST' action='/api/' encType='application/json'>
-        <input type='hidden' value='idkYeet'/>
-        <button type='submit' className='p-4 bg-gray-200'>Add to my list</button>
-      </form>
       <button className='p-4 bg-gray-200'>Update Results (if its cached)</button>
       <AddToMyList imdbId={data.imdbID} userId={userId}/>
     </div>

@@ -11,8 +11,8 @@ datasource db {
   relationMode = "prisma"
 }
 
-model MovieList {
+model myList {
   id Int @id @default(autoincrement())
-  userId String
+  username String
   imdbId String
 }

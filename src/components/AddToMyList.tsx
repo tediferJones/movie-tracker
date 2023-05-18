@@ -2,59 +2,47 @@
 import { useState, useEffect } from 'react';
 
 export default function AddToMyList(props: any) {
-  const [isMovieAlreadyInMyList, setIsMovieAlreadyInMyList] = useState(true)
+  // change the default state to null, if state is Null, button should display "Loading your info plz wait"
+  const [isMovieAlreadyInMyList, setIsMovieAlreadyInMyList] = useState(null)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   useEffect(() => {
-    fetch('/api/myList/check', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId: props.userId, imdbId: props.imdbId })
-    }).then((res: any) => res.json())
-      .then((data: any) => setIsMovieAlreadyInMyList(data.exists))
-  }, []);
+    fetch('/api/myList?' + new URLSearchParams({ imdbId: props.imdbId }))
+        .then((res: any) => res.json())
+        .then((data: any) => setIsMovieAlreadyInMyList(data.exists))
+  }, [refreshTrigger]);
 
-  // TO-DO
-  // get button to toggle between add and remove, using the state defined above;
-  // The button will switch from add to remove if we delete the page,
-  // But we want it to refresh after we click the button
-  // SOLUTION: add some state object to the useEffect dependency array
-  // BUT dont make that object the isMovieAlreadyInMyList var, that will cause an infinite loop
-
-  async function addToList() {
-    // we need to fetch to an api endpoint to post data
-    const res = await fetch('/api/', {
+  async function addToMyList() {
+    const res = await fetch('/api/myList', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ imdbId: props.imdbId, userId: props.userId })
+      body: JSON.stringify({ imdbId: props.imdbId })
     })
-    console.log(res);
+    if (res.ok) {
+      setRefreshTrigger(refreshTrigger + 1)
+    }
   }
 
   async function removeFromMyList() {
-    const res = await fetch('/api/myList/delete', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId: props.userId, imdbId: props.imdbId })
-    })
-    console.log(res);
+    const res = await fetch('/api/myList?' + new URLSearchParams({ imdbId: props.imdbId }), { method: 'DELETE' })
+    if (res.ok) {
+      setRefreshTrigger(refreshTrigger + 1)
+    }
   }
 
-  // IF THIS MOVIE ALREADY EXISTS IN THE USER'S LIST
-  // Then disable the button and change it to say something like 'Movie Already in List'
+      // {isMovieAlreadyInMyList === true ? <button onClick={removeFromMyList}>REMOVE FROM MY LIST</button> 
+      // : isMovieAlreadyInMyList === false ?  <button onClick={addToList}>ADD TO MY LIST</button>
+      // : <button>LOADING</button>}
 
   return (
     <div>
       THIS IS THE ADD TO LIST COMPONENT
       <hr />
-      {isMovieAlreadyInMyList ? 
-        <button onClick={removeFromMyList}>REMOVE FROM MY LIST</button> :
-        <button onClick={addToList}>ADD TO MY LIST</button>}
+      {isMovieAlreadyInMyList === null ? <button>LOADING</button>
+      : isMovieAlreadyInMyList ? <button onClick={removeFromMyList}>REMOVE FROM MY LIST</button>
+      : <button onClick={addToMyList}>ADD TO MY LIST</button>}
     </div>
   )
 }

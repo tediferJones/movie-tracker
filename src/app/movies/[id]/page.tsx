@@ -24,11 +24,11 @@ export default async function Movie({ params }: { params: any }) {
     delete movieObj.Metascore;
     delete movieObj.imdbRating;
     delete movieObj.imdbVotes;
+    delete movieObj.Response;
     const cleanMovieObj: any = movieObj;
 
     return cleanMovieObj;
   }
-
 
   // This is where we add the movie to our account's list
   //    - Check the DB movie list, if it already exists, just link to that ID or whatever
@@ -37,16 +37,10 @@ export default async function Movie({ params }: { params: any }) {
   // With the above in mind, we should probably have an indicator on each page to show if the data being shown is from the DB, or omdbAPI
   // you should probably add a custom field for 'cachedResult' with a value of the current date
   // ADD AN UPDATE BUTTON, when pressed it will fetch a new copy of the movie
-  // <div>{JSON.stringify(data)}</div>
-
-      // <form method='POST' action='/api/' encType='application/json'>
-      //   <input type='hidden' value='idkYeet'/>
-      //   <button type='submit' className='p-4 bg-gray-200'>Add to my list</button>
-      // </form>
 
   return (
     <div>
-      <h1>Individual movie really this time</h1>
+      <h1>SINGLE MOVIE PAGE</h1>
       {Object.keys(data).map((key: string) => {
         return (
           <div key={uuidv4()}>

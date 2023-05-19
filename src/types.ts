@@ -23,7 +23,7 @@ interface basicMovieInfo extends stringIndex {
   BoxOffice: string,
   Production: string,
   Website: string,
-  Response: string,
+  Response?: string,
 }
 
 interface rawMovieInfo extends basicMovieInfo {

@@ -2,9 +2,8 @@
 import { useState, useEffect } from 'react';
 
 export default function AddToMyList(props: any) {
-  // change the default state to null, if state is Null, button should display "Loading your info plz wait"
-  const [isMovieAlreadyInMyList, setIsMovieAlreadyInMyList] = useState(null)
-  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [isMovieAlreadyInMyList, setIsMovieAlreadyInMyList] = useState<null | true | false>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     fetch('/api/myList?' + new URLSearchParams({ imdbId: props.imdbId }))
@@ -21,6 +20,7 @@ export default function AddToMyList(props: any) {
       body: JSON.stringify({ imdbId: props.imdbId })
     })
     if (res.ok) {
+      setIsMovieAlreadyInMyList(null);
       setRefreshTrigger(refreshTrigger + 1)
     }
   }
@@ -28,21 +28,19 @@ export default function AddToMyList(props: any) {
   async function removeFromMyList() {
     const res = await fetch('/api/myList?' + new URLSearchParams({ imdbId: props.imdbId }), { method: 'DELETE' })
     if (res.ok) {
+      setIsMovieAlreadyInMyList(null);
       setRefreshTrigger(refreshTrigger + 1)
     }
   }
 
-      // {isMovieAlreadyInMyList === true ? <button onClick={removeFromMyList}>REMOVE FROM MY LIST</button> 
-      // : isMovieAlreadyInMyList === false ?  <button onClick={addToList}>ADD TO MY LIST</button>
-      // : <button>LOADING</button>}
-
+  const buttonClasses = 'p-4 bg-gray-200';
   return (
     <div>
       THIS IS THE ADD TO LIST COMPONENT
       <hr />
-      {isMovieAlreadyInMyList === null ? <button>LOADING</button>
-      : isMovieAlreadyInMyList ? <button onClick={removeFromMyList}>REMOVE FROM MY LIST</button>
-      : <button onClick={addToMyList}>ADD TO MY LIST</button>}
+      {isMovieAlreadyInMyList === null ? <button className={buttonClasses}>LOADING</button>
+      : isMovieAlreadyInMyList ? <button className={buttonClasses} onClick={removeFromMyList}>REMOVE FROM MY LIST</button>
+      : <button className={buttonClasses} onClick={addToMyList}>ADD TO MY LIST</button>}
     </div>
   )
 }

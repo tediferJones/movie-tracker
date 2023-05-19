@@ -2,6 +2,7 @@ import './globals.css'
 import { Inter } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs';
 import { UserButton } from '@clerk/nextjs';
+import Searchbar from '@/components/Searchbar';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,6 +27,7 @@ export default function RootLayout({
               <p className='my-auto'>My Account</p>
             </div>
           </div>
+          <Searchbar />
           {children}
         </body>
       </html>

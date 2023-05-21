@@ -7,6 +7,8 @@ import prisma from '@/client';
 // These routes are actually already protected by clerk auth, so nothing will run if there is no user signed in
 
 export async function GET(req: Request) {
+  // To be more restful, this function should actually return the users list
+  // Re-write this in a HEAD function
   console.log('CHECKING myList')
   const { searchParams } = new URL(req.url);
   const imdbId = searchParams.get('imdbId');

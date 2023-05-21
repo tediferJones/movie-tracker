@@ -1,11 +1,11 @@
 import { rawMovieInfo, cleanMovieInfo, ratingObj } from '@/types';
-import { auth } from '@clerk/nextjs';
+// import { auth } from '@clerk/nextjs';
 import { v4 as uuidv4 } from 'uuid';
 import AddToMyList from '@/components/AddToMyList';
 
 export default async function Movie({ params }: { params: any }) {
   // Search for param ID in DB before fetching from omdbapi
-  const { userId } = auth();
+  // const { userId } = auth();
   const res = await fetch(`https://www.omdbapi.com/?apikey=8e1df54b&i=${params.id}`)
   const rawData: rawMovieInfo = await res.json();
   const data: cleanMovieInfo = cleanUpMovieInfo(rawData);
@@ -38,6 +38,8 @@ export default async function Movie({ params }: { params: any }) {
   // you should probably add a custom field for 'cachedResult' with a value of the current date
   // ADD AN UPDATE BUTTON, when pressed it will fetch a new copy of the movie
 
+  // userId={userId}
+
   return (
     <div>
       <h1>SINGLE MOVIE PAGE</h1>
@@ -50,7 +52,8 @@ export default async function Movie({ params }: { params: any }) {
       })}
       <img src={data.Poster} />
       <button className='p-4 bg-gray-200'>Update Results (if its cached)</button>
-      <AddToMyList imdbId={data.imdbID} userId={userId}/>
+      {/* WE CHANGE THE SPELLING OF imdbId HERE, FIX IT, either rename the original value, or rename all proceeding references to imdbId */}
+      <AddToMyList imdbId={data.imdbID}/>
     </div>
   )
 }

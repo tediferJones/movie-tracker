@@ -38,12 +38,28 @@ model movies {
   rottenTomatoesRating String
   metacriticRating String
   persons persons[]
+  genres genres[]
+  userLists userLists[]
 }
 
 model persons {
   id Int @id @default(autoincrement())
   name String
   position String
+  movie movies @relation(fields: [movieId], references: [id])
+  movieId Int
+}
+
+model genres {
+  id Int @id @default(autoincrement())
+  genre String
+  movie movies @relation(fields: [movieId], references: [id])
+  movieId Int
+}
+
+model userLists {
+  id Int @id @default(autoincrement())
+  username String
   movie movies @relation(fields: [movieId], references: [id])
   movieId Int
 }

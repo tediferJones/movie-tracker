@@ -23,11 +23,11 @@ model movies {
   year String
   rated String
   released String
-  plot String
+  plot String @db.Text
   language String
   country String
   awards String
-  poster String
+  poster String @db.Text
   imdbId String @unique
   type String
   dvd String

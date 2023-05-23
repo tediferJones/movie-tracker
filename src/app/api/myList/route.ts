@@ -6,6 +6,8 @@ import prisma from '@/client';
 // That way the only thing we are sending over the wire is the movie ID
 // These routes are actually already protected by clerk auth, so nothing will run if there is no user signed in
 
+// Rewrite all of this, switching to MONGODB, so no more SQL strings
+
 export async function GET(req: Request) {
   // To be more restful, this function should actually return the users list
   // Re-write this in a HEAD function

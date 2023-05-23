@@ -5,61 +5,75 @@ generator client {
   provider = "prisma-client-js"
 }
 
+  // url      = env("DATABASE_URL")
 datasource db {
-  provider = "mysql"
-  url = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "mongodb"
+  url="mongodb+srv://theodrz:aTwGpICRF2uxwtXJ@cluster0.52a3znr.mongodb.net/cluster0?retryWrites=true&w=majority"
 }
 
-model myList {
-  id Int @id @default(autoincrement())
+model userList {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
   username String
   imdbId String
 }
 
-model movies {
-  id Int @id @default(autoincrement())
-  title String @unique
-  year String
-  rated String
-  released String
-  plot String @db.Text
-  language String
-  country String
-  awards String
-  poster String @db.Text
-  imdbId String @unique
-  type String
-  dvd String
-  boxOffice String
-  production String
-  website String
-  imdbRating String
-  rottenTomatoesRating String
-  metacriticRating String
-  persons persons[]
-  genres genres[]
-  userLists userLists[]
-}
 
-model persons {
-  id Int @id @default(autoincrement())
-  name String
-  position String
-  movie movies @relation(fields: [movieId], references: [id])
-  movieId Int
-}
-
-model genres {
-  id Int @id @default(autoincrement())
-  genre String
-  movie movies @relation(fields: [movieId], references: [id])
-  movieId Int
-}
-
-model userLists {
-  id Int @id @default(autoincrement())
-  username String
-  movie movies @relation(fields: [movieId], references: [id])
-  movieId Int
-}
+//
+// datasource db {
+//   provider = "mysql"
+//   url = env("DATABASE_URL")
+//   relationMode = "prisma"
+// }
+// 
+// model myList {
+//   id Int @id @default(autoincrement())
+//   username String
+//   imdbId String
+// }
+// 
+// model movies {
+//   id Int @id @default(autoincrement())
+//   title String @unique
+//   year String
+//   rated String
+//   released String
+//   plot String @db.Text
+//   language String
+//   country String
+//   awards String
+//   poster String @db.Text
+//   imdbId String @unique
+//   type String
+//   dvd String
+//   boxOffice String
+//   production String
+//   website String
+//   imdbRating String
+//   rottenTomatoesRating String
+//   metacriticRating String
+//   persons persons[]
+//   genres genres[]
+//   userLists userLists[]
+// }
+// 
+// model persons {
+//   id Int @id @default(autoincrement())
+//   name String
+//   position String
+//   movie movies @relation(fields: [movieId], references: [id])
+//   movieId Int
+// }
+// 
+// model genres {
+//   id Int @id @default(autoincrement())
+//   genre String
+//   movie movies @relation(fields: [movieId], references: [id])
+//   movieId Int
+// }
+// 
+// model userLists {
+//   id Int @id @default(autoincrement())
+//   username String
+//   movie movies @relation(fields: [movieId], references: [id])
+//   movieId Int
+// }

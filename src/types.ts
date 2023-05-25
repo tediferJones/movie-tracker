@@ -1,4 +1,4 @@
-interface stringIndex {
+interface stringIndexableObject {
   [key: string]: any,
 }
 
@@ -7,11 +7,12 @@ interface ratingObj {
   Value: string,
 }
 
-interface basicMovieInfo extends stringIndex {
+interface basicMovieInfo extends stringIndexableObject {
   Title: string,
   Year: string,
   Rated: string,
   Released: string,
+  Runtime: string,
   Plot: string,
   Language: string,
   Country: string,
@@ -44,9 +45,11 @@ interface cleanMovieInfo extends basicMovieInfo {
   Writer: string[],
   Actors: string[],
   // Add extracted rating data here
+  imdbVotes: string,
   IMDBRating: string,
   RottenTomatoesRating: string,
   MetacriticRating: string,
+  cachedAt: string,
 }
 
 interface omdbSearchResult {
@@ -65,4 +68,4 @@ interface omdbSearch {
 
 // Will probably want to add types for people Records and Genre Records, just to make sure we're storing the right datatypes in our DB
 
-export type { rawMovieInfo, cleanMovieInfo, ratingObj, omdbSearchResult, omdbSearch }
+export type { rawMovieInfo, cleanMovieInfo, ratingObj, omdbSearchResult, omdbSearch, stringIndexableObject }

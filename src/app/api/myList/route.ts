@@ -16,13 +16,27 @@ export async function GET(req: Request) {
   const imdbId = searchParams.get('imdbId');
   console.log(imdbId);
 
+  // TEST
+  // await prisma.userList.deleteMany({});
+
   const user = await currentUser();
   const username = user?.username;
   console.log(username);
-  const dbResult: object[] = await prisma.$queryRaw
-      `SELECT * FROM myList WHERE username=${username} AND imdbId=${imdbId}`
+  // const dbResult: object[] = await prisma.$queryRaw
+  //     `SELECT * FROM myList WHERE username=${username} AND imdbId=${imdbId}`
+  // const dbResult = [];
+  let mongoResult: null | object = null;
+  if (username && imdbId) {
+    mongoResult = await prisma.userList.findFirst({ 
+      where: { 
+        username, 
+        imdbId 
+      } 
+    })
+  }
+  console.log(mongoResult);
 
-  return NextResponse.json({ exists: dbResult.length > 0 })
+  return NextResponse.json({ exists: mongoResult !== null })
 }
 
 export async function POST(req: Request) {
@@ -31,10 +45,14 @@ export async function POST(req: Request) {
   const user = await currentUser();
   const username = user?.username;
   // Push record to DB
-  await prisma.$queryRaw
-      `INSERT INTO 
-      myList (username, imdbId)
-      VALUES (${username}, ${imdbId})`
+//   await prisma.$queryRaw
+//       `INSERT INTO 
+//       myList (username, imdbId)
+//       VALUES (${username}, ${imdbId})`
+// 
+  if (username && imdbId) {
+    await prisma.userList.create({ data: { username, imdbId } })
+  }
 
   return NextResponse.json('added movie to myList')
 }
@@ -49,8 +67,18 @@ export async function DELETE(req: Request) {
   const username = user?.username;
   console.log(username);
 
-  await prisma.$queryRaw
-      `DELETE FROM myList WHERE username=${username} AND imdbId=${imdbId}`
+  // await prisma.$queryRaw
+  //     `DELETE FROM myList WHERE username=${username} AND imdbId=${imdbId}`
+
+  if (username && imdbId) {
+    // We use deleteMany because delete only accepts unique identifiers, so we would have to query DB, find its unique ID, and delete it, instead we just delete all matching records, cuz each record should be unique
+    await prisma.userList.deleteMany({
+      where: {
+        username,
+        imdbId
+      },
+    })
+  }
 
   return NextResponse.json('deleted movie from myList')
 }

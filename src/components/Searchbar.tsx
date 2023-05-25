@@ -15,13 +15,13 @@ export default function Searchbar() {
 
   useEffect(() => {
     const delaySetState = setTimeout(() => {
-      console.log(searchTerm)
+      // console.log(searchTerm)
       fetch(`http://www.omdbapi.com/?apikey=8e1df54b&s=${searchTerm}`)
           .then((res: any) => res.json())
           .then((data: omdbSearch) => {
-            console.log(data)
+            console.log('SEARCH RESULTS', data)
             if (data.Response === 'True') {
-              console.log('SETTING STATE')
+              // console.log('SETTING STATE')
               setSearchResult(data);
             } else {
               setSearchResult(defaultState);

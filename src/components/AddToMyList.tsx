@@ -5,11 +5,11 @@ export default function AddToMyList(props: any) {
   const [isMovieAlreadyInMyList, setIsMovieAlreadyInMyList] = useState<null | true | false>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // useEffect(() => {
-  //   fetch('/api/myList?' + new URLSearchParams({ imdbId: props.imdbId }))
-  //       .then((res: any) => res.json())
-  //       .then((data: any) => setIsMovieAlreadyInMyList(data.exists))
-  // }, [refreshTrigger]);
+  useEffect(() => {
+    fetch('/api/myList?' + new URLSearchParams({ imdbId: props.imdbId }))
+        .then((res: any) => res.json())
+        .then((data: any) => setIsMovieAlreadyInMyList(data.exists))
+  }, [refreshTrigger]);
 
   async function addToMyList() {
     const res = await fetch('/api/myList', {

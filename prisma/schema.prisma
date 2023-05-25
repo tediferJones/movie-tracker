@@ -17,63 +17,31 @@ model userList {
   imdbId String
 }
 
-
-//
-// datasource db {
-//   provider = "mysql"
-//   url = env("DATABASE_URL")
-//   relationMode = "prisma"
-// }
-// 
-// model myList {
-//   id Int @id @default(autoincrement())
-//   username String
-//   imdbId String
-// }
-// 
-// model movies {
-//   id Int @id @default(autoincrement())
-//   title String @unique
-//   year String
-//   rated String
-//   released String
-//   plot String @db.Text
-//   language String
-//   country String
-//   awards String
-//   poster String @db.Text
-//   imdbId String @unique
-//   type String
-//   dvd String
-//   boxOffice String
-//   production String
-//   website String
-//   imdbRating String
-//   rottenTomatoesRating String
-//   metacriticRating String
-//   persons persons[]
-//   genres genres[]
-//   userLists userLists[]
-// }
-// 
-// model persons {
-//   id Int @id @default(autoincrement())
-//   name String
-//   position String
-//   movie movies @relation(fields: [movieId], references: [id])
-//   movieId Int
-// }
-// 
-// model genres {
-//   id Int @id @default(autoincrement())
-//   genre String
-//   movie movies @relation(fields: [movieId], references: [id])
-//   movieId Int
-// }
-// 
-// model userLists {
-//   id Int @id @default(autoincrement())
-//   username String
-//   movie movies @relation(fields: [movieId], references: [id])
-//   movieId Int
-// }
+model movie {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  Title String
+  Year String
+  Rated String
+  Released String
+  Runtime String
+  Plot String
+  Language String
+  Country String
+  Awards String
+  Poster String
+  imdbID String
+  Type String
+  DVD String
+  BoxOffice String
+  Production String
+  Website String
+  Genre String[]
+  Director String[]
+  Writer String[]
+  Actors String[]
+  imdbVotes String
+  IMDBRating String
+  RottenTomatoesRating String
+  MetacriticRating String
+  cachedAt String
+}

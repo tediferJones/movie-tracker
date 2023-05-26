@@ -3,6 +3,18 @@ import { cleanMovieInfo } from '@/types';
 import cleanUpMovieInfo from '@/modules/cleanUpMovieInfo';
 import prisma from '@/client';
 
+export async function GET(req: Request) {
+  console.log('FETCH SINGLE MOVIE RECORD FROM DB')
+  const { searchParams } = new URL(req.url);
+  const imdbID = searchParams.get('imdbID')
+  let result = null;
+  // console.log(imdbID)
+  if (imdbID) {
+    result = await prisma.movie.findFirst({ where: { imdbID } })
+  }
+  return NextResponse.json(result)
+}
+
 export async function POST(req: Request) {
   const { imdbID } = await req.json();
 

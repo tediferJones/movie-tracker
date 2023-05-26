@@ -29,7 +29,7 @@ model movie {
   Country String
   Awards String
   Poster String
-  imdbID String
+  imdbID String @unique
   Type String
   DVD String
   BoxOffice String

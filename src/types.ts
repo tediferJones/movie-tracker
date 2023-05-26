@@ -68,4 +68,4 @@ interface omdbSearch {
 
 // Will probably want to add types for people Records and Genre Records, just to make sure we're storing the right datatypes in our DB
 
-export type { rawMovieInfo, cleanMovieInfo, ratingObj, omdbSearchResult, omdbSearch, stringIndexableObject }
+export type { rawMovieInfo, cleanMovieInfo, ratingObj, omdbSearchResult, omdbSearch }

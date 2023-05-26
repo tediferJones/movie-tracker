@@ -14,17 +14,14 @@ export async function GET(req: Request) {
   console.log('CHECKING myList')
   const { searchParams } = new URL(req.url);
   const imdbId = searchParams.get('imdbId');
-  console.log(imdbId);
+  // console.log(imdbId);
 
   // TEST
   // await prisma.userList.deleteMany({});
 
   const user = await currentUser();
   const username = user?.username;
-  console.log(username);
-  // const dbResult: object[] = await prisma.$queryRaw
-  //     `SELECT * FROM myList WHERE username=${username} AND imdbId=${imdbId}`
-  // const dbResult = [];
+  // console.log(username);
   let mongoResult: null | object = null;
   if (username && imdbId) {
     mongoResult = await prisma.userList.findFirst({ 
@@ -34,7 +31,7 @@ export async function GET(req: Request) {
       } 
     })
   }
-  console.log(mongoResult);
+  // console.log(mongoResult);
 
   return NextResponse.json({ exists: mongoResult !== null })
 }
@@ -45,11 +42,6 @@ export async function POST(req: Request) {
   const user = await currentUser();
   const username = user?.username;
   // Push record to DB
-//   await prisma.$queryRaw
-//       `INSERT INTO 
-//       myList (username, imdbId)
-//       VALUES (${username}, ${imdbId})`
-// 
   if (username && imdbId) {
     await prisma.userList.create({ data: { username, imdbId } })
   }
@@ -61,14 +53,11 @@ export async function DELETE(req: Request) {
   console.log('DELETE MOVIE FROM myList')
   const { searchParams } = new URL(req.url);
   const imdbId = searchParams.get('imdbId');
-  console.log(imdbId);
+  // console.log(imdbId);
 
   const user = await currentUser();
   const username = user?.username;
-  console.log(username);
-
-  // await prisma.$queryRaw
-  //     `DELETE FROM myList WHERE username=${username} AND imdbId=${imdbId}`
+  // console.log(username);
 
   if (username && imdbId) {
     // We use deleteMany because delete only accepts unique identifiers, so we would have to query DB, find its unique ID, and delete it, instead we just delete all matching records, cuz each record should be unique

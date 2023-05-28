@@ -10,12 +10,20 @@ export async function GET(req: Request) {
   let result = null;
   // console.log(imdbID)
   if (imdbID) {
-    result = await prisma.movie.findFirst({ where: { imdbID } })
+    result = await prisma.movies.findFirst({ where: { imdbID } })
   }
   return NextResponse.json(result)
 }
 
+// EXTRACT THE FUNCTION THAT ADDS MOVIES TO OUR DB AND PUT IT HERE
+// should be at the top of ../../movies/[id]
 export async function POST(req: Request) {
+  const body = await req.json();
+  console.log(body)
+  return NextResponse.json('Add movie to DB API route')
+}
+
+export async function PUT(req: Request) {
   const { imdbID } = await req.json();
 
   // search movie collection for a movie with matching imdbID,
@@ -26,7 +34,7 @@ export async function POST(req: Request) {
     cleanResult = cleanUpMovieInfo(result);
   }
   if (cleanResult !== null) {
-    await prisma.movie.update({
+    await prisma.movies.update({
       where: {
         imdbID: cleanResult.imdbID,
       },

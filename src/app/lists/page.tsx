@@ -3,7 +3,7 @@ import prisma from '@/client';
 export default async function Lists() {
   // How can we effeciently fetch all usernames?  That all we really need for this component
   // If the user has no list, we can just display nothing for their route
-  const dbResult = await prisma.userList.findMany();
+  const dbResult = await prisma.lists.findMany();
   // console.log(dbResult);
   const dbUsernames = dbResult.map((item: any) => item.username)
   // console.log(dbUsernames)

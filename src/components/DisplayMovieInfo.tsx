@@ -3,12 +3,14 @@ import { useState, useEffect } from 'react';
 import { cleanMovieInfo } from '@/types';
 
 export default function DisplayMovieInfo(props: any) {
+  // console.log(props)
   const { imdbID } = props;
+  // console.log('DISPLAY MOVIE DATA', imdbID)
   const [movieInfo, setMovieInfo] = useState<cleanMovieInfo | null>(null);
   // console.log('just to make sure we arent doing an infinite loop')
 
   useEffect(() => {
-    fetch('/api/movie?' + new URLSearchParams({ imdbID }))
+    fetch('/api/movies?' + new URLSearchParams({ imdbID }))
         .then((res: any) => res.json())
         .then((data: any) => setMovieInfo(data))
     // console.log('just to make sure we arent doing an infinite loop')

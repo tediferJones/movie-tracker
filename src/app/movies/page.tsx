@@ -4,7 +4,7 @@ import prisma from '@/client';
 export default async function Movies() {
   // Use this page to show movies in our database, probably in order of cachedAt date
 
-  const dbResults = await prisma.movie.findMany();
+  const dbResults = await prisma.movies.findMany();
   // console.log(dbResults);
 
   return (

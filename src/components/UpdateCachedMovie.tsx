@@ -2,8 +2,9 @@
 
 export default function updateCachedMovie(props: any) {
   async function update() {
-    const res = await fetch('/api/movie', {
-      method: 'POST',
+    // This should use PUT not POST
+    const res = await fetch('/api/movies', {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },

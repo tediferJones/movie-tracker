@@ -11,13 +11,13 @@ datasource db {
   url="mongodb+srv://theodrz:aTwGpICRF2uxwtXJ@cluster0.52a3znr.mongodb.net/cluster0?retryWrites=true&w=majority"
 }
 
-model userList {
+model lists {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   username String
-  imdbId String
+  imdbID String
 }
 
-model movie {
+model movies {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   Title String
   Year String

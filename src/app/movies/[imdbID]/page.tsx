@@ -1,14 +1,10 @@
 import { rawMovieInfo, cleanMovieInfo } from '@/types';
-// import { v4 as uuidv4 } from 'uuid';
-// import AddToMyList from '@/components/AddToMyList';
-// import UpdateCachedMovie from '@/components/UpdateCachedMovie';
 import DisplayFullMovieInfo from '@/components/DisplayFullMovieInfo';
 import prisma from '@/client';
 import cleanUpMovieInfo from '@/modules/cleanUpMovieInfo';
 
 export default async function Movie({ params }: { params: any }) {
   // Try to clean up and shorten/simplify these functions
-  // start by extract id from params obj into imdbID, for easy access
   // Also go into prisma schema file and make the appropiate fields unique (like imdbId, and probably title too)
   const { imdbID } = params;
   const dbCount = await prisma.movies.count({ where: { imdbID } })
@@ -28,14 +24,6 @@ export default async function Movie({ params }: { params: any }) {
   // Everything above this line should be moved to that api route, the checking of count, inserting of the new record, and returning of the db content
 
   // cant fetch from the server, would have to do this client side
-  // const test = await fetch('/api/movies', {
-  //   method: 'POST',
-  //   headers: {
-  //     'Content-Type': 'application/json'
-  //   },
-  //   body: JSON.stringify({ imdbID })
-  // })
-
   const newData: cleanMovieInfo | null = await prisma.movies.findFirst({ where: { imdbID } })
   // console.log('DATA FETCHED FROM THE DB')
   // console.log(newData);
@@ -45,19 +33,6 @@ export default async function Movie({ params }: { params: any }) {
       {newData === null ? <h1>Error: Either the database or omdbAPI are not responding</h1> : 
       <>
         <h1>SINGLE MOVIE PAGE</h1>
-        {/*
-        {Object.keys(newData).map((key: string) => {
-          return (
-            <div key={uuidv4()}>
-              {`${key}: ${newData[key]}`}
-            </div>
-          )
-        })}
-        <img src={newData.Poster} />
-        <AddToMyList imdbID={newData.imdbID} />
-        <div>{new Date(Number(newData.cachedAt)).toLocaleString()}</div>
-        <UpdateCachedMovie imdbID={newData.imdbID} />
-        */}
         <DisplayFullMovieInfo imdbID={newData.imdbID} />
       </>
       }

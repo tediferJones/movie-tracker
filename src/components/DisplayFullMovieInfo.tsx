@@ -23,7 +23,6 @@ export default function (props: any) {
       <div>
         <h1 className='text-3xl'>{movieInfo.Title}</h1>
         <img src={movieInfo.Poster}/>
-
         {Object.keys(movieInfo).map((key: string) => {
           return (
             <div key={uuidv4()}>

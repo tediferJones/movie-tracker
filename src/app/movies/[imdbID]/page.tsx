@@ -1,7 +1,8 @@
 import { rawMovieInfo, cleanMovieInfo } from '@/types';
-import { v4 as uuidv4 } from 'uuid';
-import AddToMyList from '@/components/AddToMyList';
-import UpdateCachedMovie from '@/components/UpdateCachedMovie';
+// import { v4 as uuidv4 } from 'uuid';
+// import AddToMyList from '@/components/AddToMyList';
+// import UpdateCachedMovie from '@/components/UpdateCachedMovie';
+import DisplayFullMovieInfo from '@/components/DisplayFullMovieInfo';
 import prisma from '@/client';
 import cleanUpMovieInfo from '@/modules/cleanUpMovieInfo';
 
@@ -44,6 +45,7 @@ export default async function Movie({ params }: { params: any }) {
       {newData === null ? <h1>Error: Either the database or omdbAPI are not responding</h1> : 
       <>
         <h1>SINGLE MOVIE PAGE</h1>
+        {/*
         {Object.keys(newData).map((key: string) => {
           return (
             <div key={uuidv4()}>
@@ -52,9 +54,11 @@ export default async function Movie({ params }: { params: any }) {
           )
         })}
         <img src={newData.Poster} />
-        <AddToMyList imdbID={newData.imdbID}/>
+        <AddToMyList imdbID={newData.imdbID} />
         <div>{new Date(Number(newData.cachedAt)).toLocaleString()}</div>
-        <UpdateCachedMovie imdbID={newData.imdbID}/>
+        <UpdateCachedMovie imdbID={newData.imdbID} />
+        */}
+        <DisplayFullMovieInfo imdbID={newData.imdbID} />
       </>
       }
     </div>

@@ -24,14 +24,20 @@ export default function Home() {
   // The master TO-DO list
   //
   // Feature additions:
+  //    - add more fields to the lists table? like 
+  //        watched?(bool), 
+  //        myRating(0-5 bags of popcorn, ),
   //
-  // Typos/Minor Changes:
+  //
+  // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that
-  //    - Change runtime in prismaSchema and Types file to a number, cant sort by runtime if runtime is a string
+  //    - Change some attributes in prismaSchema and Types file to int, why? because you cant sort by runtime if runtime is a string
   //        - i.e. how do you sort ['128 mins', '240 mins', '90 mins' ], its much easier to sort [128, 90, 240]
-  //    - Take a look at /lists/page.tsx, find a more efficient way of obtaining unique array of usernames in db.userLists
-  //      - Try not to use a Set, use a fancier DB query like prisma.movies.groupBy(...)
+  //        - Fields to change: Runtime, Year, imdbVotes maybe, maybe the date (store it as UNIX time so its just an int)
   //    - move the function that adds movies to the db automatically from /movies/[id], to an api/movies/ route, its more restful
+  //      - You would need to write a client component to do this, cant fetch on the server
+  //    - Consider making an easyFetch function so we can just pass this function the method and body, it returns the fetch options
+  //    - Rewrite addToMyList component to return one big button with a bunch of nested ternary statements
   //
   
   return (

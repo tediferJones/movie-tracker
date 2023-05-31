@@ -5,6 +5,7 @@ export default function cleanUpMovieInfo(movieObj: rawMovieInfo): cleanMovieInfo
   ['Actors', 'Writer', 'Director', 'Genre']
   .forEach((key: string) => movieObj[key] = movieObj[key].split(', '))
 
+  // Extract ratings and put them in the root of the movieObj, instead of having an array of objects
   movieObj.Ratings?.forEach((ratingObj: ratingObj) => {
     if (ratingObj.Source === 'Internet Movie Database') { ratingObj.Source = 'IMDB' }
     movieObj[`${ratingObj.Source} Rating`.replaceAll(' ', '')] = ratingObj.Value
@@ -15,11 +16,11 @@ export default function cleanUpMovieInfo(movieObj: rawMovieInfo): cleanMovieInfo
   // Add 'N/A' for ratings that dont exist
   if (!movieObj.RottenTomatoesRating) movieObj.RottenTomatoesRating = 'N/A';
   if (!movieObj.MetacriticRating) movieObj.MetacriticRating = 'N/A';
+  if (!movieObj.IMDBRating) movieObj.IMDBRating = 'N/A';
 
   delete movieObj.Ratings;
   delete movieObj.Metascore;
   delete movieObj.imdbRating;
-  // delete movieObj.imdbVotes;
   delete movieObj.Response;
   const cleanMovieObj: any = movieObj;
 

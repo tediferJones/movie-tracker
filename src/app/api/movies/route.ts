@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { cleanMovieInfo } from '@/types';
+import { cleanMovieInfo, rawMovieInfo } from '@/types';
 import cleanUpMovieInfo from '@/modules/cleanUpMovieInfo';
 import prisma from '@/client';
 
@@ -15,12 +15,17 @@ export async function GET(req: Request) {
   return NextResponse.json(result)
 }
 
-// EXTRACT THE FUNCTION THAT ADDS MOVIES TO OUR DB AND PUT IT HERE
-// should be at the top of ../../movies/[id]
 export async function POST(req: Request) {
-  const body = await req.json();
-  console.log(body)
-  return NextResponse.json('Add movie to DB API route')
+  const { imdbID } = await req.json();
+  // console.log(imdbID)
+  const res = await fetch(`https://www.omdbapi.com/?apikey=8e1df54b&i=${imdbID}`);
+  const rawData: rawMovieInfo = await res.json();
+  if (rawData.Response === 'True') {
+    const data: cleanMovieInfo = cleanUpMovieInfo(rawData);
+    await prisma.movies.create({ data });
+    return NextResponse.json('Added movie to DB API route')
+  }
+  return NextResponse.json('Failed to add movie to DB API route')
 }
 
 export async function PUT(req: Request) {
@@ -47,23 +52,16 @@ export async function PUT(req: Request) {
   }
   return NextResponse.json({ movieHasBeenUpdated: false })
 }
-import { redirect } from 'next/navigation'
 
 export async function HEAD(req: Request) {
-  // This works but without a way to redirect client side we are essentially screwed
+  // Return status code 200 if resource exists, return 404 if it doesnt exist
   const { searchParams } = new URL(req.url);
   const imdbID = searchParams.get('imdbID');
   console.log(imdbID)
   let dbResult: Number;
   if (imdbID) {
     dbResult = await prisma.movies.count({ where: { imdbID } })
-    // return NextResponse.json({}, { status: dbResult === 0 ? 404 : 200 })
-    if (dbResult === 0) {
-      redirect('/poooooooooooop')
-    } else {
-      // redirect('/api/thePostRouteForMovies')
-      redirect(`/movies/${imdbID}`)
-    }
+    return NextResponse.json({}, { status: dbResult === 0 ? 404 : 200 })
   }
   return NextResponse.json({}, { status: 400 })
 }

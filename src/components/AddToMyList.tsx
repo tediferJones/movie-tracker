@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import easyFetch from '@/modules/easyFetch';
 
 export default function AddToMyList(props: any) {
   const [isMovieAlreadyInMyList, setIsMovieAlreadyInMyList] = useState<null | true | false>(null);
@@ -8,41 +9,29 @@ export default function AddToMyList(props: any) {
   // console.log(imdbID)
 
   useEffect(() => {
-    fetch('/api/lists?' + new URLSearchParams({ imdbID }))
+    easyFetch('/api/lists', 'GET', { imdbID })
         .then((res: any) => res.json())
         .then((data: any) => setIsMovieAlreadyInMyList(data.exists))
   }, [refreshTrigger]);
 
   async function addToMyList() {
-    const res = await fetch('/api/lists', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ imdbID })
-    })
-    if (res.ok) {
-      setIsMovieAlreadyInMyList(null);
-      setRefreshTrigger(!refreshTrigger)
-    }
+    setIsMovieAlreadyInMyList(null);
+    await easyFetch('/api/lists', 'POST', { imdbID })
+    setRefreshTrigger(!refreshTrigger)
   }
 
   async function removeFromMyList() {
-    const res = await fetch('/api/lists?' + new URLSearchParams({ imdbID }), { method: 'DELETE' })
-    if (res.ok) {
-      setIsMovieAlreadyInMyList(null);
-      setRefreshTrigger(!refreshTrigger)
-    }
+    setIsMovieAlreadyInMyList(null);
+    await easyFetch('/api/lists', 'DELETE', { imdbID })
+    setRefreshTrigger(!refreshTrigger)
   }
-
-  const buttonClasses = 'p-4 bg-gray-200';
 
   return (
     <div>
       THIS IS THE ADD TO LIST COMPONENT
       <hr />
       <button 
-        className={buttonClasses}
+        className={'p-4 bg-gray-200'}
         onClick={
           isMovieAlreadyInMyList === null ? undefined 
           : isMovieAlreadyInMyList ? removeFromMyList

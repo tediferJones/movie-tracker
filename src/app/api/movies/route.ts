@@ -47,3 +47,23 @@ export async function PUT(req: Request) {
   }
   return NextResponse.json({ movieHasBeenUpdated: false })
 }
+import { redirect } from 'next/navigation'
+
+export async function HEAD(req: Request) {
+  // This works but without a way to redirect client side we are essentially screwed
+  const { searchParams } = new URL(req.url);
+  const imdbID = searchParams.get('imdbID');
+  console.log(imdbID)
+  let dbResult: Number;
+  if (imdbID) {
+    dbResult = await prisma.movies.count({ where: { imdbID } })
+    // return NextResponse.json({}, { status: dbResult === 0 ? 404 : 200 })
+    if (dbResult === 0) {
+      redirect('/poooooooooooop')
+    } else {
+      // redirect('/api/thePostRouteForMovies')
+      redirect(`/movies/${imdbID}`)
+    }
+  }
+  return NextResponse.json({}, { status: 400 })
+}

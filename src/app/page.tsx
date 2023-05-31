@@ -57,6 +57,11 @@ export default async function Home() {
   //            if that retuns false, make a POST request to /api/movies to add the movie to the DB
   //            then redirect to the correct page
   //          - Then all the individual movie page has to do is make a GET request to /api/movies
+  //       - If we can figure out how to redirect client side we are set
+  //       - ALTERNATIVELY, HAVE THE GET REQUEST REDIRECT USER TO THE MOVIE PAGE
+  //       - See notes in /components/LinkToMovie checkDb function 
+  //
+  //       - apparently we cant get redirects to work on the server or the client, something is fucked
   //
 
   const user = await currentUser();

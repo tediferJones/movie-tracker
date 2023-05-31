@@ -28,6 +28,8 @@ export default async function Movie({ params }: { params: any }) {
   // console.log('DATA FETCHED FROM THE DB')
   // console.log(newData);
 
+  // What happens when a user goes to /movies/notAnImdbID
+
   return (
     <div>
       {newData === null ? <h1>Error: Either the database or omdbAPI are not responding</h1> : 

@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { omdbSearch, omdbSearchResult } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
+// import LinkToMovie from '@/components/LinkToMovie';
+import { useRouter } from 'next/navigation';
 
 export default function Searchbar() {
   const defaultState: omdbSearch = {
@@ -9,6 +11,8 @@ export default function Searchbar() {
     Response: 'False',
     totalResults: '0',
   }
+  const router = useRouter();
+  // router.push('/movies/tt0072021')
 
   const [searchTerm, setSearchTerm] = useState('The Deluge');
   const [searchResult, setSearchResult] = useState(defaultState);
@@ -32,6 +36,16 @@ export default function Searchbar() {
     return () => clearTimeout(delaySetState)
   }, [searchTerm])
 
+  // <LinkToMovie imdbID={item.imdbID}/>
+
+  async function checkDb(e: any) {
+    console.log(e.target.value)
+    const test = await fetch('/api/movies?' + new URLSearchParams({ imdbID: e.target.value }), { method: 'HEAD' });
+    console.log(test.status);
+    // router.push('/movies/tt0072021')
+    // return
+  }
+
   return (
     <div className='flex flex-col items-center'>
       <div className='w-4/5 flex'>
@@ -52,6 +66,7 @@ export default function Searchbar() {
                 <a className='flex-1' 
                   href={`/movies/${item.imdbID}`}
                 >LINK</a>
+                <button onClick={checkDb} value={item.imdbID}>New Link to Movie</button>
               </div>
             )
           })}

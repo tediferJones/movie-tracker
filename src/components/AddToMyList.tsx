@@ -9,9 +9,9 @@ export default function AddToMyList(props: any) {
   // console.log(imdbID)
 
   useEffect(() => {
-    easyFetch('/api/lists', 'GET', { imdbID })
-        .then((res: any) => res.json())
-        .then((data: any) => setIsMovieAlreadyInMyList(data.exists))
+    easyFetch('/api/lists', 'HEAD', { imdbID })
+        .then((res: any) => res.status)
+        .then((status: number) => setIsMovieAlreadyInMyList(status === 200 ? true : false))
   }, [refreshTrigger]);
 
   async function addToMyList() {

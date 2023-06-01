@@ -18,11 +18,6 @@ export default function LinkToMovie(props: any) {
     }
   }
 
-  // TO DO THIS WITH API ROUTES
-  // if status === 200, GET request to /movies/[imdbID]
-  // if status === 404, POST request to /movies/[imdbID] then send a get request with the same imdbID
-  // if status === 400, still do nothing
-
   return (
     <button onClick={checkDb}>NEW LINK</button>
   )

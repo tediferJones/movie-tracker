@@ -8,29 +8,22 @@ import prisma from '@/client';
 
 // Rewrite all of this, switching to MONGODB, so no more SQL strings
 
-export async function GET(req: Request) {
-  // To be more restful, this function should actually return the users list
-  // Re-write this in a HEAD function
-  console.log('CHECKING myList')
-  const { searchParams } = new URL(req.url);
-  const imdbID = searchParams.get('imdbID');
-  // console.log(imdbID);
-
+export async function GET() {
+  console.log('GET user list')
   const user = await currentUser();
-  const username = user?.username;
-  // console.log(username);
-  let mongoResult: null | object = null;
-  if (username && imdbID) {
-    mongoResult = await prisma.lists.findFirst({ 
-      where: { 
-        username, 
-        imdbID 
-      } 
-    })
-  }
-  // console.log(mongoResult);
+  let username;
+  let dbResult: any[] = [];
 
-  return NextResponse.json({ exists: mongoResult !== null })
+  if (user) {
+    username = user.username;
+  }
+
+  if (username) {
+    dbResult = await prisma.lists.findMany({ where: { username } })
+  }
+  // console.log(dbResult)
+
+  return NextResponse.json(dbResult.length > 0 ? dbResult : [])
 }
 
 export async function POST(req: Request) {
@@ -68,4 +61,28 @@ export async function DELETE(req: Request) {
   }
 
   return NextResponse.json('deleted movie from myList')
+}
+
+export async function HEAD(req: Request) {
+  // THESE API ROUTE IS FOR ADDTOMYLIST CHECKER FUNC
+  console.log('Checking user list for imdbID');
+  const { searchParams } = new URL(req.url);
+  // Dont get username from req, req can be changed by user, so the only thing that goes in the REQ is imdbID, username is fetched inside the api route
+  const imdbID = searchParams.get('imdbID')
+  let username;
+  // console.log(username)
+
+  const user = await currentUser();
+  if (user) {
+    username = user.username;
+  }
+
+  let dbResult: null | object = null;
+
+  if (username && imdbID) {
+    dbResult = await prisma.lists.findFirst({ where: { username, imdbID } })
+  }
+  console.log(dbResult)
+
+  return NextResponse.json({}, { status: dbResult === null ? 404 : 200 })
 }

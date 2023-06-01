@@ -23,7 +23,6 @@ export default function Searchbar() {
           .then((data: omdbSearch) => {
             console.log('SEARCH RESULTS', data)
             if (data.Response === 'True') {
-              // console.log('SETTING STATE')
               setSearchResult(data);
             } else {
               setSearchResult(defaultState);

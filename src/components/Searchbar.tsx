@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { omdbSearch, omdbSearchResult } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import LinkToMovie from '@/components/LinkToMovie';
+import easyFetch from '@/modules/easyFetch';
 
 export default function Searchbar() {
   const defaultState: omdbSearch = {
@@ -13,12 +14,16 @@ export default function Searchbar() {
 
   const [searchTerm, setSearchTerm] = useState('The Deluge');
   const [searchResult, setSearchResult] = useState(defaultState);
+  // fetch('/api/search?' + new URLSearchParams({ searchTerm: 'TheDeluge' }))
+  //     .then((res: any) => console.log(res))
 
   useEffect(() => {
     const delaySetState = setTimeout(() => {
       // console.log(searchTerm)
       // Cant use easyFetch here, but thats okay, this should be the only place that directly queries omdbAPI
-      fetch(`http://www.omdbapi.com/?apikey=8e1df54b&s=${searchTerm}`)
+      // fetch(`http://www.omdbapi.com/?apikey=8e1df54b&s=${searchTerm}`)
+      // fetch('/api/search?' + new URLSearchParams({ searchTerm }))
+      easyFetch('/api/search', 'GET', { searchTerm })
           .then((res: any) => res.json())
           .then((data: omdbSearch) => {
             console.log('SEARCH RESULTS', data)

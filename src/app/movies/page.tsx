@@ -13,6 +13,7 @@ export default async function Movies() {
       <hr />
       <h1>Total movies in our database ( {dbResults.length} )</h1>
       {dbResults.map((item: cleanMovieInfo) => {
+        // This container div should probably have a key, but doesnt seem to throw any errors/warning
         return (
           <div className='flex justify-between'>
             <h1 className='flex-1'>{item.Title}</h1>

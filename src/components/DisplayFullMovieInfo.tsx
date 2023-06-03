@@ -19,7 +19,7 @@ export default function (props: any) {
   return (
     <div>
       <h1>Display Full Movie Info Component</h1>
-      {movieInfo === null ? [] :
+      {movieInfo === null ? <h1>Error: We couldn't find that imdbID in the database</h1> :
       <div>
         <h1 className='text-3xl'>{movieInfo.Title}</h1>
         <img src={movieInfo.Poster}/>

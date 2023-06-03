@@ -22,7 +22,7 @@ model movies {
   Title String
   Year String
   Rated String
-  Released String
+  Released Int @db.Long
   Runtime String
   Plot String
   Language String
@@ -31,7 +31,7 @@ model movies {
   Poster String
   imdbID String @unique
   Type String
-  DVD String
+  DVD Int @db.Long
   BoxOffice String
   Production String
   Website String
@@ -43,5 +43,5 @@ model movies {
   IMDBRating String
   RottenTomatoesRating String
   MetacriticRating String
-  cachedAt String
+  cachedAt Int @db.Long
 }

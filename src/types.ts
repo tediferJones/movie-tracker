@@ -11,7 +11,6 @@ interface basicMovieInfo extends stringIndexableObject {
   Title: string,
   Year: string,
   Rated: string,
-  Released: string,
   Runtime: string,
   Plot: string,
   Language: string,
@@ -20,7 +19,6 @@ interface basicMovieInfo extends stringIndexableObject {
   Poster: string,
   imdbID: string,
   Type: string,
-  DVD: string,
   BoxOffice: string,
   Production: string,
   Website: string,
@@ -36,7 +34,11 @@ interface rawMovieInfo extends basicMovieInfo {
   Ratings?: ratingObj[],
   Metascore?: string,
   imdbRating?: string,
-  imdbVotes?: string,
+  // imdbVotes?: string,
+  // MOVE THIS AND THE ONE IN cleanMovieInfo TO basicMovieInfo
+  imdbVotes: string,
+  Released: string | number,
+  DVD: string | number,
 }
 
 interface cleanMovieInfo extends basicMovieInfo {
@@ -49,7 +51,9 @@ interface cleanMovieInfo extends basicMovieInfo {
   IMDBRating: string,
   RottenTomatoesRating: string,
   MetacriticRating: string,
-  cachedAt: string,
+  cachedAt: number,
+  Released: number,
+  DVD: number,
 }
 
 interface omdbSearchResult {

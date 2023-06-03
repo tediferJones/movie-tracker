@@ -7,7 +7,7 @@ export async function GET() {
   const user = await currentUser();
   let dbResult: any[] = [];
 
-  if (user && user.username) {
+  if (user?.username) {
     dbResult = await prisma.lists.findMany({ where: { username: user.username } })
   }
 
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   const user = await currentUser();
 
   // Push record to DB
-  if (user && user.username && imdbID) {
+  if (user?.username && imdbID) {
     const username = user.username;
     await prisma.lists.create({ data: { username, imdbID } })
   }
@@ -34,7 +34,7 @@ export async function DELETE(req: Request) {
   const imdbID = new URL(req.url).searchParams.get('imdbID')
   // console.log(imdbID);
 
-  if (user && user.username && imdbID) {
+  if (user?.username && imdbID) {
     // We use deleteMany because delete only accepts unique identifiers, so we would have to query DB, find its unique ID, and delete it, instead we just delete all matching records, cuz each record should be unique
     // Or you can just username and imdbID unique attributes in the prisma schema, in theory, they're should be unqiue anyways
     const username = user.username;
@@ -55,7 +55,7 @@ export async function HEAD(req: Request) {
   const user = await currentUser();
   let dbResult: null | object = null;
 
-  if (user && user.username && imdbID) {
+  if (user?.username && imdbID) {
     const username = user.username;
     dbResult = await prisma.lists.findFirst({ where: { username, imdbID } })
   }

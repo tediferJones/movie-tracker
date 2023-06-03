@@ -6,8 +6,7 @@ import prisma from '@/client';
 
 export async function GET(req: Request) {
   console.log('\n FETCH SINGLE MOVIE RECORD FROM DB \n')
-  const { searchParams } = new URL(req.url);
-  const imdbID = searchParams.get('imdbID')
+  const imdbID = new URL(req.url).searchParams.get('imdbID')
   let result = null;
   // console.log(imdbID)
   if (imdbID) {
@@ -57,8 +56,7 @@ export async function PUT(req: Request) {
 
 export async function HEAD(req: Request) {
   // Return status code 200 if resource exists, return 404 if it doesnt exist
-  const { searchParams } = new URL(req.url);
-  const imdbID = searchParams.get('imdbID');
+  const imdbID = new URL(req.url).searchParams.get('imdbID');
   console.log('\n HEAD REQUEST to /api/movies \n')
   let dbResult: Number;
   if (imdbID) {

@@ -1,5 +1,6 @@
 import { currentUser } from '@clerk/nextjs';
 import DisplayUserList from '@/components/DisplayUserList';
+// import prisma from '@/client'
 
 export default async function Home() {
   // USE OMDBAPI: https://www.omdbapi.com/
@@ -51,13 +52,23 @@ export default async function Home() {
   //    - Update prisma schema fields to make appropiate fields unique
   //      - Is this even possible? both the username and imdbID will be repeated
   //      - Maybe consider a different table structure, this one seems repetitive
+  //    # This is a simplified version of the last 2 major bullet points
+  //    - Update prisma schema, also update types file to match, 
+  //      will probably also need to visit cleanUpMovieInfo component, to implement these changes
+  //        - Split country, language,  into array
+  //        - Fields to change to Number: Year, Runtime, imdbVotes, 
+  //        - [ DONE ]Fields to change to date (UNIX time): Released, CachedAt, DVD
+  //        - AFTER DONE UPDATING PRISMA SCHEMA: CLEAR THE DB OF ALL RECORDS
+  //    - Change the way user list is stored, each user should have a single record that holds an array of movieIDs 
   //
 
   const user = await currentUser();
+  // await prisma.movies.deleteMany({});
+  // await prisma.lists.deleteMany({});
 
   return (
     <div>
-      {!(user && user.username) ? <h1>Error: you need to login</h1>
+      {!(user?.username) ? <h1>Error: you need to login</h1>
       : <div>
         <h1>THIS IS THE HOME PAGE</h1>
         <div className='text-xl'>Hello, {user.username}</div>

@@ -3,7 +3,11 @@ import { rawMovieInfo, cleanMovieInfo, ratingObj } from '@/types';
 export default function cleanUpMovieInfo(movieObj: rawMovieInfo): cleanMovieInfo {
   // Split these strings into arrays of individual names
   ['Actors', 'Writer', 'Director', 'Genre']
-  .forEach((key: string) => movieObj[key] = movieObj[key].split(', '))
+  .forEach((key: string) => movieObj[key] = movieObj[key].split(', '));
+ 
+  ['Released', 'DVD'].forEach((key: string) => {
+    movieObj[key] = movieObj[key] === 'N/A' ? 0 : new Date(movieObj[key]).getTime();
+  });
 
   // Extract ratings and put them in the root of the movieObj, instead of having an array of objects
   movieObj.Ratings?.forEach((ratingObj: ratingObj) => {
@@ -11,7 +15,7 @@ export default function cleanUpMovieInfo(movieObj: rawMovieInfo): cleanMovieInfo
     movieObj[`${ratingObj.Source} Rating`.replaceAll(' ', '')] = ratingObj.Value
   })
 
-  movieObj.cachedAt = Date.now().toString();
+  movieObj.cachedAt = Date.now();
 
   // Add 'N/A' for ratings that dont exist
   if (!movieObj.RottenTomatoesRating) movieObj.RottenTomatoesRating = 'N/A';

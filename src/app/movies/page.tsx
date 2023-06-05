@@ -15,7 +15,9 @@ export default async function Movies() {
       {dbResults.map((item: cleanMovieInfo) => {
         // This container div should probably have a key, but doesnt seem to throw any errors/warning
         return (
-          <div className='flex justify-between'>
+          <div className='flex justify-between'
+            key={item.imdbID}
+          >
             <h1 className='flex-1'>{item.Title}</h1>
             <h3 className='flex-1'>{item.Year}</h3>
             <a className='flex-1'

@@ -43,23 +43,16 @@ export default async function Home() {
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that
-  //    - Change some attributes for movies in prismaSchema and Types file to int, 
-  //      why? because you cant sort by runtime if runtime is a string
-  //      - i.e. how do you sort ['128 mins', '240 mins', '90 mins' ], its much easier to sort [128, 90, 240]
-  //      - Fields to change: Year, Runtime, imdbVotes, 
-  //        - maybe the date (store it as UNIX time so its just an int)
-  //      - Consider also making certain fields unique, like title
-  //    - Update prisma schema fields to make appropiate fields unique
-  //      - Is this even possible? both the username and imdbID will be repeated
-  //      - Maybe consider a different table structure, this one seems repetitive
-  //    # This is a simplified version of the last 2 major bullet points
   //    - Update prisma schema, also update types file to match, 
   //      will probably also need to visit cleanUpMovieInfo component, to implement these changes
-  //        - Split country, language,  into array
-  //        - Fields to change to Number: Year, Runtime, imdbVotes, 
-  //        - [ DONE ]Fields to change to date (UNIX time): Released, CachedAt, DVD
+  //        - [ DONE ] Split country, language,  into array
+  //        - [ DONE ] Fields to change to Number: Year, Runtime, imdbVotes, 
+  //        - [ DONE ] Fields to change to date (UNIX time): Released, CachedAt, DVD
+  //        - [ DONE ] Convert rating to numbers (could be int, they all out essentially out of 100 anyways)
+  //        - Change BoxOffice to int
   //        - AFTER DONE UPDATING PRISMA SCHEMA: CLEAR THE DB OF ALL RECORDS
   //    - Change the way user list is stored, each user should have a single record that holds an array of movieIDs 
+  //      - Make the username field unique in this table
   //
 
   const user = await currentUser();

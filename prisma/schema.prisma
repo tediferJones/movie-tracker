@@ -20,13 +20,13 @@ model lists {
 model movies {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   Title String
-  Year String
+  Year Int @db.Int
   Rated String
   Released Int @db.Long
-  Runtime String
+  Runtime Int @db.Int
   Plot String
-  Language String
-  Country String
+  Language String[]
+  Country String[]
   Awards String
   Poster String
   imdbID String @unique
@@ -39,9 +39,9 @@ model movies {
   Director String[]
   Writer String[]
   Actors String[]
-  imdbVotes String
-  IMDBRating String
-  RottenTomatoesRating String
-  MetacriticRating String
+  imdbVotes Int @db.Int
+  IMDBRating Int @db.Int
+  RottenTomatoesRating Int @db.Int
+  MetacriticRating Int @db.Int
   cachedAt Int @db.Long
 }

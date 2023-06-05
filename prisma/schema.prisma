@@ -32,7 +32,7 @@ model movies {
   imdbID String @unique
   Type String
   DVD Int @db.Long
-  BoxOffice String
+  BoxOffice Int @db.Long
   Production String
   Website String
   Genre String[]

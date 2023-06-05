@@ -31,7 +31,7 @@ export default async function Home() {
   //    - Use easyFetch for all fetch requests, be consistent
   //    - Replace 2 line methods for fetching url params with the 1 line method (see /api/lists for examples)
   //    - Always be careful of the inputs we accept from the user, 
-  //      Solution: just DONT use HTML value attribute to hold important information, 
+  //      Solution: just DONT use HTML value attribute to hold/pass important information, 
   //      
   //
   // Feature additions:
@@ -43,14 +43,11 @@ export default async function Home() {
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that
-  //    - Update prisma schema, also update types file to match, 
-  //      will probably also need to visit cleanUpMovieInfo component, to implement these changes
-  //        - [ DONE ] Split country, language,  into array
-  //        - [ DONE ] Fields to change to Number: Year, Runtime, imdbVotes, 
-  //        - [ DONE ] Fields to change to date (UNIX time): Released, CachedAt, DVD
-  //        - [ DONE ] Convert rating to numbers (could be int, they all out essentially out of 100 anyways)
-  //        - Change BoxOffice to int
-  //        - AFTER DONE UPDATING PRISMA SCHEMA: CLEAR THE DB OF ALL RECORDS
+  //    - Try to remove the weird fake type coercion in /modules/CleanUpMovieInfo
+  //      - Try adding a third type to the types file,
+  //      - One type needs to be a pure version of rawMovieInfo, no optional fields
+  //      - Second type need to be a transitional object, should have lots of optional fields
+  //      - Third type is cleanMovieInfo, which is already pure
   //    - Change the way user list is stored, each user should have a single record that holds an array of movieIDs 
   //      - Make the username field unique in this table
   //

@@ -15,7 +15,6 @@ interface basicMovieInfo extends stringIndexableObject {
   Poster: string,
   imdbID: string,
   Type: string,
-  BoxOffice: string,
   Production: string,
   Website: string,
   // Move this to rawMovieInfo, it should never exist on cleanMovieInfo
@@ -30,8 +29,6 @@ interface rawMovieInfo extends basicMovieInfo {
   Ratings?: ratingObj[],
   Metascore?: string,
   imdbRating?: string,
-  // imdbVotes?: string,
-  // MOVE THIS AND THE ONE IN cleanMovieInfo TO basicMovieInfo
   Released: string | number,
   DVD: string | number,
   Year: string | number,
@@ -39,7 +36,12 @@ interface rawMovieInfo extends basicMovieInfo {
   Runtime: string | number,
   Country: string,
   Language: string,
+  BoxOffice: string | number,
   Response?: string,
+  IMDBRating?: number,
+  RottenTomatoesRating?: number,
+  MetacriticRating?: number,
+  cachedAt?: number,
 }
 
 interface cleanMovieInfo extends basicMovieInfo {
@@ -59,6 +61,7 @@ interface cleanMovieInfo extends basicMovieInfo {
   Runtime: number,
   Country: string[],
   Language: string[],
+  BoxOffice: number,
 }
 
 interface omdbSearchResult {
@@ -74,7 +77,5 @@ interface omdbSearch {
   Search: omdbSearchResult[],
   totalResults: string,
 }
-
-// Will probably want to add types for people Records and Genre Records, just to make sure we're storing the right datatypes in our DB
 
 export type { rawMovieInfo, cleanMovieInfo, ratingObj, omdbSearchResult, omdbSearch }

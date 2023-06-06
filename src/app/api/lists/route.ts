@@ -2,14 +2,24 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs';
 import prisma from '@/client';
 
-export async function GET() {
+export async function GET(req: Request) {
   console.log('\n GET USER LIST \n')
+  // REWRITE THIS TO RETURN A SPECIFIC MOVIE IF GET REQUEST HAS SEARCHPARAMS
+  // i.e. if (searchParams) return Single movie related to this userame, else return all movies related to this user
+  const imdbID = new URL(req.url).searchParams.get('imdbID')
   const user = await currentUser();
   let dbResult: any[] = [];
 
   if (user?.username) {
-    dbResult = await prisma.lists.findMany({ where: { username: user.username } })
+    if (imdbID) {
+      console.log('\n Found params returning single record \n')
+      return NextResponse.json(await prisma.lists.findFirst({ where: { username: user.username, imdbID } }))
+    } else {
+      console.log('\n No params found returning all list records related to this username \n')
+      dbResult = await prisma.lists.findMany({ where: { username: user.username } })
+    }
   }
+  console.log(dbResult)
 
   return NextResponse.json(dbResult.length > 0 ? dbResult : [])
 }
@@ -27,6 +37,8 @@ export async function POST(req: Request) {
 
   return NextResponse.json('added movie to myList')
 }
+
+// PUT function goes here, use it to toggle attributes like "watched", "watchAgain", etc...
 
 export async function DELETE(req: Request) {
   console.log('\n DELETE MOVIE FROM myList \n')

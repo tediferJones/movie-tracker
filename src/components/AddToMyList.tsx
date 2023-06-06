@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import easyFetch from '@/modules/easyFetch';
+import ToggleListDetails from '@/components/ToggleListDetails';
 
 export default function AddToMyList(props: any) {
   const [isMovieAlreadyInMyList, setIsMovieAlreadyInMyList] = useState<null | true | false>(null);
@@ -39,7 +40,9 @@ export default function AddToMyList(props: any) {
         }
       >{isMovieAlreadyInMyList === null ? 'Loading...'
       : isMovieAlreadyInMyList ? 'Remove From My List'
-      : 'Add To My List'}</button>
+      : 'Add To My List'}
+      </button>
+      {!isMovieAlreadyInMyList ? [] : <ToggleListDetails imdbID={imdbID}/> }
     </div>
   )
 }

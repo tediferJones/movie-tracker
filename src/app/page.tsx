@@ -39,6 +39,9 @@ export default async function Home() {
   //        watched?      (bool) 
   //        myRating      (0-5 bags of popcorn)
   //        watchAgain?   (bool)
+  //    - move auth from ./layout to individual components
+  //      - if done properly, users can still browse/filter the whole DB, and search for movies
+  //      - But if they try to do anything related a user (i.e. add/removing a movie a list), then require the login
   //
   //
   // Minor Changes:
@@ -48,8 +51,6 @@ export default async function Home() {
   //      - One type needs to be a pure version of rawMovieInfo, no optional fields
   //      - Second type need to be a transitional object, should have lots of optional fields
   //      - Third type is cleanMovieInfo, which is already pure
-  //    - Change the way user list is stored, each user should have a single record that holds an array of movieIDs 
-  //      - Make the username field unique in this table
   //
 
   const user = await currentUser();

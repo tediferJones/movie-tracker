@@ -37,8 +37,17 @@ export default async function Home() {
   // Feature additions:
   //    - add more fields to the lists table? like 
   //        watched?      (bool) 
-  //        myRating      (0-5 bags of popcorn)
+  //        myRating      (0-5 bags of popcorn), 
+  //          - if we want 1-5 rating, the finest increment we can handle is 0.05
+  //          - if we use a step of 0.05, that gives us 100 unique options between 0 and 5
+  //          - This is perfect because can assign all rating values to a base of 100
+  //          - i.e. all rating with valid step, can be multiplied by 20 to get an integer between 0 and 100
   //        watchAgain?   (bool)
+  //    - Do we want users to have multiple lists?
+  //      if we do consider spliting up lists table into lists and movieDetails
+  //        - Lists table should link to movieDetails to get record matching this username and imdbID
+  //        - This allows us to use one movie record in multiple lists
+  //          i.e. if we have friday 13th in 2 different lists, they should present the same movieDetails
   //    - move auth from ./layout to individual components
   //      - if done properly, users can still browse/filter the whole DB, and search for movies
   //      - But if they try to do anything related a user (i.e. add/removing a movie a list), then require the login
@@ -51,6 +60,8 @@ export default async function Home() {
   //      - One type needs to be a pure version of rawMovieInfo, no optional fields
   //      - Second type need to be a transitional object, should have lots of optional fields
   //      - Third type is cleanMovieInfo, which is already pure
+  //    - Make username, imdbID, and listName (if we add that) unique, 
+  //      See 'defining a unique field' in prisma docs or search for @@unique
   //
 
   const user = await currentUser();

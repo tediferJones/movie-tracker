@@ -17,6 +17,9 @@ model lists {
   imdbID String
   watched Boolean @default(false)
   watchAgain Boolean @default(false)
+  myRating Int @default(0) @db.Int
+
+  @@unique([username, imdbID])
 }
 
 model movies {

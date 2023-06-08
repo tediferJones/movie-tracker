@@ -39,6 +39,27 @@ export async function POST(req: Request) {
 }
 
 // PUT function goes here, use it to toggle attributes like "watched", "watchAgain", etc...
+export async function PUT(req: Request) {
+  // This method takes a body
+  console.log('\n UPDATING MOVIE DETAILS \n')
+  const user = await currentUser();
+  const { movieDetailKey, movieDetailValue, imdbID } = await req.json();
+  console.log(movieDetailKey);
+  console.log(movieDetailValue);
+  console.log(imdbID);
+  if (user?.username && imdbID) {
+    await prisma.lists.updateMany({
+      where: {
+        imdbID,
+        username: user.username,
+      },
+      data: {
+        [movieDetailKey]: movieDetailValue,
+      }
+    })
+  }
+  return NextResponse.json('updated movie details');
+}
 
 export async function DELETE(req: Request) {
   console.log('\n DELETE MOVIE FROM myList \n')

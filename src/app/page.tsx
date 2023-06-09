@@ -35,22 +35,39 @@ export default async function Home() {
   //      
   //
   // Feature additions:
-  //    - add more fields to the lists table? like 
-  //        watched?      (bool) 
-  //        myRating      (0-5 bags of popcorn), 
-  //          - if we want 1-5 rating, the finest increment we can handle is 0.05
-  //          - if we use a step of 0.05, that gives us 100 unique options between 0 and 5
-  //          - This is perfect because can assign all rating values to a base of 100
-  //          - i.e. all rating with valid step, can be multiplied by 20 to get an integer between 0 and 100
-  //        watchAgain?   (bool)
+  //    - move auth from ./layout to individual components
+  //      - if done properly, users can still browse/filter the whole DB, and search for movies
+  //      - But if they try to do anything related a user (i.e. add/removing a movie a list), then require the login
+  //
+  //    - Delete all head requests in api routes, 
+  //      - format GET requests to return status of 404 if resource doesnt exist
+  //
+  //    - Users will watch the same movie multiple times, 
+  //      we should save the date for each time a movie is watched
+  //      i.e. change watched attribute in reviews table to an array 
+  //           or make another table called watched, each record contains { username, imdbID, dateWatched }
+  //      - if we make a new table, remove 'watched' from review table, it is kind of irrelevant to the review anyways
+  //      - Should probably make a ManageWatched component, that takes care of everything related to the watched table
+  //
   //    - Do we want users to have multiple lists?
   //      if we do consider spliting up lists table into lists and movieDetails
   //        - Lists table should link to movieDetails to get record matching this username and imdbID
   //        - This allows us to use one movie record in multiple lists
   //          i.e. if we have friday 13th in 2 different lists, they should present the same movieDetails
-  //    - move auth from ./layout to individual components
-  //      - if done properly, users can still browse/filter the whole DB, and search for movies
-  //      - But if they try to do anything related a user (i.e. add/removing a movie a list), then require the login
+  //
+  //    - userReview (AKA movieDetails) is independent of movies in users list, 
+  //      i.e. you can review a movie and not have it in any list
+  //      - Which leads us to making another table to actually track user lists, 
+  //      - The new reviews table should use username and imdbID to form a unique record
+  //      - new lists table can just be username, imdbID, listName, all three columns should form a unique record
+  //
+  //    - Do we want users to be able to see other users movieReviews?
+  //      - As of now, lets say no
+  //      - But if we change our mind all we have to do is write a client component 
+  //        this component should fetch all reviews with the same imdbID
+  //
+  //    - REWRITE LISTS API ROUTES, LISTS PRISMASCHEMA, and redesign addToList component
+  //      - AddToList component needs to allow user to select which list they want to do add to
   //
   //
   // Minor Changes:

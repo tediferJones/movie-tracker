@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { movieDetails } from '@/types';
 import easyFetch from '@/modules/easyFetch';
 
+// RENAME THIS COMPONENT TO ManageReview
+
 export default function EditListDetails(props: any) {
   const { imdbID } = props;
   // consider using null to hold loading state, i.e. when listDetails === null => display loading dialog
@@ -14,12 +16,17 @@ export default function EditListDetails(props: any) {
   const [myRatingToggle, setMyRatingToggle] = useState<boolean>(false);
 
   useEffect(() => {
-    easyFetch('/api/lists', 'GET', { imdbID })
-        .then((res: any) => res.json())
-        .then((data: any) => {
-          setListDetails(data);
-          setMyRating(data.myRating);
-        })
+    (async () => {
+      // fetch /api/reviews HEAD, if 404 then /api/reviews POST, lastly fetch /api/reviews (it should exist)
+      const reviewCheck = await easyFetch('/api/reviews', 'HEAD', { imdbID });
+      if (reviewCheck.status === 404) {
+        await easyFetch('/api/reviews', 'POST', { imdbID });
+      }
+      // console.log(`REVIEW RESULT IS ${reviewCheck.status}`)
+      const review = await easyFetch('/api/reviews', 'GET', { imdbID }).then((res: any) => res.json());
+      setListDetails(review);
+      setMyRating(review.myRating);
+    })();
   }, [refreshTrigger])
 
   // Each attribute we want to toggle should have its own button, 
@@ -35,35 +42,29 @@ export default function EditListDetails(props: any) {
       } else {
         movieDetailValue = myRating;
       }
-      await easyFetch('/api/lists', 'PUT', { movieDetailKey, movieDetailValue, imdbID })
+      await easyFetch('/api/reviews', 'PUT', { movieDetailKey, movieDetailValue, imdbID })
       setRefreshTrigger(!refreshTrigger);
     }
   }
 
-  // Use listDetails to assign default myRating value
   function sliderHandler(e: any) {
     if (myRatingToggle) {
+      document.getElementById('HoverText')?.remove()
       setMyRating(Math.round(e.nativeEvent.offsetX / e.target.offsetWidth * 100))
+    } else {
+      if (!document.getElementById('HoverText')) {
+        const hoverText = document.createElement('div');
+        hoverText.id = 'HoverText'
+        hoverText.innerHTML = 'Click to Edit'
+        hoverText.style.position = 'absolute';
+        document?.getElementById('myRatingParent')?.prepend(hoverText)
+      }
     }
-    // else {
-    //   console.log('myRatingToggle is FALSE')
-    //   console.log(document.getElementById('myRatingParent'))
-    // }
   }
 
-  function mouseEnter() {
-    const newDiv = document.createElement('div');
-    newDiv.id = 'HoverText'
-    newDiv.innerHTML = 'Click to Edit'
-    newDiv.style.position = 'absolute';
-    document?.getElementById('myRatingParent')?.prepend(newDiv)
-  }
-
-  function mouseLeave() {
-    document.getElementById('HoverText')?.remove();
-  }
- 
   // const hoverText = <div id='HoverText' style={{position: 'absolute'}}>Click to Edit</div>
+  //
+  // ADD BUTTON TO DELETE REVIEW, route already exists in API, but it is essentially empty
 
   return (
     <>
@@ -86,16 +87,8 @@ export default function EditListDetails(props: any) {
         <div className='h-16 bg-blue-400'
           id='myRatingParent'
           onMouseMove={sliderHandler} 
-          onMouseEnter={myRatingToggle ? undefined : mouseEnter}
-          onMouseLeave={myRatingToggle ? undefined : mouseLeave}
-          onClick={() => {
-            if (myRatingToggle) {
-              mouseEnter()
-            } else {
-              document.getElementById('HoverText')?.remove(); 
-            }
-            setMyRatingToggle(!myRatingToggle); 
-          }}
+          onMouseLeave={() => document.getElementById('HoverText')?.remove()}
+          onClick={() => setMyRatingToggle(!myRatingToggle)}
         >
           <div className='h-full bg-red-400' 
             id='myRating' 

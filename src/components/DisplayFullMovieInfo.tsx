@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { cleanMovieInfo } from '@/types';
 import AddToMyList from '@/components/AddToMyList';
 import UpdateCachedMovie from '@/components/UpdateCachedMovie';
+import EditListDetails from '@/components/EditListDetails';
 import easyFetch from '@/modules/easyFetch';
 
 export default function (props: any) {
@@ -31,6 +32,7 @@ export default function (props: any) {
           )
         })}
         <AddToMyList imdbID={movieInfo.imdbID} />
+        <EditListDetails imdbID={movieInfo.imdbID} />
         <div>{new Date(Number(movieInfo.cachedAt)).toLocaleString()}</div>
         <UpdateCachedMovie imdbID={movieInfo.imdbID} />
       </div>}

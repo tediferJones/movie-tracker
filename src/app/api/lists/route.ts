@@ -23,6 +23,10 @@ export async function GET(req: Request) {
   // if only imdbID: idk? probably dont have to worry about that
   // if both, 
   //
+
+  // OR just return all the users data
+  // This becomes a problem when we want to fetch other users data
+  
   const imdbID = new URL(req.url).searchParams.get('imdbID');
   const listname = new URL(req.url).searchParams.get('listname');
   console.log(imdbID)
@@ -34,6 +38,19 @@ export async function GET(req: Request) {
       where: { username: user.username }
     })
     return NextResponse.json(dbResult.map((item: { listname: string }) => item.listname));
+  }
+
+  if (user?.username && listname && imdbID) {
+    const dbResult = await prisma.lists.findFirst({
+      where: {
+        username: user.username,
+        listname,
+        imdbID,
+      },
+    });
+
+    return NextResponse.json(dbResult);
+
   }
 
   // if (user?.username && !imdbID && listname) {
@@ -58,13 +75,13 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   console.log('\n ADD MOVIE TO myList \n')
-  const { imdbID } = await req.json();
+  const { listname, imdbID } = await req.json();
   const user = await currentUser();
 
   // Push record to DB
-  if (user?.username && imdbID) {
+  if (user?.username && listname && imdbID) {
     const username = user.username;
-    await prisma.lists.create({ data: { username, imdbID } })
+    await prisma.lists.create({ data: { username, listname, imdbID } })
   }
 
   return NextResponse.json('added movie to myList')
@@ -96,17 +113,21 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   console.log('\n DELETE MOVIE FROM myList \n')
   const user = await currentUser();
-  const imdbID = new URL(req.url).searchParams.get('imdbID')
+  const { searchParams } = new URL(req.url);
+  // const imdbID = new URL(req.url).searchParams.get('imdbID')
+  const imdbID = searchParams.get('imdbID');
+  const listname = searchParams.get('listname');
   // console.log(imdbID);
 
-  if (user?.username && imdbID) {
+  if (user?.username && listname && imdbID) {
     // We use deleteMany because delete only accepts unique identifiers, so we would have to query DB, find its unique ID, and delete it, instead we just delete all matching records, cuz each record should be unique
     // Or you can just username and imdbID unique attributes in the prisma schema, in theory, they're should be unqiue anyways
     const username = user.username;
     await prisma.lists.deleteMany({
       where: {
         username,
-        imdbID
+        listname,
+        imdbID,
       },
     })
   }

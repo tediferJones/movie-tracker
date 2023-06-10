@@ -9,72 +9,107 @@ export default function AddToMyList(props: any) {
   const [isMovieAlreadyInMyList, setIsMovieAlreadyInMyList] = useState<null | true | false>(null);
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(true);
   const [myListnames, setMyListnames] = useState<string[]>([]);
+  const [currentListname, setCurrentListname] = useState<string>('createNewList')
+  const [newListname, setNewListname] = useState<string>('')
   const { imdbID } = props;
   // console.log(imdbID)
-
-  // REFORMATING
-  // 1. get all listnames associated with user
-  // 2. create a selector with these names as options
-  // 3. Get POST request working
-  //
-  // USE A SEPERATE FORM TO ADD A NEW LIST
-  // Have a button that will replace the drop down with a text box,
-  // Use the text in this box to create a record with a new listname and whatever imdbID
 
   useEffect(() => {
     easyFetch('/api/lists', 'GET', {})
         .then((res: any) => res.json())
-        .then((data: any) => setMyListnames(data))
-  }, [])
+        .then((data: any) => {
+          setMyListnames(data);
+        })
+  }, [refreshTrigger])
 
-  // useEffect(() => {
-  //   easyFetch('/api/lists', 'HEAD', { imdbID })
-  //       .then((res: any) => res.status)
-  //       .then((status: number) => setIsMovieAlreadyInMyList(status === 200 ? true : false))
-  // }, [refreshTrigger]);
+  // If you can just recieve all the users lists data with one fetchRequest
+  // then we could probably get away with only one fetch request
 
-  async function addToMyList() {
+  useEffect(() => {
+    easyFetch('/api/lists', 'GET', { imdbID, listname: currentListname })
+        .then((res: any) => res.json())
+        .then((data: any) => {
+          console.log('FETCH WITH IMDBID AND LISTNAME')
+          console.log(data)
+          setIsMovieAlreadyInMyList(data ? true : false)
+        })
+  }, [currentListname, refreshTrigger])
+
+  async function addToMyList(e: any) {
+    e.preventDefault();
+    // console.log(e.target.listname.value);
+    let listname;
+
+    if (currentListname === 'createNewList') {
+      listname = newListname;
+    } else {
+      listname = e.target.listname.value
+    }
+
     setIsMovieAlreadyInMyList(null);
-    await easyFetch('/api/lists', 'POST', { imdbID })
+    await easyFetch('/api/lists', 'POST', { listname: listname, imdbID })
     setRefreshTrigger(!refreshTrigger)
   }
 
-  async function removeFromMyList() {
+  async function removeFromMyList(e: any) {
+    e.preventDefault();
+    
+    const listname = e.target.listname.value;
+    if (listname === 'createNewList') {
+      setIsMovieAlreadyInMyList(null);
+      await easyFetch('/api/lists', 'DELETE', { listname: e.target.listname.value, imdbID })
+      setRefreshTrigger(!refreshTrigger)
+    } else {
+      console.log('No list selected, cant delete from nothing')
+    }
+  }
+
+  function dropDownHandler(e: any) {
+    console.log(e.target.value);
     setIsMovieAlreadyInMyList(null);
-    await easyFetch('/api/lists', 'DELETE', { imdbID })
-    setRefreshTrigger(!refreshTrigger)
+    setCurrentListname(e.target.value)
+  }
+
+  function newListnameHandler(e: any) {
+    console.log(e);
+    setNewListname(e.target.value);
   }
 
   return (
     <div>
       THIS IS THE ADD TO LIST COMPONENT
       <hr />
-      <button 
-        className={'p-4 bg-gray-200'}
-        onClick={
-          isMovieAlreadyInMyList === null ? undefined 
-          : isMovieAlreadyInMyList ? removeFromMyList
-          : addToMyList
-        }
-      >{isMovieAlreadyInMyList === null ? 'Loading...'
-      : isMovieAlreadyInMyList ? 'Remove From My List'
-      : 'Add To My List'}
-      </button>
-      <hr />
+      <div>{JSON.stringify(currentListname)}</div>
       <div className='p-4 bg-orange-400'>
-        <label htmlFor='listname'>Select existing list:</label>
-        <select name='listname'>
-          {myListnames.map((listname: string) => {
-            return (
-              <option key={listname} value={listname}>{listname}</option>
-            )
-          })}
-        </select>
+        <form onSubmit={isMovieAlreadyInMyList ? removeFromMyList : addToMyList}>
+          <div>Dont make your listname createNewList, that would cause problems</div>
+          <label htmlFor='listname'>Select existing list:</label>
+          <select name='listname' onChange={dropDownHandler}>
+            <option key='createNewList' value='createNewList'>Create New List</option>
+            {myListnames.map((listname: string) => {
+              return (
+                <option key={listname} value={listname}>{listname}</option>
+              )
+            })}
+          </select>
 
-        <label htmlFor='newListname'>Create new list:</label>
-        <input name='newListname' type='text'/>
+          {currentListname !== 'createNewList' ? [] :
+            <div>
+              <label htmlFor='newListname'>Create new list:</label>
+              <input id='newListname' 
+                name='newListname' 
+                type='text' 
+                value={newListname} 
+                onChange={newListnameHandler}
+              />
+            </div>
+          }
 
-        <button className='p-2 bg-blue-700 text-white'>ADD THIS imdbID TO THIS listname</button>
+          {isMovieAlreadyInMyList === null ? <div>Loading...</div>
+          : isMovieAlreadyInMyList ? <button>Remove movie from this list</button> 
+          : <button className='p-2 bg-blue-700 text-white'>ADD THIS imdbID TO THIS listname</button>
+          }
+        </form>
       </div>
     </div>
   )

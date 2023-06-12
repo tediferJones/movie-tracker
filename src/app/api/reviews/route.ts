@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   if (user?.username && imdbID) {
     dbResult = await prisma.reviews.findFirst({ where: { username: user.username, imdbID } })
   }
-  return NextResponse.json(dbResult);
+  return NextResponse.json(dbResult, { status: dbResult ? 200 : 404 });
 }
 
 export async function POST(req: Request) {
@@ -57,24 +57,4 @@ export async function DELETE(req: Request) {
   const imdbID = new URL(req.url).searchParams.get('imdbID');
   console.log(imdbID);
   return NextResponse.json('reviews DELETE request')
-}
-
-export async function HEAD(req: Request) {
-  const user = await currentUser();
-  const imdbID = new URL(req.url).searchParams.get('imdbID')
-  let dbResult = null;
-  // console.log(imdbID);
-
-  if (user?.username && imdbID) {
-    dbResult = await prisma.reviews.findUnique({ 
-      where: { 
-        username_imdbID: { 
-          username: user.username, 
-          imdbID,
-        } 
-      } 
-    })
-  }
-
-  return NextResponse.json({}, { status: dbResult === null ? 404 : 200 })
 }

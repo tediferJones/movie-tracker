@@ -46,6 +46,10 @@ export default async function Home() {
   //
   //    - Delete all head requests in api routes, 
   //      - format GET requests to return status of 404 if resource doesnt exist
+  //      - LinkToMovie Component, is only component that references /api/movies HEAD
+  //      - EditListDetail Component, is only component that references /api/reviews HEAD
+  //      - /api/lists, /api/search, /api/movies, /api/reviews has been cleared of HEAD requests
+  //      - [ DONE ] FINISH DELETING HEAD ROUTES, just wanna verify everything still works as expected
   //
   //    - Users will watch the same movie multiple times, 
   //      we should save the date for each time a movie is watched
@@ -54,11 +58,19 @@ export default async function Home() {
   //      - if we make a new table, remove 'watched' from review table, it is kind of irrelevant to the review anyways
   //      - Should probably make a ManageWatched component, that takes care of everything related to the watched table
   //
-  //    - WE NEED TO SORT OUT DEFAULT STATE FOR LISTS, i.e. what happens when user has no lists
-  //      Clear table of all lists and see what happens
   //    - Edit prisma schema for lists table to allow user to select a default list
   //      - Just add an attribute like isDefaultList: true | false @default(false)
   //      - WRONG^, you will need to do something like add an attribute to the /api/lists GET request to specify the favorite
+  //
+  //    - Rename some components, like AddToMyList and EditListDetails, should be named like so:
+  //      - If component modifies data: prefix with Manage[ResourceName]
+  //      - If we are just displaying data: prefix with Display[ResouceName]
+  //      - Maybe rename UpdateCachedMovie to ManageCachedMovie, it is technically making changes to the DB
+  //
+  //    - OMDBAPI CAN RETURN DIFFERENT TYPES OF MEDIA, i.e. movie, series, game, episode
+  //      - add a drop menu to search bar that allows user to select media type, default should be movie
+  //      - CANT ADD TVSHOWS TO DB, they dont have boxOffice attribute, 
+  //        thus we need to adapt cleanMovieInfo to assign 0 if boxOffice === undefined
   //
   //
   // Minor Changes:
@@ -68,8 +80,6 @@ export default async function Home() {
   //      - One type needs to be a pure version of rawMovieInfo, no optional fields
   //      - Second type need to be a transitional object, should have lots of optional fields
   //      - Third type is cleanMovieInfo, which is already pure
-  //    - Make username, imdbID, and listName (if we add that) unique, 
-  //      See 'defining a unique field' in prisma docs or search for @@unique
   //
 
   const user = await currentUser();

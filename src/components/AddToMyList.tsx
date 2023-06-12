@@ -13,12 +13,14 @@ export default function AddToMyList(props: any) {
 
   useEffect(() => {
     easyFetch('/api/lists', 'GET', {})
-        .then((res: any) => res.json())
-        .then((data: any) => {
+        .then((res: Response) => res.json())
+        .then((data: { [key: string]: string[] }) => {
           console.log('FETCHING NEW DATA')
           setUserLists(data)
-          // This is a neat idea but what if user doesn't have any lists? bad things will happen
-          setCurrentList(Object.keys(data)[0])
+          if (Object.keys(data).length > 0) {
+            // Set default list
+            setCurrentList(Object.keys(data)[0])
+          }
         });
   }, [refreshTrigger]);
 
@@ -32,13 +34,10 @@ export default function AddToMyList(props: any) {
 
   async function submitHandler(e: any) {
     e.preventDefault();
-    console.log(e);
     if (currentList) {
       if (movieExistsInList()) {
-        // Delete movie
         await easyFetch('/api/lists', 'DELETE', { listname: currentList, imdbID })
       } else {
-        // add movie
         await easyFetch('/api/lists', 'POST', { listname: currentList, imdbID })
       }
       setRefreshTrigger(!refreshTrigger);
@@ -48,7 +47,9 @@ export default function AddToMyList(props: any) {
   return (
     <div className='p-8 bg-orange-400'>
       {imdbID}
+      <hr />
       {JSON.stringify(userLists)}
+      <hr />
       {currentList}
       <hr />
       <form onSubmit={submitHandler} id='test'>
@@ -61,7 +62,13 @@ export default function AddToMyList(props: any) {
           })}
         </select>
 
-        {Object.keys(userLists).includes(currentList) ? [] : <input type='text' value={currentList} onChange={(e: any) => setCurrentList(e.target.value)}/> }
+        {Object.keys(userLists).includes(currentList) ? [] 
+        : <input type='text' 
+            required={true} 
+            value={currentList} 
+            onChange={(e: any) => setCurrentList(e.target.value)}
+          /> 
+        }
 
         {currentList === '' ? <div>Please Enter a List Name</div>
         : movieExistsInList() ? <button>Delete Movie</button> 

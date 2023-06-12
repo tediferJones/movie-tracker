@@ -5,25 +5,46 @@ import DisplayMovieInfo from '@/components/DisplayMovieInfo';
 import easyFetch from '@/modules/easyFetch';
 
 export default function DisplayUserList(props: { username: string }) {
-  const [movies, setMovies] = useState([])
+  const [userLists, setUserLists] = useState<{ [key: string]: string[] }>({})
   const { username } = props;
   // console.log(username)
+  //
+  //
+  // RIGHT NOW THIS COMPONENT ONLY RENDERS THE LOGGED IN USERS LISTS,
+  // We want this component to display info based on a certain username
+  // i.e. we need to setup /api/lists GET to return info related to username, if username is given
 
   useEffect(() => {
-    // easyFetch('/api/lists', 'GET', {})
-    //     .then((res: any) => res.json())
-    //     .then((data: any) => setMovies(data))
+    easyFetch('/api/lists', 'GET', { username })
+        .then((res: any) => res.json())
+        .then((data: any) => setUserLists(data))
+        // .then((data: any) => setMovies(data))
+        // .then((data: any) => console.log(data))
   }, []);
 
 
   return (
     <div>
       <h1>{username}'s List</h1>
-      {movies.map((item: any) => {
+      {Object.keys(userLists).map((listname: string) => {
+        return (
+          <div key={listname}>
+            <h1 className='text-2xl'>{listname}</h1>
+            {userLists[listname].map((imdbID: string) => {
+              return (
+                <DisplayMovieInfo key={imdbID} imdbID={imdbID}/>
+              )
+            })}
+          </div>
+        )
+      })}
+      {/*
+      {userLists.map((item: any) => {
         return (
           <DisplayMovieInfo key={item.id} imdbID={item.imdbID}/>
         )
       })}
+      */}
     </div>
   )
 

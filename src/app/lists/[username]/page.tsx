@@ -5,8 +5,7 @@ export default async function List({ params }: { params: any } ) {
   
   return (
     <div>
-      <h1>USER LIST PAGE</h1>
-      <h1>User list for: {username}</h1>
+      <h1>User lists for: {username}</h1>
       <DisplayUserList username={username}/>
     </div>
   )

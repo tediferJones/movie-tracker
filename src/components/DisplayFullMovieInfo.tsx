@@ -7,21 +7,22 @@ import UpdateCachedMovie from '@/components/UpdateCachedMovie';
 import EditListDetails from '@/components/EditListDetails';
 import easyFetch from '@/modules/easyFetch';
 
-export default function (props: any) {
+export default function (props: { imdbID: string }) {
   const { imdbID } = props;
-  const [movieInfo, setMovieInfo] = useState<cleanMovieInfo | null>(null);
+  const [movieInfo, setMovieInfo] = useState<cleanMovieInfo | null | false>(null);
 
   useEffect(() => {
     easyFetch('/api/movies', 'GET', { imdbID })
-        .then((res: any) => res.json())
-        .then((data: any) => setMovieInfo(data))
+        .then((res: Response) => res.json())
+        .then((data: cleanMovieInfo | null) => data ? setMovieInfo(data) : setMovieInfo(false))
   }, [])
 
   return (
     <div>
       <h1>Display Full Movie Info Component</h1>
-      {movieInfo === null ? <h1>Error: We couldn't find that imdbID in the database</h1> :
-      <div>
+      {movieInfo === null ? <h1>Loading...</h1>
+      : !movieInfo ? <h1>Error: We couldn't find that imdbID in the database</h1>
+      : <div>
         <h1 className='text-3xl'>{movieInfo.Title}</h1>
         <img src={movieInfo.Poster}/>
         {Object.keys(movieInfo).map((key: string) => {

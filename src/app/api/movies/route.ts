@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   if (imdbID) {
     result = await prisma.movies.findFirst({ where: { imdbID } })
   }
-  return NextResponse.json(result)
+  return NextResponse.json(result, { status: result ? 200 : 404 })
 }
 
 export async function POST(req: Request) {
@@ -52,16 +52,4 @@ export async function PUT(req: Request) {
     return NextResponse.json({ movieHasBeenUpdated: true })
   }
   return NextResponse.json({ movieHasBeenUpdated: false })
-}
-
-export async function HEAD(req: Request) {
-  // Return status code 200 if resource exists, return 404 if it doesnt exist
-  const imdbID = new URL(req.url).searchParams.get('imdbID');
-  console.log('\n HEAD REQUEST to /api/movies \n')
-  let dbResult: Number;
-  if (imdbID) {
-    dbResult = await prisma.movies.count({ where: { imdbID } })
-    return NextResponse.json({}, { status: dbResult === 0 ? 404 : 200 })
-  }
-  return NextResponse.json({}, { status: 400 })
 }

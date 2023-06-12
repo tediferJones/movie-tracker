@@ -2,13 +2,16 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs';
 import prisma from '@/client';
 
-export async function GET() {
+export async function GET(req: Request) {
   console.log('\n GET USER LIST \n')
   const user = await currentUser();
+  const username = new URL(req.url).searchParams.get('username')
+
+  // if username included in request, user that username, otherwise use logged in user's username
 
   if (user?.username) {
     // Returns an obj structured like so { listname: [imdbID1, imdbID2], listname2: [imdbID3], etc... } 
-    const dbResult = await prisma.lists.findMany({ where: { username: user.username } })
+    const dbResult = await prisma.lists.findMany({ where: { username: username ? username : user.username } })
     let newObj: { [key: string]: string[] } = {};
     dbResult.forEach((review: any) => {
       if (newObj[review.listname] === undefined) {
@@ -35,30 +38,6 @@ export async function POST(req: Request) {
   return NextResponse.json('added movie to myList')
 }
 
-// probably delete this
-// export async function PUT(req: Request) {
-//   console.log('\n UPDATING MOVIE DETAILS \n')
-//   const user = await currentUser();
-//   const { movieDetailKey, movieDetailValue, imdbID } = await req.json();
-// 
-//   // console.log(movieDetailKey);
-//   // console.log(movieDetailValue);
-//   // console.log(imdbID);
-// 
-//   if (user?.username && imdbID) {
-//     await prisma.lists.updateMany({
-//       where: {
-//         imdbID,
-//         username: user.username,
-//       },
-//       data: {
-//         [movieDetailKey]: movieDetailValue,
-//       }
-//     })
-//   }
-//   return NextResponse.json('updated movie details');
-// }
-
 export async function DELETE(req: Request) {
   console.log('\n DELETE MOVIE FROM myList \n')
   const user = await currentUser();
@@ -83,18 +62,3 @@ export async function DELETE(req: Request) {
 
   return NextResponse.json('deleted movie from myList')
 }
-
-// export async function HEAD(req: Request) {
-//   // You can delete this because all head routes are automagically generated
-//   console.log('\n Checking user list for imdbID \n');
-//   const imdbID = new URL(req.url).searchParams.get('imdbID')
-//   const user = await currentUser();
-//   let dbResult: null | object = null;
-// 
-//   if (user?.username && imdbID) {
-//     const username = user.username;
-//     dbResult = await prisma.lists.findFirst({ where: { username, imdbID } })
-//   }
-// 
-//   return NextResponse.json({}, { status: dbResult === null ? 404 : 200 })
-// }

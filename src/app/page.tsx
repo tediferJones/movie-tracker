@@ -39,6 +39,11 @@ export default async function Home() {
   //      - if done properly, users can still browse/filter the whole DB, and search for movies
   //      - But if they try to do anything related a user (i.e. add/removing a movie a list), then require the login
   //
+  //    - Do we want users to be able to see other users movieReviews?
+  //      - As of now, lets say no
+  //      - But if we change our mind all we have to do is write a client component 
+  //        this component should fetch all reviews with the same imdbID
+  //
   //    - Delete all head requests in api routes, 
   //      - format GET requests to return status of 404 if resource doesnt exist
   //
@@ -49,25 +54,11 @@ export default async function Home() {
   //      - if we make a new table, remove 'watched' from review table, it is kind of irrelevant to the review anyways
   //      - Should probably make a ManageWatched component, that takes care of everything related to the watched table
   //
-  //    - Do we want users to have multiple lists?
-  //      if we do consider spliting up lists table into lists and movieDetails
-  //        - Lists table should link to movieDetails to get record matching this username and imdbID
-  //        - This allows us to use one movie record in multiple lists
-  //          i.e. if we have friday 13th in 2 different lists, they should present the same movieDetails
-  //
-  //    - userReview (AKA movieDetails) is independent of movies in users list, 
-  //      i.e. you can review a movie and not have it in any list
-  //      - Which leads us to making another table to actually track user lists, 
-  //      - The new reviews table should use username and imdbID to form a unique record
-  //      - new lists table can just be username, imdbID, listName, all three columns should form a unique record
-  //
-  //    - Do we want users to be able to see other users movieReviews?
-  //      - As of now, lets say no
-  //      - But if we change our mind all we have to do is write a client component 
-  //        this component should fetch all reviews with the same imdbID
-  //
-  //    - REWRITE LISTS API ROUTES, LISTS PRISMASCHEMA, and redesign addToList component
-  //      - AddToList component needs to allow user to select which list they want to do add to
+  //    - WE NEED TO SORT OUT DEFAULT STATE FOR LISTS, i.e. what happens when user has no lists
+  //      Clear table of all lists and see what happens
+  //    - Edit prisma schema for lists table to allow user to select a default list
+  //      - Just add an attribute like isDefaultList: true | false @default(false)
+  //      - WRONG^, you will need to do something like add an attribute to the /api/lists GET request to specify the favorite
   //
   //
   // Minor Changes:

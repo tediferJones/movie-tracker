@@ -10,9 +10,9 @@ export default function DisplayUserList(props: { username: string }) {
   // console.log(username)
 
   useEffect(() => {
-    easyFetch('/api/lists', 'GET', {})
-        .then((res: any) => res.json())
-        .then((data: any) => setMovies(data))
+    // easyFetch('/api/lists', 'GET', {})
+    //     .then((res: any) => res.json())
+    //     .then((data: any) => setMovies(data))
   }, []);
 
 

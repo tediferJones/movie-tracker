@@ -2,75 +2,23 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs';
 import prisma from '@/client';
 
-// Most of these routes will need rewritten
-// This api route should only hanlde user's lists
-// GET: return all lists for a user, or a specific list if specified
-// POST: create a new list with specified name
-// PUT: add a movie to specified list
-// DELETE: remove movie from specified list
-// HEAD?: check if movie exists in a specified list
-
-export async function GET(req: Request) {
+export async function GET() {
   console.log('\n GET USER LIST \n')
   const user = await currentUser();
-  // REWRITE THIS TO RETURN A SPECIFIC MOVIE IF GET REQUEST HAS SEARCHPARAMS
-  // i.e. if (searchParams) return Single movie related to this userame, else return all movies related to this user
-  //
-  // required search params: username
-  // optional search params: imdbID, listname
-  // if neither: return array of listnames
-  // if only listname: return array of imdbIDs
-  // if only imdbID: idk? probably dont have to worry about that
-  // if both, 
-  //
 
-  // OR just return all the users data
-  // This becomes a problem when we want to fetch other users data
-  
-  const imdbID = new URL(req.url).searchParams.get('imdbID');
-  const listname = new URL(req.url).searchParams.get('listname');
-  console.log(imdbID)
-
-  if (user?.username && !imdbID && !listname) {
-    // const dbResult = await prisma.lists.findMany({});
-    const dbResult = await prisma.lists.groupBy({
-      by: ['listname'],
-      where: { username: user.username }
+  if (user?.username) {
+    // Returns an obj structured like so { listname: [imdbID1, imdbID2], listname2: [imdbID3], etc... } 
+    const dbResult = await prisma.lists.findMany({ where: { username: user.username } })
+    let newObj: { [key: string]: string[] } = {};
+    dbResult.forEach((review: any) => {
+      if (newObj[review.listname] === undefined) {
+        newObj[review.listname] = [review.imdbID];
+      } else {
+        newObj[review.listname].push(review.imdbID)
+      }
     })
-    return NextResponse.json(dbResult.map((item: { listname: string }) => item.listname));
+    return NextResponse.json(newObj);
   }
-
-  if (user?.username && listname && imdbID) {
-    const dbResult = await prisma.lists.findFirst({
-      where: {
-        username: user.username,
-        listname,
-        imdbID,
-      },
-    });
-
-    return NextResponse.json(dbResult);
-
-  }
-
-  // if (user?.username && !imdbID && listname) {
-  //   // if only username and listname, return all records in this user's specified list
-  //   const dbResult = await prisma.lists.findMany({ where: { username: user.username, listname } })
-  //   return NextResponse.json(dbResult)
-  // }
-
-  // if (user?.username && imdbID && listname) {
-  //   const dbResult = await prisma.lists.findFirst({
-  //     where: {
-  //       username: user.username,
-  //       listname,
-  //       imdbID,
-  //     }
-  //   })
-  //   console.log(dbResult);
-  // }
-
-  return NextResponse.json({}, { status: 404 })
 }
 
 export async function POST(req: Request) {
@@ -87,28 +35,29 @@ export async function POST(req: Request) {
   return NextResponse.json('added movie to myList')
 }
 
-export async function PUT(req: Request) {
-  console.log('\n UPDATING MOVIE DETAILS \n')
-  const user = await currentUser();
-  const { movieDetailKey, movieDetailValue, imdbID } = await req.json();
-
-  // console.log(movieDetailKey);
-  // console.log(movieDetailValue);
-  // console.log(imdbID);
-
-  if (user?.username && imdbID) {
-    await prisma.lists.updateMany({
-      where: {
-        imdbID,
-        username: user.username,
-      },
-      data: {
-        [movieDetailKey]: movieDetailValue,
-      }
-    })
-  }
-  return NextResponse.json('updated movie details');
-}
+// probably delete this
+// export async function PUT(req: Request) {
+//   console.log('\n UPDATING MOVIE DETAILS \n')
+//   const user = await currentUser();
+//   const { movieDetailKey, movieDetailValue, imdbID } = await req.json();
+// 
+//   // console.log(movieDetailKey);
+//   // console.log(movieDetailValue);
+//   // console.log(imdbID);
+// 
+//   if (user?.username && imdbID) {
+//     await prisma.lists.updateMany({
+//       where: {
+//         imdbID,
+//         username: user.username,
+//       },
+//       data: {
+//         [movieDetailKey]: movieDetailValue,
+//       }
+//     })
+//   }
+//   return NextResponse.json('updated movie details');
+// }
 
 export async function DELETE(req: Request) {
   console.log('\n DELETE MOVIE FROM myList \n')

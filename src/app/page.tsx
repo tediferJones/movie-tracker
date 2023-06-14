@@ -44,13 +44,6 @@ export default async function Home() {
   //      - But if we change our mind all we have to do is write a client component 
   //        this component should fetch all reviews with the same imdbID
   //
-  //    - Delete all head requests in api routes, 
-  //      - format GET requests to return status of 404 if resource doesnt exist
-  //      - LinkToMovie Component, is only component that references /api/movies HEAD
-  //      - EditListDetail Component, is only component that references /api/reviews HEAD
-  //      - /api/lists, /api/search, /api/movies, /api/reviews has been cleared of HEAD requests
-  //      - [ DONE ] FINISH DELETING HEAD ROUTES, just wanna verify everything still works as expected
-  //
   //    - Users will watch the same movie multiple times, 
   //      we should save the date for each time a movie is watched
   //      i.e. change watched attribute in reviews table to an array 
@@ -67,10 +60,17 @@ export default async function Home() {
   //      - If we are just displaying data: prefix with Display[ResouceName]
   //      - Maybe rename UpdateCachedMovie to ManageCachedMovie, it is technically making changes to the DB
   //
-  //    - OMDBAPI CAN RETURN DIFFERENT TYPES OF MEDIA, i.e. movie, series, game, episode
+  //    - OMDBAPI CAN RETURN DIFFERENT TYPES OF MEDIA, i.e. movie, series, game, episode(EPISODE DOES NOT WORK)
   //      - add a drop menu to search bar that allows user to select media type, default should be movie
   //      - CANT ADD TVSHOWS TO DB, they dont have boxOffice attribute, 
   //        thus we need to adapt cleanMovieInfo to assign 0 if boxOffice === undefined
+  //      - SHOULD PROBABLY MAKE A SEPERATE TABLE FOR TV-SHOWS
+  //      - And maybe a seperate one for games too
+  //      - Do we want seperate tables for games and TV-shows?  or just throw them all in a table called Media?
+  //        - If we go with one table, we can still sort by 'Type' which should be either movie, series, game
+  //        - differences between tv-show and movie info:
+  //          tv-show: totalSeasons
+  //          movie & game: DVD, BoxOffice, Production, Website
   //
   //
   // Minor Changes:

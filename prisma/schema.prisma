@@ -32,6 +32,15 @@ model reviews {
   @@unique([username, imdbID])
 }
 
+model watched {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  username String
+  imdbID String
+  date Int @db.Long
+
+  @@unique([username, imdbID, date])
+}
+
 model movies {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   Title String

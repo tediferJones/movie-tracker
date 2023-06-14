@@ -13,17 +13,12 @@ export default function Searchbar() {
   }
 
   const [searchTerm, setSearchTerm] = useState('The Deluge');
+  const [searchType, setSearchType] = useState('movie');
   const [searchResult, setSearchResult] = useState(defaultState);
-  // fetch('/api/search?' + new URLSearchParams({ searchTerm: 'TheDeluge' }))
-  //     .then((res: any) => console.log(res))
 
   useEffect(() => {
     const delaySetState = setTimeout(() => {
-      // console.log(searchTerm)
-      // Cant use easyFetch here, but thats okay, this should be the only place that directly queries omdbAPI
-      // fetch(`http://www.omdbapi.com/?apikey=8e1df54b&s=${searchTerm}`)
-      // fetch('/api/search?' + new URLSearchParams({ searchTerm }))
-      easyFetch('/api/search', 'GET', { searchTerm })
+      easyFetch('/api/search', 'GET', { searchTerm, searchType })
           .then((res: any) => res.json())
           .then((data: omdbSearch) => {
             console.log('SEARCH RESULTS', data)
@@ -37,20 +32,36 @@ export default function Searchbar() {
 
     return () => clearTimeout(delaySetState)
   }, [searchTerm])
+    // <div className='flex flex-col items-center'>
+    // </div>
+    //   <div>{`CURRENT SEARCHTYPE = ${searchType}`}</div>
 
   return (
-    <div className='flex flex-col items-center'>
-      <div className='w-4/5 flex'>
-        <label className='flex justify-center items-center'>SEARCH</label>
-        <div className='flex-1 flex flex-col'>
-          <input className='flex-1 text-2xl border-8 border-color-gray-400'
+    <>
+      <div className='flex justify-center'>
+        <label className='p-2 my-auto'>SEARCH</label>
+        <div className='w-1/2 flex flex-col'>
+          <input className='text-2xl border-8 border-color-gray-400'
             type='text'
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+        </div>
+        <select className='p-2 text-center'
+          value={searchType} 
+          onChange={(e) => setSearchType(e.target.value)}
+        >
+          {['Movie', 'Series', 'Game'].map((searchTerm: string) => {
+            return (
+              <option value={searchTerm.toLowerCase()}>{searchTerm}</option>
+            )
+          })}
+        </select>
+      </div>
+      <div className='flex flex-col absolute w-full items-center'>
           {searchResult.Search.map((item: omdbSearchResult) => {
             return (
-              <div className='flex justify-between'
+              <div className='flex justify-center w-1/2 bg-gray-100'
                 key={uuidv4()}
               >
                 <p className='flex-[2]'>{item.Title}</p>
@@ -59,8 +70,7 @@ export default function Searchbar() {
               </div>
             )
           })}
-        </div>
       </div>
-    </div>
+    </>
   )
 }

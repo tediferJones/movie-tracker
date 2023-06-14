@@ -5,13 +5,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
-  // url      = env("DATABASE_URL")
 datasource db {
   provider = "mongodb"
-  url="mongodb+srv://theodrz:aTwGpICRF2uxwtXJ@cluster0.52a3znr.mongodb.net/cluster0?retryWrites=true&w=majority"
+  url      = env("DATABASE_URL")
 }
 
-// rewrite this, should only contain id, username, listName, and movies is an array of imdbIDs
 model lists {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   username String
@@ -45,27 +43,28 @@ model movies {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   Title String
   Year Int @db.Int
-  Rated String
-  Released Int @db.Long
-  Runtime Int @db.Int
-  Plot String
+  Rated String?
+  Released Int? @db.Long
+  Runtime Int? @db.Int
+  Plot String?
   Language String[]
   Country String[]
-  Awards String
-  Poster String
+  Awards String?
+  Poster String?
   imdbID String @unique
   Type String
-  DVD Int @db.Long
-  BoxOffice Int @db.Long
-  Production String
-  Website String
+  DVD Int? @db.Long
+  BoxOffice Int? @db.Long
+  Production String?
+  Website String?
   Genre String[]
   Director String[]
   Writer String[]
   Actors String[]
-  imdbVotes Int @db.Int
-  IMDBRating Int @db.Int
-  RottenTomatoesRating Int @db.Int
-  MetacriticRating Int @db.Int
+  imdbVotes Int? @db.Int
+  IMDBRating Int? @db.Int
+  RottenTomatoesRating Int? @db.Int
+  MetacriticRating Int? @db.Int
   cachedAt Int @db.Long
+  totalSeasons Int? @db.Int
 }

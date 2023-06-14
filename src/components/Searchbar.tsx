@@ -31,7 +31,7 @@ export default function Searchbar() {
     }, 1000)
 
     return () => clearTimeout(delaySetState)
-  }, [searchTerm])
+  }, [searchTerm, searchType])
     // <div className='flex flex-col items-center'>
     // </div>
     //   <div>{`CURRENT SEARCHTYPE = ${searchType}`}</div>
@@ -40,28 +40,27 @@ export default function Searchbar() {
     <>
       <div className='flex justify-center'>
         <label className='p-2 my-auto'>SEARCH</label>
-        <div className='w-1/2 flex flex-col'>
-          <input className='text-2xl border-8 border-color-gray-400'
-            type='text'
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <input className='w-1/2 text-2xl border-8 border-color-gray-400'
+          type='text'
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
         <select className='p-2 text-center'
           value={searchType} 
           onChange={(e) => setSearchType(e.target.value)}
         >
           {['Movie', 'Series', 'Game'].map((searchTerm: string) => {
             return (
-              <option value={searchTerm.toLowerCase()}>{searchTerm}</option>
+              <option key={searchTerm} value={searchTerm.toLowerCase()}>{searchTerm}</option>
             )
           })}
         </select>
       </div>
-      <div className='flex flex-col absolute w-full items-center'>
+
+      <div className='flex flex-col items-center absolute w-full pointer-events-none'>
           {searchResult.Search.map((item: omdbSearchResult) => {
             return (
-              <div className='flex justify-center w-1/2 bg-gray-100'
+              <div className='flex justify-center w-1/2 bg-gray-100 p-2 pointer-events-auto'
                 key={uuidv4()}
               >
                 <p className='flex-[2]'>{item.Title}</p>

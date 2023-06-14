@@ -1,18 +1,13 @@
 import { rawMovieInfo, cleanMovieInfo, ratingObj } from '@/types';
 
 export default function cleanUpMovieInfo(movieObj: rawMovieInfo): cleanMovieInfo {
-  // Split these strings into arrays of individual names
-  ['Actors', 'Writer', 'Director', 'Genre', 'Country', 'Language']
-      .forEach((key: string) => movieObj[key] = movieObj[key].split(', '));
- 
-  ['Released', 'DVD'].forEach((key: string) => {
-    movieObj[key] = movieObj[key] === 'N/A' ? 0 : new Date(movieObj[key]).getTime();
-  });
+  // console.log(movieObj);
 
-  ['Year', 'imdbVotes', 'Runtime', 'BoxOffice'].forEach((key: string) => {
-    // Remove units and commas so we can convert these strings to integers
-    movieObj[key] = movieObj[key] === 'N/A' ? 0 :
-      Number(movieObj[key].replaceAll(',', '').replace(' min', '').replace('$', ''))
+  // Delete all keys that dont contain any real data
+  Object.keys(movieObj).forEach((key: string) => {
+    if (movieObj[key] === 'N/A') {
+      delete movieObj[key];
+    }
   });
 
   // Extract ratings and put them in the root of the movieObj, instead of having an array of objects
@@ -20,16 +15,26 @@ export default function cleanUpMovieInfo(movieObj: rawMovieInfo): cleanMovieInfo
     let ratingValue: number = Number(ratingObj.Value.slice(0, ratingObj.Value.indexOf('/' || '%')));
     if (ratingObj.Source === 'Internet Movie Database') { 
       ratingObj.Source = 'IMDB';
+      // All ratings are stored in the database as base 100, its essentially a percentage in integer form
+      // But imdb ratings are out of 10 with step of 0.1, so just multiply by 10 to get an integer
       ratingValue = ratingValue * 10;
     }
-    // console.log(ratingValue);
     movieObj[`${ratingObj.Source} Rating`.replaceAll(' ', '')] = ratingValue;
   });
 
-  // Assign 0 to every rating that was not found in movieObj.Ratings
-  ['RottenTomatoesRating', 'MetacriticRating', 'IMDBRating']
-      .forEach((key: string) => movieObj[key] === undefined ? movieObj[key] = 0 : undefined);
+  // Split these strings into arrays of individual names
+  ['Actors', 'Writer', 'Director', 'Genre', 'Country', 'Language']
+      .forEach((key: string) => movieObj[key] = movieObj[key] ? movieObj[key].split(', ') : undefined);
+
+  // Convert dates to UNIX time
+  ['Released', 'DVD']
+      .forEach((key: string) => movieObj[key] = movieObj[key] ? new Date(movieObj[key]).getTime() : undefined);
  
+  // Remove all non-numeric characters from string and convert to number
+  ['Year', 'imdbVotes', 'Runtime', 'BoxOffice', 'totalSeasons']
+      .forEach((key: string) => movieObj[key] = movieObj[key] ? Number(movieObj[key].replace(/\D/g, '')) : undefined);
+
+  // Remove extranious or repetitive data
   ['Ratings', 'Metascore', 'imdbRating', 'Response']
       .forEach((key: string) => delete movieObj[key]);
 

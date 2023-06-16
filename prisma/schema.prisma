@@ -23,7 +23,6 @@ model reviews {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   username String
   imdbID String
-  watched Boolean @default(false)
   watchAgain Boolean @default(false)
   myRating Int @default(0) @db.Int
 
@@ -36,6 +35,7 @@ model watched {
   imdbID String
   date Int @db.Long
 
+  @@unique([id, username])
   @@unique([username, imdbID, date])
 }
 

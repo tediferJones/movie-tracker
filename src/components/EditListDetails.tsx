@@ -71,8 +71,6 @@ export default function EditListDetails(props: any) {
       {!listDetails ? <h1>Loading your data...</h1> :
       <div>
         <div>{JSON.stringify(listDetails)}</div>
-        <button onClick={() => updateMovieDetails('watched')}>Toggle Watched</button>
-        <hr />
         <button onClick={() => updateMovieDetails('watchAgain')}>Toggle Watch Again</button>
         <hr />
 

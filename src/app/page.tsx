@@ -32,15 +32,13 @@ export default async function Home() {
   //      - if done properly, users can still browse/filter the whole DB, and search for movies
   //      - But if they try to do anything related a user (i.e. add/removing a movie a list), then require the login
   //
+  //    - Everytime a user visits a movie page a blank review for that user/movie is created, this is bad practice
+  //      The record should only be created if the user clicks 'Update my rating' button
+  //
   //    - Do we want users to be able to see other users movieReviews?
   //      - As of now, lets say no
   //      - But if we change our mind all we have to do is write a client component 
   //        this component should fetch all reviews with the same imdbID
-  //
-  //    - Build a ManageWatched component
-  //      - Should interface with /api/watched
-  //      - Only needs GET, POST & DELETE functions, no upating is needed
-  //      - When we get this working, delete watched from reviews prisma schema, its redundant
   //
   //    - Edit prisma schema for lists table to allow user to select a default list
   //      - Just add an attribute like isDefaultList: true | false @default(false)
@@ -60,13 +58,13 @@ export default async function Home() {
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that
   //    - Try to remove the weird fake type coercion in /modules/CleanUpMovieInfo
-  //    - MONGODB CONNECTION STRING IS POSTED TO GITHUB, move from prismaSchema file to .env
   //
 
   const user = await currentUser();
   // await prisma.movies.deleteMany({});
   // await prisma.lists.deleteMany({});
   // await prisma.reviews.deleteMany({});
+  // await prisma.watched.deleteMany({});
 
   return (
     <div>

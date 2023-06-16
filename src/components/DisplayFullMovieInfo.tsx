@@ -5,6 +5,7 @@ import { cleanMovieInfo } from '@/types';
 import AddToMyList from '@/components/AddToMyList';
 import UpdateCachedMovie from '@/components/UpdateCachedMovie';
 import EditListDetails from '@/components/EditListDetails';
+import ManageWatched from '@/components/ManageWatched';
 import easyFetch from '@/modules/easyFetch';
 
 export default function (props: { imdbID: string }) {
@@ -36,6 +37,7 @@ export default function (props: { imdbID: string }) {
         <EditListDetails imdbID={movieInfo.imdbID} />
         <div>{new Date(Number(movieInfo.cachedAt)).toLocaleString()}</div>
         <UpdateCachedMovie imdbID={movieInfo.imdbID} />
+        <ManageWatched imdbID={movieInfo.imdbID} />
       </div>}
     </div>
   )

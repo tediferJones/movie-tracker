@@ -81,8 +81,8 @@ interface omdbSearch {
 interface movieDetails extends stringIndexableObject {
   username: string,
   imdbID: string,
-  watched: boolean,
   watchAgain: boolean,
+  myRating: number,
 }
 
 export type { rawMovieInfo, cleanMovieInfo, ratingObj, omdbSearchResult, omdbSearch, movieDetails }

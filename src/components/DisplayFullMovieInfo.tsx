@@ -6,6 +6,7 @@ import AddToMyList from '@/components/AddToMyList';
 import UpdateCachedMovie from '@/components/UpdateCachedMovie';
 import EditListDetails from '@/components/EditListDetails';
 import ManageWatched from '@/components/ManageWatched';
+import DisplayEpisodes from '@/components/DisplayEpisodes';
 import easyFetch from '@/modules/easyFetch';
 
 export default function (props: { imdbID: string }) {
@@ -38,6 +39,15 @@ export default function (props: { imdbID: string }) {
         <div>{new Date(Number(movieInfo.cachedAt)).toLocaleString()}</div>
         <UpdateCachedMovie imdbID={movieInfo.imdbID} />
         <ManageWatched imdbID={movieInfo.imdbID} />
+        {movieInfo.Type !== 'series' ? [] :
+          <div>
+            {[...Array(movieInfo.totalSeasons).keys()].map((i: number) => i + 1).map((season: number) => {
+              return (
+                <DisplayEpisodes imdbID={movieInfo.imdbID} season={season} key={season}/>
+              )
+            })}
+          </div>
+        }
       </div>}
     </div>
   )

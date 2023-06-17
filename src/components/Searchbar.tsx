@@ -18,7 +18,7 @@ export default function Searchbar() {
 
   useEffect(() => {
     const delaySetState = setTimeout(() => {
-      easyFetch('/api/search', 'GET', { searchTerm, searchType })
+      easyFetch('/api/search', 'GET', { searchTerm, searchType, queryTerm: 's', queryType: 'type' })
           .then((res: any) => res.json())
           .then((data: omdbSearch) => {
             console.log('SEARCH RESULTS', data)

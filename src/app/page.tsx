@@ -54,10 +54,26 @@ export default async function Home() {
   //
   //    - Rewrite /movies page, show movies, tv-shows, and games in different categories, like /lists/[username] page
   //
+  //    - TV-SHOWS CAN HAVE INDIVIDUAL SEASON AND EPISODE DATA, this poses many potential problems
+  //      - How do we store season/episode info, they may have different attributes than other media types
+  //      - seasons dont have imdbID
+  //      - episode do have imdbID
+  //      - CONSIDER MAKING AN EPISODES TABLE
+  //      - But mainly consider how we want to the user to access this information, that will most like end up dictating the table structure
+  //      - To fetch specific season/episode info use the Season/Episode params like so
+  //        fetch(https://omdbapi.com/?apikey=8e1df54b&i=tt0098904&Season=1&Episode=4)
+  //        You can also use just the Season param to get the episode list for that season
+  //
+  //      - YOU CANT SEARCH FOR EPISODES, JUST ADD A COMPONENT CALLED DisplayEpisodes, to DisplayFullMovieInfo 
+  //        This component should display seasons/episodes if the info has Type='series'
+  //      - Episodes have imdbID so we can just send user to /movies/[imdbID ]
+  //        and that page should take care of adding the episode info to movies/media table
+  //
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that
   //    - Try to remove the weird fake type coercion in /modules/CleanUpMovieInfo
+  //    - Consider making all PUT and DELETE requests based on id and username(like /api/watched).  This makes API requests more restFUL
   //
 
   const user = await currentUser();

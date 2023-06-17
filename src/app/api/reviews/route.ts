@@ -19,10 +19,17 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   console.log('\n REVIEW POST REQUEST \n')
   const user = await currentUser();
-  const { imdbID } = await req.json();
+  const { movieDetailKey, movieDetailValue, imdbID } = await req.json();
   console.log(imdbID)
   if (user?.username && imdbID) {
-    const createResult = await prisma.reviews.create({ data: { username: user.username, imdbID } })
+    // const createResult = await prisma.reviews.create({ data: { username: user.username, imdbID } })
+    const createResult = await prisma.reviews.create({
+      data: {
+        username: user.username,
+        imdbID,
+        [movieDetailKey]: movieDetailValue,
+      }
+    })
     console.log(createResult)
   }
   return NextResponse.json('reviews POST request')

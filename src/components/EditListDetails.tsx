@@ -5,28 +5,39 @@ import { movieDetails } from '@/types';
 import easyFetch from '@/modules/easyFetch';
 
 // RENAME THIS COMPONENT TO ManageReview
+// And then also change all variable names in this file, the names are confusing
+// Change all occurences of 'Details' to 'Review'
 
 export default function EditListDetails(props: any) {
   const { imdbID } = props;
-  // consider using null to hold loading state, i.e. when listDetails === null => display loading dialog
-  const [listDetails, setListDetails] = useState<null | movieDetails>(null);
+  // const [listDetails, setListDetails] = useState<null | movieDetails>(null);
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
 
   const [myRating, setMyRating] = useState<number>(0);
   const [myRatingToggle, setMyRatingToggle] = useState<boolean>(false);
 
+  // this component is pretty convulted, try to simplify it
+  // Easiest method: dont post single attrs to the DB, use defaultState var to send all data at once
+  // This var should be held in state, update the attrs instead of giving myRating its own state
+  const defaultState = {
+    username: '',
+    imdbID,
+    watchAgain: false,
+    myRating: 0,
+  }
+  // assign null by default, if useEffect var 'data' is null, assign default state
+  // This provides a loading state which we want
+  const [listDetails, setListDetails] = useState<movieDetails>(defaultState);
+
   useEffect(() => {
-    (async () => {
-      // fetch /api/reviews HEAD, if 404 then /api/reviews POST, lastly fetch /api/reviews (it should exist)
-      const reviewCheck = await easyFetch('/api/reviews', 'HEAD', { imdbID });
-      if (reviewCheck.status === 404) {
-        await easyFetch('/api/reviews', 'POST', { imdbID });
-      }
-      // console.log(`REVIEW RESULT IS ${reviewCheck.status}`)
-      const review = await easyFetch('/api/reviews', 'GET', { imdbID }).then((res: any) => res.json());
-      setListDetails(review);
-      setMyRating(review.myRating);
-    })();
+    easyFetch('/api/reviews', 'GET', { imdbID })
+        .then((res: Response) => res.json())
+        .then((data: any) => {
+          if (data) {
+            setListDetails(data);
+            setMyRating(data.myRating);
+          }
+        })
   }, [refreshTrigger])
 
   // Each attribute we want to toggle should have its own button, 
@@ -34,17 +45,16 @@ export default function EditListDetails(props: any) {
   // after each change, use a refresh trigger to get the new results posted to the DB
 
   async function updateMovieDetails(movieDetailKey: string) {
-    // console.log(e, movieDetailKey)
-    if (listDetails) {
-      let movieDetailValue: boolean | number;
-      if (['watched', 'watchAgain'].includes(movieDetailKey)) {
-        movieDetailValue = !listDetails[movieDetailKey]
-      } else {
-        movieDetailValue = myRating;
-      }
-      await easyFetch('/api/reviews', 'PUT', { movieDetailKey, movieDetailValue, imdbID })
-      setRefreshTrigger(!refreshTrigger);
+    let movieDetailValue: boolean | number;
+    if (['watchAgain'].includes(movieDetailKey)) {
+      movieDetailValue = !listDetails[movieDetailKey]
+      console.log(movieDetailValue)
+    } else {
+      movieDetailValue = myRating;
     }
+    const fetchMethod = listDetails.username === '' ? 'POST' : 'PUT'
+    await easyFetch('/api/reviews', fetchMethod, { movieDetailKey, movieDetailValue, imdbID })
+    setRefreshTrigger(!refreshTrigger);
   }
 
   function sliderHandler(e: any) {
@@ -62,14 +72,13 @@ export default function EditListDetails(props: any) {
     }
   }
 
-  // const hoverText = <div id='HoverText' style={{position: 'absolute'}}>Click to Edit</div>
-  //
   // ADD BUTTON TO DELETE REVIEW, route already exists in API, but it is essentially empty
+  // We still need some kind of loading state, while we check the DB to see if a review exists
 
   return (
     <>
-      {!listDetails ? <h1>Loading your data...</h1> :
-      <div>
+      {/* {!listDetails ? <h1>Loading your data...</h1> :} */}
+      <div className='bg-yellow-400'>
         <div>{JSON.stringify(listDetails)}</div>
         <button onClick={() => updateMovieDetails('watchAgain')}>Toggle Watch Again</button>
         <hr />
@@ -95,7 +104,7 @@ export default function EditListDetails(props: any) {
         </div>
         <button onClick={() => updateMovieDetails('myRating')}>Update My Rating</button>
       </div>
-      }
+      
     </>
   )
 }

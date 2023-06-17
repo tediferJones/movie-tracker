@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { cleanMovieInfo } from '@/types';
 import easyFetch from '@/modules/easyFetch';
 
-export default function DisplayMovieInfo(props: any) {
+export default function DisplayMiniMovieInfo(props: any) {
   const { imdbID } = props;
   const [movieInfo, setMovieInfo] = useState<cleanMovieInfo | null>(null);
 

@@ -3,8 +3,6 @@ import { currentUser } from '@clerk/nextjs';
 import prisma from '@/client';
 
 export async function GET(req: Request) {
-  // search DB for record with username&imdbID
-  // if it exists, return it, else return null
   console.log('\n REVIEW GET REQUEST \n')
   const user = await currentUser();
   const imdbID = new URL(req.url).searchParams.get('imdbID')
@@ -19,18 +17,16 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   console.log('\n REVIEW POST REQUEST \n')
   const user = await currentUser();
-  const { movieDetailKey, movieDetailValue, imdbID } = await req.json();
-  console.log(imdbID)
-  if (user?.username && imdbID) {
-    // const createResult = await prisma.reviews.create({ data: { username: user.username, imdbID } })
-    const createResult = await prisma.reviews.create({
+  const data = await req.json();
+
+  // Should probably verify the params on the data var are correct before pushing to DB
+  if (user?.username && data) {
+    await prisma.reviews.create({
       data: {
+        ...data,
         username: user.username,
-        imdbID,
-        [movieDetailKey]: movieDetailValue,
       }
     })
-    console.log(createResult)
   }
   return NextResponse.json('reviews POST request')
 }
@@ -38,22 +34,19 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   console.log('\n REVIEW PUT REQUEST \n')
   const user = await currentUser();
-  // Should probably verify movieDetailKey is what we expect
-  // We dont want users adding attributes that we dont know about
-  const { movieDetailKey, movieDetailValue, imdbID } = await req.json();
-  console.log(imdbID);
+  const data = await req.json();
+  delete data.id;
 
-  if (user?.username && imdbID) {
+  // Should probably verify the params on the data var are correct before pushing to DB
+  if (user?.username && data) {
     await prisma.reviews.update({
       where: {
         username_imdbID: {
           username: user.username,
-          imdbID,
+          imdbID: data.imdbID,
         },
       },
-      data: {
-        [movieDetailKey]: movieDetailValue,
-      },
+      data,
     })
   }
 

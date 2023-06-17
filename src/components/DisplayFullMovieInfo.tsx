@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { cleanMovieInfo } from '@/types';
-import AddToMyList from '@/components/AddToMyList';
-import UpdateCachedMovie from '@/components/UpdateCachedMovie';
-import EditListDetails from '@/components/EditListDetails';
+import ManageLists from '@/components/ManageLists';
+import ManageMovieInfo from '@/components/ManageMovieInfo';
+import ManageReview from '@/components/ManageReview';
 import ManageWatched from '@/components/ManageWatched';
 import DisplayEpisodes from '@/components/DisplayEpisodes';
 import easyFetch from '@/modules/easyFetch';
@@ -34,10 +34,10 @@ export default function (props: { imdbID: string }) {
             </div>
           )
         })}
-        <AddToMyList imdbID={movieInfo.imdbID} />
-        <EditListDetails imdbID={movieInfo.imdbID} />
+        <ManageLists imdbID={movieInfo.imdbID} />
+        <ManageReview imdbID={movieInfo.imdbID} />
         <div>{new Date(Number(movieInfo.cachedAt)).toLocaleString()}</div>
-        <UpdateCachedMovie imdbID={movieInfo.imdbID} />
+        <ManageMovieInfo imdbID={movieInfo.imdbID} />
         <ManageWatched imdbID={movieInfo.imdbID} />
         {movieInfo.Type !== 'series' ? [] :
           <div>

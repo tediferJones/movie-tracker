@@ -78,11 +78,18 @@ interface omdbSearch {
   totalResults: string,
 }
 
-interface movieDetails extends stringIndexableObject {
+interface review extends stringIndexableObject {
   username: string,
   imdbID: string,
   watchAgain: boolean,
   myRating: number,
 }
 
-export type { rawMovieInfo, cleanMovieInfo, ratingObj, omdbSearchResult, omdbSearch, movieDetails }
+export type { 
+  rawMovieInfo,
+  cleanMovieInfo,
+  ratingObj,
+  omdbSearchResult,
+  omdbSearch,
+  review
+}

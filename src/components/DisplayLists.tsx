@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import DisplayMovieInfo from '@/components/DisplayMovieInfo';
+import DisplayMiniMovieInfo from '@/components/DisplayMiniMovieInfo';
 import easyFetch from '@/modules/easyFetch';
 
-export default function DisplayUserList(props: { username: string }) {
+export default function DisplayLists(props: { username: string }) {
   const [userLists, setUserLists] = useState<{ [key: string]: string[] }>({})
   const { username } = props;
   // console.log(username)
@@ -18,8 +18,6 @@ export default function DisplayUserList(props: { username: string }) {
     easyFetch('/api/lists', 'GET', { username })
         .then((res: any) => res.json())
         .then((data: any) => setUserLists(data))
-        // .then((data: any) => setMovies(data))
-        // .then((data: any) => console.log(data))
   }, []);
 
 
@@ -32,19 +30,12 @@ export default function DisplayUserList(props: { username: string }) {
             <h1 className='text-2xl'>{listname}</h1>
             {userLists[listname].map((imdbID: string) => {
               return (
-                <DisplayMovieInfo key={imdbID} imdbID={imdbID}/>
+                <DisplayMiniMovieInfo key={imdbID} imdbID={imdbID}/>
               )
             })}
           </div>
         )
       })}
-      {/*
-      {userLists.map((item: any) => {
-        return (
-          <DisplayMovieInfo key={item.id} imdbID={item.imdbID}/>
-        )
-      })}
-      */}
     </div>
   )
 

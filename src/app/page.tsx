@@ -1,5 +1,5 @@
 import { currentUser } from '@clerk/nextjs';
-import DisplayUserList from '@/components/DisplayUserList';
+import DisplayLists from '@/components/DisplayLists';
 // import prisma from '@/client'
 
 export default async function Home() {
@@ -44,30 +44,17 @@ export default async function Home() {
   //      - Just add an attribute like isDefaultList: true | false @default(false)
   //      - WRONG^, you will need to do something like add an attribute to the /api/lists GET request to specify the favorite
   //
-  //    - Rename some components, like AddToMyList and EditListDetails, should be named like so:
-  //      - If component modifies data: prefix with Manage[ResourceName]
-  //      - If we are just displaying data: prefix with Display[ResouceName]
-  //      - Maybe rename UpdateCachedMovie to ManageCachedMovie, it is technically making changes to the DB
-  //
+  //    - Rewrite /movies page, each media type should have its own section, 
+  //      i.e. 'Games' section will show all games in the DB
   //    - Consider renaming movies table to media, since it contains TV shows and games
   //      FIELDS THAT ALMOST CERTAINLY EXISTS: mongoDB-ID, Title, Year, imdbID, Type, cachedAt 
   //
-  //    - Rewrite /movies page, show movies, tv-shows, and games in different categories, like /lists/[username] page
-  //
-  //    - TV-SHOWS CAN HAVE INDIVIDUAL SEASON AND EPISODE DATA, this poses many potential problems
-  //      - How do we store season/episode info, they may have different attributes than other media types
-  //      - seasons dont have imdbID
-  //      - episode do have imdbID
-  //      - CONSIDER MAKING AN EPISODES TABLE
-  //      - But mainly consider how we want to the user to access this information, that will most like end up dictating the table structure
-  //      - To fetch specific season/episode info use the Season/Episode params like so
-  //        fetch(https://omdbapi.com/?apikey=8e1df54b&i=tt0098904&Season=1&Episode=4)
-  //        You can also use just the Season param to get the episode list for that season
-  //
-  //      - YOU CANT SEARCH FOR EPISODES, JUST ADD A COMPONENT CALLED DisplayEpisodes, to DisplayFullMovieInfo 
-  //        This component should display seasons/episodes if the info has Type='series'
-  //      - Episodes have imdbID so we can just send user to /movies/[imdbID ]
-  //        and that page should take care of adding the episode info to movies/media table
+  //    - TV-Shows have individual episodes, make sure we can add episodes to the movies/media table
+  //      - Theoretically all we have to do is add a LinkToMovie component 
+  //        for each episodes imdbID in /components/DisplayEpisodes,
+  //        - LinkToMovie component should take care of linking or adding to db and then linking to imdbID
+  //      - Also configure prisma schema to accept episode info, 
+  //        might need to add some fields or make others optional
   //
   //
   // Minor Changes:
@@ -88,7 +75,7 @@ export default async function Home() {
       : <div>
         <h1>THIS IS THE HOME PAGE</h1>
         <div className='text-xl'>Hello, {user.username}</div>
-        <DisplayUserList username={user.username}/>
+        <DisplayLists username={user.username}/>
       </div>
       }
     </div>

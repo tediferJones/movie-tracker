@@ -1,4 +1,4 @@
-import DisplayUserList from '@/components/DisplayUserList';
+import DisplayLists from '@/components/DisplayLists';
 
 export default async function List({ params }: { params: any } ) {
   const { username } = params;
@@ -6,7 +6,7 @@ export default async function List({ params }: { params: any } ) {
   return (
     <div>
       <h1>User lists for: {username}</h1>
-      <DisplayUserList username={username}/>
+      <DisplayLists username={username}/>
     </div>
   )
 } 

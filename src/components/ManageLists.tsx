@@ -2,10 +2,7 @@
 import { useState, useEffect } from 'react';
 import easyFetch from '@/modules/easyFetch';
 
-// RENAME THIS COMPONENT TO ManageList
-// consider naming it ManageUserList instead, cuz DisplayLists would be a bit ambigious
-
-export default function AddToMyList(props: any) {
+export default function ManageLists(props: any) {
   const { imdbID } = props;
   const [currentList, setCurrentList] = useState<string>('');
   const [userLists, setUserLists] = useState<{ [key: string]: string[] }>({});

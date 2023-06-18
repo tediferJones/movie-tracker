@@ -1,4 +1,4 @@
-import DisplayFullMovieInfo from '@/components/DisplayFullMovieInfo';
+import DisplayFullMediaInfo from '@/components/DisplayFullMediaInfo';
 
 export default async function Movie({ params }: { params: any }) {
   const { imdbID } = params;
@@ -8,7 +8,7 @@ export default async function Movie({ params }: { params: any }) {
       {!imdbID ? <h1>Error: Either the database or omdbAPI are not responding</h1>
       : <>
         <h1>SINGLE MOVIE PAGE</h1>
-        <DisplayFullMovieInfo imdbID={imdbID} />
+        <DisplayFullMediaInfo imdbID={imdbID} />
       </>
       }
     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import DisplayMiniMovieInfo from '@/components/DisplayMiniMovieInfo';
+import DisplayMiniMediaInfo from '@/components/DisplayMiniMediaInfo';
 import easyFetch from '@/modules/easyFetch';
 
 export default function DisplayLists(props: { username: string }) {
@@ -30,7 +30,7 @@ export default function DisplayLists(props: { username: string }) {
             <h1 className='text-2xl'>{listname}</h1>
             {userLists[listname].map((imdbID: string) => {
               return (
-                <DisplayMiniMovieInfo key={imdbID} imdbID={imdbID}/>
+                <DisplayMiniMediaInfo key={imdbID} imdbID={imdbID}/>
               )
             })}
           </div>

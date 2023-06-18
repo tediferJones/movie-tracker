@@ -64,7 +64,7 @@ export default async function Home() {
   //
 
   const user = await currentUser();
-  // await prisma.movies.deleteMany({});
+  // await prisma.media.deleteMany({});
   // await prisma.lists.deleteMany({});
   // await prisma.reviews.deleteMany({});
   // await prisma.watched.deleteMany({});

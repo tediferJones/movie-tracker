@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { cleanMovieInfo, rawMovieInfo } from '@/types';
+import { cleanMediaInfo, rawMediaInfo } from '@/types';
 import cleanUpMovieInfo from '@/modules/cleanUpMovieInfo';
 import easyFetch from '@/modules/easyFetch';
 import prisma from '@/client';
@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   let result = null;
   // console.log(imdbID)
   if (imdbID) {
-    result = await prisma.movies.findFirst({ where: { imdbID } })
+    result = await prisma.media.findFirst({ where: { imdbID } })
   }
   return NextResponse.json(result, { status: result ? 200 : 404 })
 }
@@ -23,13 +23,13 @@ export async function POST(req: Request) {
     apikey: process.env.OMDBAPI_KEY,
     i: imdbID,
   })
-  const rawData: rawMovieInfo = await res.json();
+  const rawData: rawMediaInfo = await res.json();
   if (rawData.Response === 'True') {
-    const data: cleanMovieInfo = cleanUpMovieInfo(rawData);
-    await prisma.movies.create({ data });
-    return NextResponse.json('\n Added movie to DB from /api/movies \n')
+    const data: cleanMediaInfo = cleanUpMovieInfo(rawData);
+    await prisma.media.create({ data });
+    return NextResponse.json('\n Added movie to DB from /api/media \n')
   }
-  return NextResponse.json('\n Failed to add movie to DB from /api/movies \n')
+  return NextResponse.json('\n Failed to add movie to DB from /api/media \n')
 }
 
 export async function PUT(req: Request) {
@@ -42,7 +42,7 @@ export async function PUT(req: Request) {
 
   if (result.Response === 'True') {
     let data = cleanUpMovieInfo(result);
-    await prisma.movies.update({
+    await prisma.media.update({
       where: {
         imdbID: data.imdbID,
       },

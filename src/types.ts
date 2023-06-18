@@ -17,10 +17,9 @@ interface basicMovieInfo extends stringIndexableObject {
   Type: string,
   Production: string,
   Website: string,
-  // Move this to rawMovieInfo, it should never exist on cleanMovieInfo
 }
 
-interface rawMovieInfo extends basicMovieInfo {
+interface rawMediaInfo extends basicMovieInfo {
   Genre: string,
   Director: string,
   Writer: string,
@@ -42,9 +41,12 @@ interface rawMovieInfo extends basicMovieInfo {
   RottenTomatoesRating?: number,
   MetacriticRating?: number,
   cachedAt?: number,
+  totalSeasons?: string | number,
+  Season?: string | number,
+  Episode?: string | number,
 }
 
-interface cleanMovieInfo extends basicMovieInfo {
+interface cleanMediaInfo extends basicMovieInfo {
   Genre: string[],
   Director: string[],
   Writer: string[],
@@ -62,6 +64,9 @@ interface cleanMovieInfo extends basicMovieInfo {
   Country: string[],
   Language: string[],
   BoxOffice: number,
+  totalSeasons?: number,
+  Season?: number,
+  Episode?: number,
 }
 
 interface omdbSearchResult {
@@ -86,8 +91,8 @@ interface review extends stringIndexableObject {
 }
 
 export type { 
-  rawMovieInfo,
-  cleanMovieInfo,
+  rawMediaInfo,
+  cleanMediaInfo,
   ratingObj,
   omdbSearchResult,
   omdbSearch,

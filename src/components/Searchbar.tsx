@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { omdbSearch, omdbSearchResult } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
-import LinkToMovie from '@/components/LinkToMovie';
+import LinkToMedia from '@/components/LinkToMedia';
 import easyFetch from '@/modules/easyFetch';
 
 export default function Searchbar() {
@@ -32,9 +32,6 @@ export default function Searchbar() {
 
     return () => clearTimeout(delaySetState)
   }, [searchTerm, searchType])
-    // <div className='flex flex-col items-center'>
-    // </div>
-    //   <div>{`CURRENT SEARCHTYPE = ${searchType}`}</div>
 
   return (
     <>
@@ -65,7 +62,7 @@ export default function Searchbar() {
               >
                 <p className='flex-[2]'>{item.Title}</p>
                 <p className='flex-1'>{item.Year}</p>
-                <LinkToMovie imdbID={item.imdbID}/>
+                <LinkToMedia imdbID={item.imdbID}/>
               </div>
             )
           })}

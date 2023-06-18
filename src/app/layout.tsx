@@ -22,7 +22,7 @@ export default function RootLayout({
         <body className={inter.className}>
           <div className='py-4 px-8 flex justify-between'>
             <a href='/' className='my-auto'>HOME PAGE</a>
-            <a href='/movies'>Movies Page</a>
+            <a href='/media'>All Media Page</a>
             <a href='/lists'>Lists Page</a>
             <div className='flex gap-4'>
               <UserButton />

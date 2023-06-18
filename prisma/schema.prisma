@@ -39,7 +39,7 @@ model watched {
   @@unique([username, imdbID, date])
 }
 
-model movies {
+model media {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   Title String
   Year Int @db.Int
@@ -67,4 +67,7 @@ model movies {
   MetacriticRating Int? @db.Int
   cachedAt Int @db.Long
   totalSeasons Int? @db.Int
+  Season Int? @db.Int
+  Episode Int? @db.Int
+  seriesID String?
 }

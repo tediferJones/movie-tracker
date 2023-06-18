@@ -1,6 +1,6 @@
-import { rawMovieInfo, cleanMovieInfo, ratingObj } from '@/types';
+import { rawMediaInfo, cleanMediaInfo, ratingObj } from '@/types';
 
-export default function cleanUpMovieInfo(movieObj: rawMovieInfo): cleanMovieInfo {
+export default function cleanUpMovieInfo(movieObj: rawMediaInfo): cleanMediaInfo {
   // console.log(movieObj);
 
   // Delete all keys that dont contain any real data
@@ -31,7 +31,7 @@ export default function cleanUpMovieInfo(movieObj: rawMovieInfo): cleanMovieInfo
       .forEach((key: string) => movieObj[key] = movieObj[key] ? new Date(movieObj[key]).getTime() : undefined);
  
   // Remove all non-numeric characters from string and convert to number
-  ['Year', 'imdbVotes', 'Runtime', 'BoxOffice', 'totalSeasons']
+  ['Year', 'imdbVotes', 'Runtime', 'BoxOffice', 'totalSeasons', 'Season', 'Episode']
       .forEach((key: string) => movieObj[key] = movieObj[key] ? Number(movieObj[key].replace(/\D/g, '')) : undefined);
 
   // Remove extranious or repetitive data

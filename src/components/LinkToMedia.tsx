@@ -8,14 +8,14 @@ export default function LinkToMovie(props: any) {
   const router = useRouter();
 
   async function checkDb() {
-    // Check if movie is in DB, if the movie isnt present in the DB, add it, then redirect user to /movies/[imdbID]
-    const checkForMovie = await easyFetch('/api/movies', 'HEAD', { imdbID })
+    // Check if movie is in DB, if the movie isnt present in the DB, add it, then redirect user to /media/[imdbID]
+    const checkForMovie = await easyFetch('/api/media', 'HEAD', { imdbID })
 
     if (checkForMovie.status === 404) {
-      await easyFetch('/api/movies', 'POST', { imdbID })
+      await easyFetch('/api/media', 'POST', { imdbID })
     }
 
-    router.push(`/movies/${imdbID}`)
+    router.push(`/media/${imdbID}`)
   }
 
   return (

@@ -21,7 +21,8 @@ export default function DisplayMiniMediaInfo(props: any) {
         <h1 className='text-3xl'>{movieInfo.Title}</h1>
         {/* THIS SHOULD USE LinkToMovie component, what if the media isnt already stored in the DB? */}
         <a href={`/media/${movieInfo.imdbID}`}>LINK TO MOVIE</a>
-        <img src={movieInfo.Poster}/>
+        {movieInfo.Poster ? <img src={movieInfo.Poster}/> : []}
+        
       </div>}
     </div>
   )

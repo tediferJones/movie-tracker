@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent } from 'react';
 import { review } from '@/types';
 import easyFetch from '@/modules/easyFetch';
 
@@ -75,9 +75,9 @@ export default function ManageReview(props: { imdbID: string }) {
         <input className='border-4'
           name='myRating'
           value={(existingReview.myRating / 20).toFixed(2)} 
-          onChange={(e: any) => setExistingReview({ 
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setExistingReview({ 
             ...existingReview,
-            myRating: e.target.value * 20,
+            myRating: Number(e.target.value) * 20,
           })} 
           type='number' min={0} max={5} step={0.05} 
         />

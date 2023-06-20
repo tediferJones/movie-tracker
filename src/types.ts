@@ -9,14 +9,8 @@ interface ratingObj {
 
 interface basicMovieInfo extends stringIndexableObject {
   Title: string,
-  Rated: string,
-  Plot: string,
-  Awards: string,
-  Poster: string,
   imdbID: string,
   Type: string,
-  Production: string,
-  Website: string,
 }
 
 interface rawMediaInfo extends basicMovieInfo {
@@ -44,6 +38,12 @@ interface rawMediaInfo extends basicMovieInfo {
   totalSeasons?: string | number,
   Season?: string | number,
   Episode?: string | number,
+  Rated: string,
+  Plot: string,
+  Awards: string,
+  Poster: string,
+  Production: string,
+  Website: string,
 }
 
 interface cleanMediaInfo extends basicMovieInfo {
@@ -52,21 +52,27 @@ interface cleanMediaInfo extends basicMovieInfo {
   Writer: string[],
   Actors: string[],
   // Add extracted rating data here
-  IMDBRating: number,
-  RottenTomatoesRating: number,
-  MetacriticRating: number,
+  IMDBRating: number | null,
+  RottenTomatoesRating: number | null,
+  MetacriticRating: number | null,
   cachedAt: number,
-  Released: number,
-  DVD: number,
+  Released: number | null,
+  DVD: number | null,
   Year: number,
-  imdbVotes: number,
-  Runtime: number,
+  imdbVotes: number | null,
+  Runtime: number | null,
   Country: string[],
   Language: string[],
-  BoxOffice: number,
-  totalSeasons?: number,
-  Season?: number,
-  Episode?: number,
+  BoxOffice: number | null,
+  totalSeasons: number | null,
+  Season: number | null,
+  Episode: number | null,
+  Rated: string | null,
+  Plot: string | null,
+  Awards: string | null,
+  Poster: string | null,
+  Production: string | null,
+  Website: string | null,
 }
 
 interface omdbSearchResult {
@@ -83,11 +89,38 @@ interface omdbSearch {
   totalResults: string,
 }
 
+interface episode {
+  Episode: string,
+  Released: string,
+  Title: string,
+  imdbID: string,
+  imdbRating: string,
+}
+
+interface episodeList {
+  Episodes: episode[],
+  Response: 'True' | 'False';
+  Season: string,
+  Title: string,
+  totalSeasons: string,
+}
+
 interface review extends stringIndexableObject {
   username: string,
   imdbID: string,
   watchAgain: boolean,
   myRating: number,
+}
+
+interface watched {
+  date: number,
+  id: string,
+  imdbID: string,
+  username: string,
+}
+
+interface userLists {
+  [key: string]: string[]
 }
 
 export type { 
@@ -96,5 +129,9 @@ export type {
   ratingObj,
   omdbSearchResult,
   omdbSearch,
-  review
+  episode,
+  episodeList,
+  review,
+  watched,
+  userLists,
 }

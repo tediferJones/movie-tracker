@@ -1,7 +1,7 @@
 'use client';
 import easyFetch from '@/modules/easyFetch';
 
-export default function ManageMovieInfo(props: any) {
+export default function ManageMovieInfo(props: { imdbID: string }) {
   async function update() {
     const res = await easyFetch('/api/media', 'PUT', { imdbID: props.imdbID })
     // If the request was successful, refresh the page, else do nothing or show some error message

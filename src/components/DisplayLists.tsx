@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { userLists } from '@/types';
 import DisplayMiniMediaInfo from '@/components/DisplayMiniMediaInfo';
 import easyFetch from '@/modules/easyFetch';
 
 export default function DisplayLists(props: { username: string }) {
-  const [userLists, setUserLists] = useState<{ [key: string]: string[] }>({})
   const { username } = props;
+  const [userLists, setUserLists] = useState<{ [key: string]: string[] }>({})
   // console.log(username)
   //
   //
@@ -16,8 +17,8 @@ export default function DisplayLists(props: { username: string }) {
 
   useEffect(() => {
     easyFetch('/api/lists', 'GET', { username })
-        .then((res: any) => res.json())
-        .then((data: any) => setUserLists(data))
+        .then((res: Response) => res.json())
+        .then((data: userLists) => setUserLists(data))
   }, []);
 
 

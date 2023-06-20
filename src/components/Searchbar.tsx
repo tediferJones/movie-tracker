@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { omdbSearch, omdbSearchResult } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import LinkToMedia from '@/components/LinkToMedia';
@@ -19,7 +19,7 @@ export default function Searchbar() {
   useEffect(() => {
     const delaySetState = setTimeout(() => {
       easyFetch('/api/search', 'GET', { searchTerm, searchType, queryTerm: 's', queryType: 'type' })
-          .then((res: any) => res.json())
+          .then((res: Response) => res.json())
           .then((data: omdbSearch) => {
             console.log('SEARCH RESULTS', data)
             if (data.Response === 'True') {
@@ -40,11 +40,11 @@ export default function Searchbar() {
         <input className='w-1/2 text-2xl border-8 border-color-gray-400'
           type='text'
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
         />
         <select className='p-2 text-center'
           value={searchType} 
-          onChange={(e) => setSearchType(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) => setSearchType(e.target.value)}
         >
           {['Movie', 'Series', 'Game'].map((searchTerm: string) => {
             return (

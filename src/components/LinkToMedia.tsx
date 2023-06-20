@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import easyFetch from '@/modules/easyFetch';
 
-export default function LinkToMovie(props: any) {
+export default function LinkToMovie(props: { imdbID: string }) {
   const { imdbID } = props;
   const router = useRouter();
 

@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { watched } from '@/types';
 import easyFetch from '@/modules/easyFetch';
 
 export default function ManageWatched(props: { imdbID: string }) {
   const { imdbID } = props;
-  const [watchHistory, setWatchHistory] = useState<null | object[]>(null);
+  const [watchHistory, setWatchHistory] = useState<null | watched[]>(null);
   const [refreshTrigger, setRefreshTigger] = useState<boolean>(false);
  
   useEffect(() => {
     easyFetch('/api/watched', 'GET', { imdbID })
         .then((res: Response) => res.json())
-        .then((data: any) => setWatchHistory(data))
+        .then((data: watched[]) => setWatchHistory(data))
   }, [refreshTrigger])
 
   async function newWatched() {
@@ -31,7 +32,7 @@ export default function ManageWatched(props: { imdbID: string }) {
     <div>
       <h1>THIS IS THE MANAGE WATCHED COMPONENT</h1>
       {JSON.stringify(watchHistory)}
-      {watchHistory === null ? [] : watchHistory.map((item: any) => {
+      {watchHistory === null ? [] : watchHistory.map((item: watched) => {
         return (
           <div className='flex' key={item.id}>
             <div>{new Date(item.date).toLocaleString()}</div>

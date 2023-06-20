@@ -26,7 +26,7 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
       : !movieInfo ? <h1>Error: We couldn't find that imdbID in the database</h1>
       : <div>
         <h1 className='text-3xl'>{movieInfo.Title}</h1>
-        <img src={movieInfo.Poster}/>
+        {movieInfo.Poster ? <img src={movieInfo.Poster}/> : []}
         {Object.keys(movieInfo).map((key: string) => {
           return (
             <div key={uuidv4()}>

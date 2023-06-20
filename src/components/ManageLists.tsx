@@ -1,8 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import easyFetch from '@/modules/easyFetch';
 
-export default function ManageLists(props: any) {
+export default function ManageLists(props: { imdbID: string }) {
   const { imdbID } = props;
   const [currentList, setCurrentList] = useState<string>('');
   const [userLists, setUserLists] = useState<{ [key: string]: string[] }>({});
@@ -29,7 +29,7 @@ export default function ManageLists(props: any) {
     return false;
   }
 
-  async function submitHandler(e: any) {
+  async function submitHandler(e: FormEvent) {
     e.preventDefault();
     if (currentList) {
       if (movieExistsInList()) {
@@ -50,7 +50,7 @@ export default function ManageLists(props: any) {
       {currentList}
       <hr />
       <form onSubmit={submitHandler} id='test'>
-        <select value={currentList} onChange={(e: any) => setCurrentList(e.target.value)}>
+        <select value={currentList} onChange={(e: ChangeEvent<HTMLSelectElement>) => setCurrentList(e.target.value)}>
           <option value=''>NewList</option>
           {Object.keys(userLists).map((userList: string) => {
             return (
@@ -63,7 +63,7 @@ export default function ManageLists(props: any) {
         : <input type='text' 
             required={true} 
             value={currentList} 
-            onChange={(e: any) => setCurrentList(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setCurrentList(e.target.value)}
           /> 
         }
 

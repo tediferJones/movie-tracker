@@ -18,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" className='bg-gray-900 text-white'>
         <body className={inter.className}>
           <div className='py-4 px-8 flex justify-between'>
             <a href='/' className='my-auto'>HOME PAGE</a>

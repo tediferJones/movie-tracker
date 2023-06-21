@@ -49,6 +49,8 @@ export default async function Home() {
   //
   //    - WRITE SOME TESTS, try to test most components and modules
   //
+  //    - Add a text field to review prisma schema, so users can write a little text review
+  //
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that

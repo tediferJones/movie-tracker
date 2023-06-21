@@ -37,12 +37,12 @@ export default function Searchbar() {
     <>
       <div className='flex justify-center'>
         <label className='p-2 my-auto'>SEARCH</label>
-        <input className='w-1/2 text-2xl border-8 border-color-gray-400'
+        <input className='w-1/2 text-2xl border-8 border-color-gray-400 text-black'
           type='text'
           value={searchTerm}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
         />
-        <select className='p-2 text-center'
+        <select className='p-2 text-center bg-gray-700'
           value={searchType} 
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setSearchType(e.target.value)}
         >
@@ -57,7 +57,7 @@ export default function Searchbar() {
       <div className='flex flex-col items-center absolute w-full pointer-events-none'>
           {searchResult.Search.map((item: omdbSearchResult) => {
             return (
-              <div className='flex justify-center w-1/2 bg-gray-100 p-2 pointer-events-auto'
+              <div className='flex justify-center w-1/2 bg-gray-700 p-2 pointer-events-auto'
                 key={uuidv4()}
               >
                 <p className='flex-[2]'>{item.Title}</p>

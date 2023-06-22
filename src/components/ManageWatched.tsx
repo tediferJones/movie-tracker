@@ -31,7 +31,7 @@ export default function ManageWatched(props: { imdbID: string }) {
   return (
     <div>
       <h1>THIS IS THE MANAGE WATCHED COMPONENT</h1>
-      {JSON.stringify(watchHistory)}
+      {/* {JSON.stringify(watchHistory)} */}
       {watchHistory === null ? [] : watchHistory.map((item: watched) => {
         return (
           <div className='flex' key={item.id}>

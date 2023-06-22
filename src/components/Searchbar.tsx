@@ -35,7 +35,7 @@ export default function Searchbar() {
 
   return (
     <>
-      <div className='flex justify-center'>
+      <div className='p-4 flex justify-center'>
         <label className='p-2 my-auto'>SEARCH</label>
         <input className='w-1/2 text-2xl border-8 border-color-gray-400 text-black'
           type='text'

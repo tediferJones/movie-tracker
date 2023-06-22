@@ -7,7 +7,6 @@ export default async function Movie({ params }: { params: any }) {
     <div>
       {!imdbID ? <h1>Error: Either the database or omdbAPI are not responding</h1>
       : <>
-        <h1>SINGLE MOVIE PAGE</h1>
         <DisplayFullMediaInfo imdbID={imdbID} />
       </>
       }

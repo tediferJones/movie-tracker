@@ -41,6 +41,13 @@ export default async function Home() {
   //      as of now, it "usually" return the most recently added list as the default
   //        - STORE DEFAULT LIST IN USER OBJ, i.e. put it in the clerk data
   //        - Look at publicMetaData and privateMetaData, https://clerk.com/docs/users/overview
+  //        OR
+  //        - create a table called DefaultList, 
+  //          record = { username: string, listname: string }
+  //          unique = username and/or username&listname
+  //        - then just get record from prisma.DefaultList in /api/lists GET (or whatever returns the users lists)
+  //          and move that list name to the start or end of the array used to create the selector options
+  //          - this may involve controlling the order of the fields in the lists obj
   //
   //    - Rewrite /movies page, each media type should have its own section, 
   //      i.e. 'Games' section will show all games in the DB
@@ -50,6 +57,14 @@ export default async function Home() {
   //    - WRITE SOME TESTS, try to test most components and modules
   //
   //    - Add a text field to review prisma schema, so users can write a little text review
+  //
+  //    - Setup/Post project to vercel, as we push changes to github the website should update
+  //      - Vercel will use its own database, so make sure prisma schemas are correct before setup
+  //
+  //    - Error in ManageWatched Component
+  //
+  //    - Add individual season to /media/[imdbID] if media.Type = 'episode', 
+  //      i.e. if viewing Archer S01E04, page should show season 1 in a drop down
   //
   //
   // Minor Changes:

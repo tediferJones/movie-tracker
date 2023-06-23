@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, ChangeEvent } from 'react';
 import { omdbSearch, omdbSearchResult } from '@/types';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 import LinkToMedia from '@/components/LinkToMedia';
 import easyFetch from '@/modules/easyFetch';
 
@@ -18,55 +18,56 @@ export default function Searchbar() {
 
   useEffect(() => {
     const delaySetState = setTimeout(() => {
-      easyFetch('/api/search', 'GET', { searchTerm, searchType, queryTerm: 's', queryType: 'type' })
-          .then((res: Response) => res.json())
-          .then((data: omdbSearch) => {
-            console.log('SEARCH RESULTS', data)
-            if (data.Response === 'True') {
-              setSearchResult(data);
-            } else {
-              setSearchResult(defaultState);
-            }
-          })
+      easyFetch('/api/search', 'GET', { 
+        // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
+        searchTerm: searchTerm.trim(), 
+        searchType, 
+        queryTerm: 's', 
+        queryType: 'type',
+      }).then((res: Response) => res.json())
+        .then((data: omdbSearch) => {
+          console.log('SEARCH RESULTS', data)
+          data.Response === 'True' ? setSearchResult(data) : setSearchResult(defaultState);
+        })
     }, 1000)
 
     return () => clearTimeout(delaySetState)
   }, [searchTerm, searchType])
 
   return (
-    <>
-      <div className='p-4 flex justify-center'>
-        <label className='p-2 my-auto'>SEARCH</label>
-        <input className='w-1/2 text-2xl border-8 border-color-gray-400 text-black'
+    <div className='m-auto flex w-4/5 justify-center p-4'>
+      <label className='my-auto p-2'>SEARCH</label>
+      <div className='relative flex w-full flex-col'>
+        <input className='border-color-gray-400 w-full border-8 text-2xl text-black'
           type='text'
           value={searchTerm}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
         />
-        <select className='p-2 text-center bg-gray-700'
-          value={searchType} 
-          onChange={(e: ChangeEvent<HTMLSelectElement>) => setSearchType(e.target.value)}
-        >
-          {['Movie', 'Series', 'Game'].map((searchTerm: string) => {
-            return (
-              <option key={searchTerm} value={searchTerm.toLowerCase()}>{searchTerm}</option>
-            )
-          })}
-        </select>
-      </div>
-
-      <div className='flex flex-col items-center absolute w-full pointer-events-none'>
+        {/* Search Results area */}
+        <div className='absolute top-12 flex w-full flex-col items-center'>
           {searchResult.Search.map((item: omdbSearchResult) => {
             return (
-              <div className='flex justify-center w-1/2 bg-gray-700 p-2 pointer-events-auto'
-                key={uuidv4()}
-              >
-                <p className='flex-[2]'>{item.Title}</p>
-                <p className='flex-1'>{item.Year}</p>
-                <LinkToMedia imdbID={item.imdbID}/>
-              </div>
+              <LinkToMedia imdbID={item.imdbID} className='flex flex-wrap w-full bg-gray-700 p-2'
+                key={item.Title + item.Year.toString()}>
+                <p className='m-auto flex-[2]'>{item.Title}</p>
+                <p className='m-auto flex-1'>{item.Year}</p>
+                <LinkToMedia imdbID={item.imdbID} className='m-auto flex-1'>
+                  <h1>Link</h1>
+                </LinkToMedia>
+              </LinkToMedia>
             )
           })}
+        </div>
       </div>
-    </>
+      {/* Selector for media type */}
+      <select className='bg-gray-700 p-2 text-center'
+        value={searchType} 
+        onChange={(e: ChangeEvent<HTMLSelectElement>) => setSearchType(e.target.value)}
+      >
+        {['Movie', 'Series', 'Game'].map((searchTerm: string) => {
+          return <option key={searchTerm} value={searchTerm.toLowerCase()}>{searchTerm}</option>
+        })}
+      </select>
+    </div>
   )
 }

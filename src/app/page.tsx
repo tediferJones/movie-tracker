@@ -66,6 +66,10 @@ export default async function Home() {
   //    - Add individual season to /media/[imdbID] if media.Type = 'episode', 
   //      i.e. if viewing Archer S01E04, page should show season 1 in a drop down
   //
+  //    - Condsider deleting LinkToMedia component in favor having that logic directly in DisplayFullMovieInfo
+  //      - This allows us to use normal <a> tag with an href instead of having this goofy LinkToMedia Component
+  //        Which enables ctrl + click to open link in a new tab, using buttons doesnt allow this feature
+  //
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that

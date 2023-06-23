@@ -49,7 +49,7 @@ export default function DisplayEpisodes(props: { imdbID: string, season: number 
                 <div className='flex-1'>Episode: {episode.Episode}</div>
                 <div className='flex-1'>IMDB Rating: {episode.imdbRating}</div>
                 <div className='flex-1'>{episode.imdbID}</div>
-                <LinkToMedia imdbID={episode.imdbID}/>
+                <LinkToMedia imdbID={episode.imdbID}><h1>Link To Episode</h1></LinkToMedia>
               </div>
             )
         })}

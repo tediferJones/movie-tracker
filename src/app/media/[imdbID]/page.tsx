@@ -1,15 +1,9 @@
 import DisplayFullMediaInfo from '@/components/DisplayFullMediaInfo';
 
 export default async function Movie({ params }: { params: any }) {
+  // If no params exist, server should render /media instead, 
+  // and if imdbID doesnt exist in DB, the component will show the user an error dialog
   const { imdbID } = params;
 
-  return (
-    <div>
-      {!imdbID ? <h1>Error: Either the database or omdbAPI are not responding</h1>
-      : <>
-        <DisplayFullMediaInfo imdbID={imdbID} />
-      </>
-      }
-    </div>
-  )
+  return <DisplayFullMediaInfo imdbID={imdbID} />
 }

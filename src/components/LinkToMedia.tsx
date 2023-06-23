@@ -3,8 +3,8 @@
 import { useRouter } from 'next/navigation';
 import easyFetch from '@/modules/easyFetch';
 
-export default function LinkToMovie(props: { imdbID: string }) {
-  const { imdbID } = props;
+export default function LinkToMovie({ imdbID, children, className }: { imdbID: string, children: React.ReactNode, className?: string }) { // type should be ReactNode
+  // console.log(props)
   const router = useRouter();
 
   async function checkDb() {
@@ -19,6 +19,7 @@ export default function LinkToMovie(props: { imdbID: string }) {
   }
 
   return (
-    <button onClick={checkDb}>NEW LINK</button>
+    <div className={className} onClick={checkDb}>{children}</div>
+
   )
 }

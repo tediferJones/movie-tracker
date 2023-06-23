@@ -11,35 +11,38 @@ import easyFetch from '@/modules/easyFetch';
 
 export default function DisplayFullMediaInfo(props: { imdbID: string }) {
   const { imdbID } = props;
-  const [movieInfo, setMovieInfo] = useState<cleanMediaInfo | null | false>(null);
+  const [mediaInfo, setMovieInfo] = useState<cleanMediaInfo | null | false>(null);
 
   useEffect(() => {
-    easyFetch('/api/media', 'GET', { imdbID })
-      .then((res: Response) => res.json())
-      .then((data: cleanMediaInfo | null) => data ? setMovieInfo(data) : setMovieInfo(false))
-      // If you want to migrate LinkToMedia functions this would be the place to do it
-    // fetch checker
-    // if (!checker) add to DB
-    // fetch get, if it exists then user gets MediaInfo, if data returns null user gets the error message below
+    (async () => {
+      // must await POST request, because if we GET before POST is completed, there will be nothing to GET
+      const checkForImdbID = await easyFetch('/api/media', 'HEAD', { imdbID });
+      if (checkForImdbID.status === 404) {
+        await easyFetch('/api/media', 'POST', { imdbID });
+      }
+      const res: Response = await easyFetch('/api/media', 'GET', { imdbID });
+      const data = await res.json();
+      data ? setMovieInfo(data) : setMovieInfo(false);
+    })();
   }, [])
 
   function returnList(key: string) {
-    if (movieInfo) {
+    if (mediaInfo) {
       let singularForm = key;
       let pluralForm;
       if (key === 'Actors') {
-        singularForm = 'Actor'
+        singularForm = 'Actor';
         pluralForm = key;
       } else if (key === 'Country') {
-        singularForm = key
+        singularForm = key;
         pluralForm = 'Countries';
       } else {
         pluralForm = key + 's';
       }
       return (
         <div className='m-4 bg-gray-700 p-4'>
-          <h1 className='text-xl'>{movieInfo[key].length === 1 ? singularForm : pluralForm}</h1>
-          {movieInfo[key].map((item: string) => <div key={`${key}-${item}`} className='pb-0 pt-4'>{item}</div>)}
+          <h1 className='text-xl'>{mediaInfo[key].length === 1 ? singularForm : pluralForm}</h1>
+          {mediaInfo[key].map((item: string) => <div key={`${key}-${item}`} className='pb-0 pt-4'>{item}</div>)}
         </div>
       )
     }
@@ -47,42 +50,42 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
 
   return (
     <>
-      {movieInfo === null ? <h1>Loading...</h1>
-        : !movieInfo ? <h1>Error: We couldn't find that imdbID in the database</h1>
+      {mediaInfo === null ? <h1>Loading...</h1>
+        : !mediaInfo ? <h1>Error: We couldn't find that imdbID in the database</h1>
           : <>
             {/* Primary Information Section */}
             <div className='mx-auto my-4 flex w-4/5 flex-wrap md:flex-nowrap'>
-              {movieInfo.Poster ? <img className='m-auto' src={movieInfo.Poster}/> : []}
+              {mediaInfo.Poster ? <img className='m-auto' src={mediaInfo.Poster}/> : []}
               <div className='flex w-auto flex-col justify-around'>
                 <h1 className='text-center text-3xl'>
-                  {movieInfo.Title} 
-                  {movieInfo.Year ? <span className='px-4'>({movieInfo.Year})</span> : []}
+                  {mediaInfo.Title} 
+                  {mediaInfo.Year ? <span className='px-4'>({mediaInfo.Year})</span> : []}
                 </h1>
                 <div className='flex justify-between p-4'>
-                  <div className='flex-1 text-center'>Rated: {movieInfo.Rated || 'N/A'}</div>
-                  <div className='flex-1 text-center'>Runtime: {movieInfo.Runtime ? `${movieInfo.Runtime} mins` : 'N/A'}</div>
-                  <div className='flex-1 text-center'>
-                    Released: {movieInfo.Released ? new Date(movieInfo.Released).toLocaleDateString() : 'N/A'}
+                  <div className='flex-1 text-center m-auto'>Rated: {mediaInfo.Rated || 'N/A'}</div>
+                  <div className='flex-1 text-center m-auto'>Runtime: {mediaInfo.Runtime ? `${mediaInfo.Runtime} mins` : 'N/A'}</div>
+                  <div className='flex-1 text-center m-auto'>
+                    Released: {mediaInfo.Released ? new Date(mediaInfo.Released).toLocaleDateString() : 'N/A'}
                   </div>
                 </div>
                 <h1 className='px-4 text-xl'>Plot:</h1>
                 <p className='py-4 text-center'>
-                  {movieInfo.Plot ? movieInfo.Plot : `No Plot Information is currently available for ${movieInfo.Title}`}
+                  {mediaInfo.Plot ? mediaInfo.Plot : `No Plot Information is currently available for ${mediaInfo.Title}`}
                 </p>
                 <h1 className='px-4 text-xl'>Ratings:</h1>
                 <div className='flex flex-wrap justify-around'>
                   <div className='p-4 text-center'>
-                    IMDB: {movieInfo.IMDBRating ? `${movieInfo.IMDBRating / 10} / 10` : 'N/A'}
+                    IMDB: {mediaInfo.IMDBRating ? `${mediaInfo.IMDBRating / 10} / 10` : 'N/A'}
                   </div>
                   <div className='p-4 text-center'>
-                    RottenTomatoes: {movieInfo.RottenTomatoesRating ? `${movieInfo.RottenTomatoesRating}%` : 'N/A'}
+                    RottenTomatoes: {mediaInfo.RottenTomatoesRating ? `${mediaInfo.RottenTomatoesRating}%` : 'N/A'}
                   </div>
-                  <div className='p-4 text-center'>Metacritic: {movieInfo.MetacriticRating || 'N/A'}</div>
+                  <div className='p-4 text-center'>Metacritic: {mediaInfo.MetacriticRating || 'N/A'}</div>
                 </div>
                 <div className='flex p-4'>
                   <div className='pr-2 text-xl'>Awards: </div>
                   <div className='m-auto text-center'>
-                    {movieInfo.Awards ? movieInfo.Awards : `This ${movieInfo.Type} has no awards`}
+                    {mediaInfo.Awards ? mediaInfo.Awards : `This ${mediaInfo.Type} has no awards`}
                   </div>
                 </div>
               </div>
@@ -90,13 +93,13 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
 
             {/* if series show total seasons, if episode show Season/Episode info */}
             <div className='m-auto flex w-4/5 justify-around py-2'>
-              <ManageMovieInfo imdbID={movieInfo.imdbID} />
-              <div className='bg-gray-700 p-4'>Type: {movieInfo.Type}</div>
-              {movieInfo.Type === 'series' ? <div className='bg-gray-700 p-4'>Total Seasons: {movieInfo.totalSeasons}</div> : []}
-              {movieInfo.Type === 'episode' ? <div className='bg-gray-700 p-4'>Season: {movieInfo.Season}</div> : []}
-              {movieInfo.Type === 'episode' ? <div className='bg-gray-700 p-4'>Episode: {movieInfo.Episode}</div> : []}
-              {movieInfo.Type === 'episode' ? <a className='bg-red-600 p-4' 
-                href={`/media/${movieInfo.seriesID}`}
+              <ManageMovieInfo imdbID={mediaInfo.imdbID} />
+              <div className='bg-gray-700 p-4'>Type: {mediaInfo.Type[0].toUpperCase() + mediaInfo.Type.slice(1)}</div>
+              {mediaInfo.Type === 'series' ? <div className='bg-gray-700 p-4'>Total Seasons: {mediaInfo.totalSeasons}</div> : []}
+              {mediaInfo.Type === 'episode' ? <div className='bg-gray-700 p-4'>Season: {mediaInfo.Season}</div> : []}
+              {mediaInfo.Type === 'episode' ? <div className='bg-gray-700 p-4'>Episode: {mediaInfo.Episode}</div> : []}
+              {mediaInfo.Type === 'episode' ? <a className='bg-red-600 p-4' 
+                href={`/media/${mediaInfo.seriesID}`}
               >LINK TO SERIES</a>
                 : []}
             </div>
@@ -118,28 +121,38 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
 
             {/* Display the less important movie info */}
             <div className='m-auto flex w-11/12 flex-wrap justify-center'>
-              <div className='m-4 bg-gray-700 p-4'>imdbID: {movieInfo.imdbID}</div>
-              <div className='m-4 bg-gray-700 p-4'>Movie Info Cached at: {new Date(movieInfo.cachedAt).toLocaleString()}</div>
-              <div className='m-4 bg-gray-700 p-4'>DVD Release: {movieInfo.DVD ? new Date(movieInfo.DVD).toLocaleDateString() : 'N/A'}</div>
-              <div className='m-4 bg-gray-700 p-4'>Box Office Profits: {movieInfo.BoxOffice ? '$' + movieInfo.BoxOffice.toLocaleString() : 'N/A'}</div>
-              <div className='m-4 bg-gray-700 p-4'>Production: {movieInfo.Production || 'N/A'}</div>
-              <div className='m-4 bg-gray-700 p-4'>Website: {movieInfo.Website || 'N/A'}</div>
-              <div className='m-4 bg-gray-700 p-4'>imdbVotes: {movieInfo?.imdbVotes?.toLocaleString() || 'N/A'}</div>
+              <div className='m-4 bg-gray-700 p-4'>imdbID: {mediaInfo.imdbID}</div>
+              <div className='m-4 bg-gray-700 p-4'>{mediaInfo.Type[0].toUpperCase() + mediaInfo.Type.slice(1)} Cached at: {new Date(mediaInfo.cachedAt).toLocaleString()}</div>
+              <div className='m-4 bg-gray-700 p-4'>DVD Release: {mediaInfo.DVD ? new Date(mediaInfo.DVD).toLocaleDateString() : 'N/A'}</div>
+              <div className='m-4 bg-gray-700 p-4'>Box Office Profits: {mediaInfo.BoxOffice ? '$' + mediaInfo.BoxOffice.toLocaleString() : 'N/A'}</div>
+              <div className='m-4 bg-gray-700 p-4'>Production: {mediaInfo.Production || 'N/A'}</div>
+              <div className='m-4 bg-gray-700 p-4'>Website: {mediaInfo.Website || 'N/A'}</div>
+              <div className='m-4 bg-gray-700 p-4'>imdbVotes: {mediaInfo?.imdbVotes?.toLocaleString() || 'N/A'}</div>
+            </div>
+
+            {/* Manage User Info */}
+            <div className='w-4/5 flex mx-auto'>
+              <div className='w-1/2 m-4'>
+                <ManageLists imdbID={mediaInfo.imdbID} />
+              </div>
+              <div className='w-1/2 m-4'>
+                <ManageWatched imdbID={mediaInfo.imdbID} />
+              </div>
             </div>
 
             {/* OLD FORMAT IS BELOW */}
             <h1>Put DisplayEpisodes comp up here</h1>
             <h1>Put ManageList and ManageWatched side-by-side, give ManageReview full width, and maybe put other user's reviews below that</h1>
             <h1>Move ManageMediaInfo somewhere else, could just throw it in the less important movie info div above</h1>
-            <ManageLists imdbID={movieInfo.imdbID} />
-            <ManageReview imdbID={movieInfo.imdbID} />
-            <div>{new Date(Number(movieInfo.cachedAt)).toLocaleString()}</div>
-            <ManageMovieInfo imdbID={movieInfo.imdbID} />
-            <ManageWatched imdbID={movieInfo.imdbID} />
-            {movieInfo.Type !== 'series' ? [] :
+            <ManageLists imdbID={mediaInfo.imdbID} />
+            <ManageReview imdbID={mediaInfo.imdbID} />
+            <div>{new Date(Number(mediaInfo.cachedAt)).toLocaleString()}</div>
+            <ManageMovieInfo imdbID={mediaInfo.imdbID} />
+            <ManageWatched imdbID={mediaInfo.imdbID} />
+            {mediaInfo.Type !== 'series' ? [] :
               <div>
-                {[...Array(movieInfo.totalSeasons).keys()].map((season: number) => {
-                  return <DisplayEpisodes imdbID={movieInfo.imdbID} season={season + 1} key={season + 1}/>
+                {[...Array(mediaInfo.totalSeasons).keys()].map((season: number) => {
+                  return <DisplayEpisodes imdbID={mediaInfo.imdbID} season={season + 1} key={season + 1}/>
                 })}
               </div>
             }

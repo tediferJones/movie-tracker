@@ -29,20 +29,19 @@ export default function ManageWatched(props: { imdbID: string }) {
   }
 
   return (
-    <div>
-      <h1>THIS IS THE MANAGE WATCHED COMPONENT</h1>
-      {/* {JSON.stringify(watchHistory)} */}
+    <div className='flex flex-col bg-gray-700 p-4 h-full justify-between'>
+      <h1 className='text-xl mb-2'>Manage Watched Records</h1>
       {watchHistory === null ? [] : watchHistory.map((item: watched) => {
         return (
-          <div className='flex' key={item.id}>
-            <div>{new Date(item.date).toLocaleString()}</div>
-            <button className='p-4 bg-red-600'
+          <div className='p-2 my-2 bg-gray-200 flex justify-between' key={item.id}>
+            <div className='m-auto text-black'>{new Date(item.date).toLocaleString()}</div>
+            <button className='bg-red-600 p-2'
               onClick={deleteFuncCreator(item.id)}
-            >DELETE</button>
+            >Delete</button>
           </div>
         )
       })}
-      <button className='p-4 bg-green-500'
+      <button className='bg-green-500 p-4 mt-4'
         onClick={newWatched}
       >ADD NEW WATCHED RECORD</button>
     </div>

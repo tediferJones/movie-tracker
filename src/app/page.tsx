@@ -66,15 +66,26 @@ export default async function Home() {
   //    - Add individual season to /media/[imdbID] if media.Type = 'episode', 
   //      i.e. if viewing Archer S01E04, page should show season 1 in a drop down
   //
-  //    - Condsider deleting LinkToMedia component in favor having that logic directly in DisplayFullMovieInfo
-  //      - This allows us to use normal <a> tag with an href instead of having this goofy LinkToMedia Component
-  //        Which enables ctrl + click to open link in a new tab, using buttons doesnt allow this feature
+  //    - Edit searchBar component, only show drop once the input has been selected at least once
+  //      - We want user searches to be preserved (if we search star wars and click the first link, star wars will be in the input on the next page)
+  //        We want to preserve this behavior, without having the drop down over lap important media info
+  //
+  //    - Edit ManageLists: where it shows what lists already contain this movie, each of those options should present its own delete button
+  //      - When clicked, delete movie and refresh userLists data
+  //      - Button exists, but doesn't do anything yet
+  //
+  //    - Consider editing ManageLists component, by default it should display all users list, and the button should be add or remove depending on if it exists or not
+  //
+  //    - Edit ManageLists & ManageWatched, if there are too many watch records or lists, we want a scroll bar, 
+  //      - set max height to something like 50vh
+  //      - Components need to grow/shrink with contents, if no contents, should just show title and button with some padding in between
   //
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that
   //    - Try to remove the weird fake type coercion in /modules/CleanUpMovieInfo
   //    - Consider making all PUT and DELETE requests based on id and username(like /api/watched).  This makes API requests more restFUL
+  //      - If we dont end up doing this, change the delete function in ManageWatched to match how we handle things everywhere else
   //    - Add proper type to sliderHandler func in ManageReview
   //
 

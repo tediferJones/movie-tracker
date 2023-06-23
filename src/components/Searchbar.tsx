@@ -1,8 +1,7 @@
 'use client';
 import { useState, useEffect, ChangeEvent } from 'react';
 import { omdbSearch, omdbSearchResult } from '@/types';
-// import { v4 as uuidv4 } from 'uuid';
-import LinkToMedia from '@/components/LinkToMedia';
+import Link from 'next/link';
 import easyFetch from '@/modules/easyFetch';
 
 export default function Searchbar() {
@@ -12,7 +11,7 @@ export default function Searchbar() {
     totalResults: '0',
   }
 
-  const [searchTerm, setSearchTerm] = useState('The Deluge');
+  const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('movie');
   const [searchResult, setSearchResult] = useState(defaultState);
 
@@ -47,20 +46,17 @@ export default function Searchbar() {
         <div className='absolute top-12 flex w-full flex-col items-center'>
           {searchResult.Search.map((item: omdbSearchResult) => {
             return (
-              <LinkToMedia imdbID={item.imdbID} className='flex flex-wrap w-full bg-gray-700 p-2'
+              <Link href={`/media/${item.imdbID}`} className='flex flex-wrap w-full bg-gray-700 p-2'
                 key={item.Title + item.Year.toString()}>
                 <p className='m-auto flex-[2]'>{item.Title}</p>
                 <p className='m-auto flex-1'>{item.Year}</p>
-                <LinkToMedia imdbID={item.imdbID} className='m-auto flex-1'>
-                  <h1>Link</h1>
-                </LinkToMedia>
-              </LinkToMedia>
+              </Link>
             )
           })}
         </div>
       </div>
       {/* Selector for media type */}
-      <select className='bg-gray-700 p-2 text-center'
+      <select className='bg-gray-700 p-2 text-center cursor-pointer'
         value={searchType} 
         onChange={(e: ChangeEvent<HTMLSelectElement>) => setSearchType(e.target.value)}
       >

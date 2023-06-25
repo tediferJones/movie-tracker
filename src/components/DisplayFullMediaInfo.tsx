@@ -106,13 +106,13 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
 
             {/* CENTERED DIV WITH LESS THAN 100% width and NO CONTAINER */}
             {/* show array data types in lists*/}
-            <div className='m-auto flex w-4/5 justify-between py-4'>
-              <div className='flex w-1/2 flex-col justify-between'>
+            <div className='m-auto flex flex-wrap w-4/5 justify-between py-4'>
+              <div className='flex flex-1 flex-col justify-between'>
                 {returnList('Actors')}
                 {returnList('Director')}
                 {returnList('Writer')}
               </div>
-              <div className='flex w-1/2 flex-col justify-between'>
+              <div className='flex flex-1 flex-col justify-between'>
                 {returnList('Genre')}
                 {returnList('Language')}
                 {returnList('Country')}
@@ -131,11 +131,11 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
             </div>
 
             {/* Manage User Info */}
-            <div className='w-4/5 flex mx-auto'>
-              <div className='w-1/2 m-4'>
+            <div className='w-4/5 flex flex-wrap mx-auto'>
+              <div className='flex-1 m-4'>
                 <ManageLists imdbID={mediaInfo.imdbID} />
               </div>
-              <div className='w-1/2 m-4'>
+              <div className='flex-1 m-4'>
                 <ManageWatched imdbID={mediaInfo.imdbID} />
               </div>
             </div>

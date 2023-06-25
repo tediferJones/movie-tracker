@@ -76,9 +76,9 @@ export default async function Home() {
   //
   //    - Consider editing ManageLists component, by default it should display all users list, and the button should be add or remove depending on if it exists or not
   //
-  //    - Edit ManageLists & ManageWatched, if there are too many watch records or lists, we want a scroll bar, 
-  //      - set max height to something like 50vh
-  //      - Components need to grow/shrink with contents, if no contents, should just show title and button with some padding in between
+  //    - Add a loading state to ManageLists component,
+  //      - As of now we assign a default state of {}, set to null by default, if null then display loading diaglog
+  //        Once useEffect completes, assign the fetch result to state, even if its empty obj thats okay
   //
   //
   // Minor Changes:

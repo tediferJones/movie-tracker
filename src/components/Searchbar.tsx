@@ -14,6 +14,11 @@ export default function Searchbar() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('movie');
   const [searchResult, setSearchResult] = useState(defaultState);
+  const [displaySearchResult, setDisplaySearchResult] = useState<true | false>(true)
+
+  // By default, set showDropDown to false
+  // When user starts typing set shopDropDown to true
+  // on click of link, toggle showDropDown to false
 
   useEffect(() => {
     const delaySetState = setTimeout(() => {
@@ -26,6 +31,7 @@ export default function Searchbar() {
       }).then((res: Response) => res.json())
         .then((data: omdbSearch) => {
           console.log('SEARCH RESULTS', data)
+          console.log(displaySearchResult)
           data.Response === 'True' ? setSearchResult(data) : setSearchResult(defaultState);
         })
     }, 1000)
@@ -38,13 +44,15 @@ export default function Searchbar() {
       <label className='my-auto p-2'>SEARCH</label>
       <div className='relative flex w-full flex-col'>
         <input className='border-color-gray-400 w-full border-8 text-2xl text-black'
+          onFocus={() => setDisplaySearchResult(true)}
+          onBlur={() => setDisplaySearchResult(false)}
           type='text'
           value={searchTerm}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
         />
         {/* Search Results area */}
         <div className='absolute top-12 flex w-full flex-col items-center'>
-          {searchResult.Search.map((item: omdbSearchResult) => {
+          {!displaySearchResult ? [] : searchResult.Search.map((item: omdbSearchResult) => {
             return (
               <Link href={`/media/${item.imdbID}`} className='flex flex-wrap w-full bg-gray-700 p-2'
                 key={item.Title + item.Year.toString()}>

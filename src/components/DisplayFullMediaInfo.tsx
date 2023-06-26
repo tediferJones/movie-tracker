@@ -130,6 +130,17 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
               <div className='m-4 bg-gray-700 p-4'>imdbVotes: {mediaInfo?.imdbVotes?.toLocaleString() || 'N/A'}</div>
             </div>
 
+            {/* Show season info */}
+            {mediaInfo.Type !== 'series' ? [] :
+              <div className='my-4'>
+                {[...Array(mediaInfo.totalSeasons).keys()].map((season: number) => {
+                  return <DisplayEpisodes imdbID={mediaInfo.imdbID} season={season + 1} key={season + 1}/>
+                })}
+              </div>
+            }
+            {mediaInfo.Season === null || mediaInfo.Type !== 'episode' ? [] : 
+              <DisplayEpisodes imdbID={mediaInfo.seriesID} season={mediaInfo.Season} key={mediaInfo.Season}/>}
+
             {/* Manage User Info */}
             <div className='w-4/5 flex flex-wrap mx-auto'>
               <div className='flex-1 m-4'>
@@ -138,6 +149,10 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
               <div className='flex-1 m-4'>
                 <ManageWatched imdbID={mediaInfo.imdbID} />
               </div>
+            </div>
+
+            <div className='w-4/5 m-auto'>
+              <ManageReview imdbID={mediaInfo.imdbID} />
             </div>
 
             {/* OLD FORMAT IS BELOW */}

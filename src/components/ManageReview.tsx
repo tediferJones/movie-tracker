@@ -11,6 +11,7 @@ export default function ManageReview(props: { imdbID: string }) {
     imdbID,
     watchAgain: false,
     myRating: 0,
+    myReview: '',
   }
   const [existingReview, setExistingReview] = useState<review | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
@@ -19,7 +20,7 @@ export default function ManageReview(props: { imdbID: string }) {
   useEffect(() => {
     easyFetch('/api/reviews', 'GET', { imdbID })
         .then((res: Response) => res.json())
-        .then((data: review) => setExistingReview(data ? data : defaultState))
+        .then((data: review | undefined) => setExistingReview(data ? data : defaultState))
   }, [refreshTrigger])
 
   async function updateMovieDetails(key: string) {
@@ -27,7 +28,8 @@ export default function ManageReview(props: { imdbID: string }) {
       const fetchMethod = existingReview.username === '' ? 'POST' : 'PUT'
       await easyFetch('/api/reviews', fetchMethod, { 
         ...existingReview,
-        [key]: key === 'myRating' ? existingReview[key] : !existingReview[key]
+        // [key]: key === 'myRating' ? existingReview[key] : !existingReview[key]
+        [key]: ['myRating', 'myReview'].includes(key) ? existingReview[key] : !existingReview[key]
       })
       setRefreshTrigger(!refreshTrigger);
     }
@@ -66,35 +68,42 @@ export default function ManageReview(props: { imdbID: string }) {
   return (
     <>
       {!existingReview ? <h1>Loading your review...</h1> :
-      <div className='bg-yellow-400'>
-        <div>{JSON.stringify(existingReview)}</div>
-        <button onClick={() => updateMovieDetails('watchAgain')}>Toggle Watch Again</button>
-        <hr />
+        <div className='bg-gray-700 p-4 m-4'>
+          <h1 className='text-xl mb-2'>My Review</h1>
+          <div className='flex flex-wrap'>
+            <button className='p-2 hover:bg-orange-400'
+              onClick={() => updateMovieDetails('watchAgain')}
+            >Watch Again: {existingReview.watchAgain ? 'Yes' : 'No'}</button>
 
-        <label htmlFor='myRating'>myRating</label>
-        <input className='border-4'
-          name='myRating'
-          value={(existingReview.myRating / 20).toFixed(2)} 
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setExistingReview({ 
-            ...existingReview,
-            myRating: Number(e.target.value) * 20,
-          })} 
-          type='number' min={0} max={5} step={0.05} 
-        />
+            <label htmlFor='myRating'>myRating</label>
+            <input className='border-4 text-black'
+              name='myRating'
+              value={(existingReview.myRating / 20).toFixed(2)} 
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setExistingReview({ 
+                ...existingReview,
+                myRating: Number(e.target.value) * 20,
+              })} 
+              type='number' min={0} max={5} step={0.05} 
+            />
+            <div className='flex-1 bg-blue-400'
+              id='myRatingParent'
+              onMouseMove={sliderHandler} 
+              onMouseLeave={() => document.getElementById('HoverText')?.remove()}
+              onClick={() => setMyRatingToggle(!myRatingToggle)}
+            >
+              <div className='h-full bg-red-400' 
+                id='myRating' 
+                style={{width: `${existingReview.myRating}%`, pointerEvents: 'none'}}
+              ></div>
+            </div>
+          </div>
 
-        <div className='h-16 bg-blue-400'
-          id='myRatingParent'
-          onMouseMove={sliderHandler} 
-          onMouseLeave={() => document.getElementById('HoverText')?.remove()}
-          onClick={() => setMyRatingToggle(!myRatingToggle)}
-        >
-          <div className='h-full bg-red-400' 
-            id='myRating' 
-            style={{width: `${existingReview.myRating}%`, pointerEvents: 'none'}}
-          ></div>
+          <button onClick={() => updateMovieDetails('myRating')}>Update My Rating</button>
+
+          <textarea name='myReview' className='text-black' value={existingReview.myReview} onChange={(e) => setExistingReview({ ...existingReview, myReview: e.target.value })}></textarea>
+          <button onClick={() => updateMovieDetails('myReview')}>SUBMIT TEXT REVIEW</button>
+
         </div>
-        <button onClick={() => updateMovieDetails('myRating')}>Update My Rating</button>
-      </div>
       }
     </>
   )

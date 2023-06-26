@@ -25,6 +25,7 @@ model reviews {
   imdbID String
   watchAgain Boolean @default(false)
   myRating Int @default(0) @db.Int
+  myReview String 
 
   @@unique([username, imdbID])
 }

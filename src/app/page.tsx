@@ -76,9 +76,12 @@ export default async function Home() {
   //
   //    - Consider editing ManageLists component, by default it should display all users list, and the button should be add or remove depending on if it exists or not
   //
-  //    - Add a loading state to ManageLists component,
+  //    - [ DONE ] Add a loading state to ManageLists component,
   //      - As of now we assign a default state of {}, set to null by default, if null then display loading diaglog
   //        Once useEffect completes, assign the fetch result to state, even if its empty obj thats okay
+  //
+  //    - See ManageLists component, consider merging mediaExistsInCurrentList and mediaExistsInAnyList in any list
+  //      - resulting func: mediaExistsInList(key) => if (key) check that list, if no key, check all lists, return true or false
   //
   //
   // Minor Changes:

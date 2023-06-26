@@ -7,7 +7,7 @@ import easyFetch from '@/modules/easyFetch';
 
 export default function DisplayEpisodes(props: { imdbID: string, season: number }) {
   const { imdbID, season } = props;
-  // console.log(imdbID);
+  // console.log(imdbID, season);
 
   const [episodeList, setEpisodeList] = useState<episodeList | null>(null);
   const [expandList, setExpandList] = useState<boolean>(false)
@@ -31,7 +31,7 @@ export default function DisplayEpisodes(props: { imdbID: string, season: number 
   }
 
   return (
-    <div className='bg-purple-400 w-4/5'>
+    <div className='bg-gray-700 w-4/5 m-auto'>
       <button className='text-2xl flex justify-between w-full p-4' onClick={toggleEpisodes}>
         <h1>SEASON {season}</h1>
         <h1>{document.getElementById(`season${season}Container`)?.style.display === 'none' ? '+' : '-'}</h1>

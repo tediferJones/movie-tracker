@@ -43,7 +43,8 @@ export default function Searchbar() {
             onClick={() => setDisplaySearchResult(false)}>
           </div> 
         }
-        <input className='w-full text-2xl text-black absolute h-full p-2'
+        <input className='w-full text-2xl text-black relative h-full p-2'
+          id='searchbarInput'
           onFocus={() => setDisplaySearchResult(true)}
           type='text'
           value={searchTerm}
@@ -64,9 +65,13 @@ export default function Searchbar() {
         </div>
       </div>
       {/* Selector for media type */}
-      <select className='cursor-pointer bg-gray-700 p-2 text-center'
+      <select className='cursor-pointer bg-gray-700 p-2 text-center relative'
         value={searchType} 
-        onChange={(e: ChangeEvent<HTMLSelectElement>) => setSearchType(e.target.value)}
+        onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+          setSearchResult(defaultState)
+          setSearchType(e.target.value)
+          document.getElementById('searchbarInput')?.focus()
+        }}
       > {['Movie', 'Series', 'Game'].map((searchTerm: string) => {
           return <option key={searchTerm} value={searchTerm.toLowerCase()}>{searchTerm}</option>
         })}

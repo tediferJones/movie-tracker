@@ -55,37 +55,27 @@ export default async function Home() {
   //      FIELDS THAT ALMOST CERTAINLY EXISTS: mongoDB-ID, Title, Year, imdbID, Type, cachedAt 
   //
   //    - WRITE SOME TESTS, try to test most components and modules
+  //      - Cant test things that fetch... all our components fetch so we're kinda boned
+  //      - No point in testing pages, they are very simple anyways, and cant fetch from DB during tests so?
+  //      - Seems like there is no point to testing this... but I would love to be proven wrong
   //
   //    - Add a text field to review prisma schema, so users can write a little text review
   //
   //    - Setup/Post project to vercel, as we push changes to github the website should update
   //      - Vercel will use its own database, so make sure prisma schemas are correct before setup
   //
-  //    - Error in ManageWatched Component
+  //    - Error in ManageWatched Component (idk this kinda just started happening one day, if the issue disappears forget about this)
   //
-  //    - Add individual season to /media/[imdbID] if media.Type = 'episode', 
-  //      i.e. if viewing Archer S01E04, page should show season 1 in a drop down
-  //
-  //    - Edit searchBar component, only show drop once the input has been selected at least once
-  //      - We want user searches to be preserved (if we search star wars and click the first link, star wars will be in the input on the next page)
-  //        We want to preserve this behavior, without having the drop down over lap important media info
-  //
-  //    - Edit ManageLists: where it shows what lists already contain this movie, each of those options should present its own delete button
   //      - When clicked, delete movie and refresh userLists data
   //      - Button exists, but doesn't do anything yet
   //
   //    - Consider editing ManageLists component, by default it should display all users list, and the button should be add or remove depending on if it exists or not
   //
-  //    - [ DONE ] Add a loading state to ManageLists component,
-  //      - As of now we assign a default state of {}, set to null by default, if null then display loading diaglog
-  //        Once useEffect completes, assign the fetch result to state, even if its empty obj thats okay
-  //
   //    - See ManageLists component, consider merging mediaExistsInCurrentList and mediaExistsInAnyList in any list
   //      - resulting func: mediaExistsInList(key) => if (key) check that list, if no key, check all lists, return true or false
   //
-  //    - Fix searchbar component, we changed the input to use onFocus and onBlur, now we cant click links in the drop down
-  //    
-  //    - Try to remove/replace all the weird javascript stuff to show "Click to Edit" in ManageReview
+  //    - Create DisplaySeasons component, needs to take care of the case where there is only one season
+  //      - If possible try to merge the "display season for specific episode's season" feature into this component
   //
   //
   // Minor Changes:

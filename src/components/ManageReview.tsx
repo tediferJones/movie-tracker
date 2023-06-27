@@ -4,8 +4,7 @@ import { useEffect, useState, ChangeEvent } from 'react';
 import { review } from '@/types';
 import easyFetch from '@/modules/easyFetch';
 
-export default function ManageReview(props: { imdbID: string }) {
-  const { imdbID } = props;
+export default function ManageReview({ imdbID }: { imdbID: string }) {
   const defaultState = {
     username: '',
     imdbID,
@@ -16,6 +15,7 @@ export default function ManageReview(props: { imdbID: string }) {
   const [existingReview, setExistingReview] = useState<review | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
   const [myRatingToggle, setMyRatingToggle] = useState<boolean>(false);
+  const [isHovering, setIsHovering] = useState<boolean>(false)
 
   useEffect(() => {
     easyFetch('/api/reviews', 'GET', { imdbID })
@@ -32,22 +32,11 @@ export default function ManageReview(props: { imdbID: string }) {
   }
 
   function sliderHandler(e: any) {
-    if (myRatingToggle) {
-      document.getElementById('HoverText')?.remove()
-      if (existingReview) {
-        setExistingReview({ 
-          ...existingReview, 
-          myRating: Math.round(e.nativeEvent.offsetX / e.target.offsetWidth * 100),
-        })
-      }
-    } else {
-      if (!document.getElementById('HoverText')) {
-        const hoverText = document.createElement('div');
-        hoverText.id = 'HoverText'
-        hoverText.innerHTML = 'Click to Edit'
-        hoverText.style.position = 'absolute';
-        document?.getElementById('myRatingParent')?.prepend(hoverText)
-      }
+    if (myRatingToggle && existingReview) {
+      setExistingReview({ 
+        ...existingReview, 
+        myRating: Math.round(e.nativeEvent.offsetX / e.target.offsetWidth * 100),
+      })
     }
   }
 
@@ -57,9 +46,6 @@ export default function ManageReview(props: { imdbID: string }) {
 
   // ADD BUTTON TO DELETE REVIEW, route already exists in API, but it is essentially empty
   // We still need some kind of loading state, while we check the DB to see if a review exists
-
-  // Consider getting rid of the UpdateRating button, 
-  // when the user re-locks the slider, or changes the input box manually, call updateMovieDetails('myRating')
 
   return (
     <>
@@ -105,12 +91,19 @@ export default function ManageReview(props: { imdbID: string }) {
               type='number' min={0} max={5} step={0.05} 
             />
 
-            <div className='flex-1 bg-blue-400 min-h-[2em] min-w-[8em] my-2'
+            <div className='flex-1 bg-blue-400 min-h-[2em] min-w-[8em] my-2 relative'
               id='myRatingParent'
               onMouseMove={sliderHandler} 
-              onMouseLeave={() => document.getElementById('HoverText')?.remove()}
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => {
+                setMyRatingToggle(false)
+                setIsHovering(false)
+              }}
               onClick={() => setMyRatingToggle(!myRatingToggle)}
             >
+              {!myRatingToggle && !isHovering ? [] : 
+                <div className='absolute w-full h-full flex justify-center items-center'
+                >Click to {myRatingToggle ? 'Set' : 'Edit'}</div>}
               <div className='h-full bg-orange-400' 
                 style={{
                   width: `${existingReview.myRating}%`, 

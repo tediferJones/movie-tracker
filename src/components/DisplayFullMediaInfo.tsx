@@ -28,6 +28,9 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
 
   function returnList(key: string) {
     if (mediaInfo) {
+      // let specialCases = { Actor: 'Actors', Country: 'Countries', }
+      // Then use object.keys() to iterate over it, 
+      // if either the key or value match the arg given, set its singular/plural form accordingly
       let singularForm = key;
       let pluralForm;
       if (key === 'Actors') {
@@ -132,10 +135,27 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
 
             {/* Show season info */}
             {mediaInfo.Type !== 'series' ? [] :
-              <div className='my-4'>
-                {[...Array(mediaInfo.totalSeasons).keys()].map((season: number) => {
-                  return <DisplayEpisodes imdbID={mediaInfo.imdbID} season={season + 1} key={season + 1}/>
-                })}
+              <div className='my-4 mx-auto flex flex-col items-center w-4/5'>
+                <button className='text-2xl p-4 bg-gray-700 w-full flex justify-between'
+                  onClick={() => {
+                    const style = document.getElementById('seasonsContainer')?.style
+                    console.log(style)
+                    if (style) {
+                      console.log('CHANGING STYLE')
+                      console.log(style.display)
+                      style.display = style.display === 'none' ? 'block' : 'none'
+                    }
+                  }}
+                > <h1>{`Seasons 1 - ${mediaInfo.totalSeasons}`}</h1>
+                  <h1>Switch between + and -</h1>
+                  {/* To Get this working, probably need to incorporate state into this div, 
+                  so react knows this div needs updating when state changes */}
+                </button>
+                <div id='seasonsContainer' className='w-full' style={{ display: 'none'}}>
+                  {[...Array(mediaInfo.totalSeasons).keys()].map((season: number) => {
+                    return <DisplayEpisodes imdbID={mediaInfo.imdbID} season={season + 1} key={season + 1}/>
+                  })}
+                </div>
               </div>
             }
             {mediaInfo.Season === null || mediaInfo.Type !== 'episode' ? [] : 
@@ -156,21 +176,7 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
             </div>
 
             {/* OLD FORMAT IS BELOW */}
-            <h1>Put DisplayEpisodes comp up here</h1>
-            <h1>Put ManageList and ManageWatched side-by-side, give ManageReview full width, and maybe put other user's reviews below that</h1>
-            <h1>Move ManageMediaInfo somewhere else, could just throw it in the less important movie info div above</h1>
-            <ManageLists imdbID={mediaInfo.imdbID} />
-            <ManageReview imdbID={mediaInfo.imdbID} />
-            <div>{new Date(Number(mediaInfo.cachedAt)).toLocaleString()}</div>
-            <ManageMovieInfo imdbID={mediaInfo.imdbID} />
-            <ManageWatched imdbID={mediaInfo.imdbID} />
-            {mediaInfo.Type !== 'series' ? [] :
-              <div>
-                {[...Array(mediaInfo.totalSeasons).keys()].map((season: number) => {
-                  return <DisplayEpisodes imdbID={mediaInfo.imdbID} season={season + 1} key={season + 1}/>
-                })}
-              </div>
-            }
+            <h1>Put other user's reviews down here, maybe add some info like "This movie appears in X other lists, and 90% of reviewers would watch it again"</h1>
           </>}
     </>
   )

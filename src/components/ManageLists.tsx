@@ -55,10 +55,12 @@ export default function ManageLists(props: { imdbID: string }) {
   return (
     <form className='flex h-full max-h-[75vh] flex-col justify-between bg-gray-700 p-4'
       onSubmit={submitHandler}
-    > <div className='mb-2 flex justify-between'>
+    > <div className='mb-2 flex flex-wrap justify-between gap-2'>
         <h1 className='text-xl'>Manage My Lists</h1>
-        <select className='text-black' value={currentList} onChange={(e: ChangeEvent<HTMLSelectElement>) => setCurrentList(e.target.value)}>
-          <option value=''>Create List</option>
+        <select className='text-black flex-1' 
+          value={currentList} 
+          onChange={(e: ChangeEvent<HTMLSelectElement>) => setCurrentList(e.target.value)}
+        > <option value=''>Create List</option>
           {userLists === null ? [] : Object.keys(userLists).map((userList: string) => {
             return (
               <option key={userList} value={userList}>{userList}</option>
@@ -69,14 +71,14 @@ export default function ManageLists(props: { imdbID: string }) {
 
       <div className='overflow-y-auto'>
         {userLists === null ? <h1 className='text-center'>Loading...</h1> 
-          : !mediaExistsInAnyList() ? <h1 className='text-center'>This Media does not exist in any of your lists</h1> 
+          : !mediaExistsInAnyList() ? <h1 className='text-center my-2'>This Media does not exist in any of your lists</h1> 
             : Object.keys(userLists).map((key: string) => {
               if (userLists[key].includes(imdbID)) {
                 return (
-                  <div className='my-2 flex justify-between bg-gray-200 p-2 text-black'
+                  <div className='my-2 flex justify-between bg-gray-200 p-2 text-black flex-wrap gap-2'
                     key={key}
-                  > <p className='m-auto'>{key}</p>
-                    <button className='bg-red-600 p-2 text-white' type='button' onClick={deleteFuncCreator(key)}>Delete</button>
+                  > <p className='m-auto text-center flex-[2]'>{key}</p>
+                    <button className='bg-red-600 p-2 text-white flex-1' type='button' onClick={deleteFuncCreator(key)}>Delete</button>
                   </div>
                 )
               }

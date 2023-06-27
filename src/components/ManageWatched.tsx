@@ -32,22 +32,22 @@ export default function ManageWatched(props: { imdbID: string }) {
     <div className='flex flex-col bg-gray-700 p-4 h-full max-h-[75vh] justify-between'>
       <h1 className='text-xl mb-2'>Manage Watched Records</h1>
       <div className='overflow-y-auto'>
-        {watchHistory === null ? <div className='text-center'>Loading...</div> 
-          : watchHistory.length === 0 ? <h1 className='text-center'>No Watched Records Found</h1> 
+        {watchHistory === null ? <div className='text-center my-2'>Loading...</div> 
+          : watchHistory.length === 0 ? <h1 className='text-center my-2'>No Watched Records Found</h1> 
             : watchHistory.map((item: watched) => {
               return (
-                <div className='p-2 my-2 bg-gray-200 flex justify-between' key={item.id}>
-                  <div className='m-auto text-black'>{new Date(item.date).toLocaleString()}</div>
-                  <button className='bg-red-600 p-2'
+                <div className='p-2 my-2 bg-gray-200 flex flex-wrap gap-2 justify-between' key={item.id}>
+                  <div className='m-auto text-black text-center flex-[2]'>{new Date(item.date).toLocaleString()}</div>
+                  <button className='bg-red-600 p-2 flex-1'
                     onClick={deleteFuncCreator(item.id)}
                   >Delete</button>
                 </div>
               )
             })}
       </div>
-      <button className='bg-green-500 p-4 mt-4'
+      <button className='bg-green-500 p-4 mt-2'
         onClick={newWatched}
-      >ADD NEW WATCHED RECORD</button>
+      >Add Record</button>
     </div>
   )
 }

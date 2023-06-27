@@ -83,6 +83,10 @@ export default async function Home() {
   //    - See ManageLists component, consider merging mediaExistsInCurrentList and mediaExistsInAnyList in any list
   //      - resulting func: mediaExistsInList(key) => if (key) check that list, if no key, check all lists, return true or false
   //
+  //    - Fix searchbar component, we changed the input to use onFocus and onBlur, now we cant click links in the drop down
+  //    
+  //    - Try to remove/replace all the weird javascript stuff to show "Click to Edit" in ManageReview
+  //
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that

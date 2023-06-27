@@ -142,7 +142,7 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
               <DisplayEpisodes imdbID={mediaInfo.seriesID} season={mediaInfo.Season} key={mediaInfo.Season}/>}
 
             {/* Manage User Info */}
-            <div className='w-4/5 flex flex-wrap mx-auto'>
+            <div className='w-4/5 flex flex-wrap flex-col md:flex-row mx-auto'>
               <div className='flex-1 m-4'>
                 <ManageLists imdbID={mediaInfo.imdbID} />
               </div>

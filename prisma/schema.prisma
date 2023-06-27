@@ -23,7 +23,7 @@ model reviews {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   username String
   imdbID String
-  watchAgain Boolean @default(false)
+  watchAgain Boolean?
   myRating Int @default(0) @db.Int
   myReview String 
 

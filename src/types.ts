@@ -108,7 +108,7 @@ interface episodeList {
 interface review extends stringIndexableObject {
   username: string,
   imdbID: string,
-  watchAgain: boolean,
+  watchAgain: boolean | null,
   myRating: number,
 }
 

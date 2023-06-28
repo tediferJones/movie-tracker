@@ -28,6 +28,8 @@ export default async function Home() {
   // The master TO-DO list
   //
   // Feature additions:
+  //      FIELDS THAT ALMOST CERTAINLY EXISTS: mongoDB-ID, Title, Year, imdbID, Type, cachedAt 
+  //
   //    - move auth from ./layout to individual components
   //      - if done properly, users can still browse/filter the whole DB, and search for movies
   //      - But if they try to do anything related a user (i.e. add/removing a movie a list), then require the login
@@ -52,30 +54,20 @@ export default async function Home() {
   //    - Rewrite /movies page, each media type should have its own section, 
   //      i.e. 'Games' section will show all games in the DB
   //
-  //      FIELDS THAT ALMOST CERTAINLY EXISTS: mongoDB-ID, Title, Year, imdbID, Type, cachedAt 
-  //
   //    - WRITE SOME TESTS, try to test most components and modules
   //      - Cant test things that fetch... all our components fetch so we're kinda boned
   //      - No point in testing pages, they are very simple anyways, and cant fetch from DB during tests so?
   //      - Seems like there is no point to testing this... but I would love to be proven wrong
-  //
-  //    - Add a text field to review prisma schema, so users can write a little text review
   //
   //    - Setup/Post project to vercel, as we push changes to github the website should update
   //      - Vercel will use its own database, so make sure prisma schemas are correct before setup
   //
   //    - Error in ManageWatched Component (idk this kinda just started happening one day, if the issue disappears forget about this)
   //
-  //      - When clicked, delete movie and refresh userLists data
-  //      - Button exists, but doesn't do anything yet
-  //
   //    - Consider editing ManageLists component, by default it should display all users list, and the button should be add or remove depending on if it exists or not
   //
   //    - See ManageLists component, consider merging mediaExistsInCurrentList and mediaExistsInAnyList in any list
   //      - resulting func: mediaExistsInList(key) => if (key) check that list, if no key, check all lists, return true or false
-  //
-  //    - Create DisplaySeasons component, needs to take care of the case where there is only one season
-  //      - If possible try to merge the "display season for specific episode's season" feature into this component
   //
   //
   // Minor Changes:
@@ -84,6 +76,7 @@ export default async function Home() {
   //    - Consider making all PUT and DELETE requests based on id and username(like /api/watched).  This makes API requests more restFUL
   //      - If we dont end up doing this, change the delete function in ManageWatched to match how we handle things everywhere else
   //    - Add proper type to sliderHandler func in ManageReview
+  //    - DONT USE document.getElementByWHATEVER, use the React.useRef hook
   //
 
   const user = await currentUser();

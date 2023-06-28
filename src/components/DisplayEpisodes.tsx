@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { episodeList, episode } from '@/types';
 import Link from 'next/link';
 import easyFetch from '@/modules/easyFetch';
 
-export default function DisplayEpisodes(props: { imdbID: string, season: number }) {
-  const { imdbID, season } = props;
+export default function DisplayEpisodes({ imdbID, season }: { imdbID: string, season: number }) {
   // console.log(imdbID, season);
 
   const [episodeList, setEpisodeList] = useState<episodeList | null>(null);
   const [expandList, setExpandList] = useState<boolean>(false)
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     easyFetch('/api/search', 'GET', { 
@@ -22,24 +22,18 @@ export default function DisplayEpisodes(props: { imdbID: string, season: number 
       .then((data: episodeList) => setEpisodeList(data));
   }, [])
 
-  function toggleEpisodes() {
-    const style = document.getElementById(`season${season}Container`)?.style
-    setExpandList(!expandList);
-    if (style) {
-      style.display = expandList ? 'none' : 'block';
-    }
-  }
-
   return (
-    <div className='bg-gray-700 m-auto'>
-      <button className='text-2xl flex justify-between w-full p-4' onClick={toggleEpisodes}>
-        <h1>SEASON {season}</h1>
-        <h1>{!expandList ? '+' : '-'}</h1>
+    <div className='bg-gray-700 m-auto w-full'>
+      <button className='text-2xl flex justify-between w-full p-4' 
+        onClick={() => {
+          ref.current?.classList.toggle('hidden');
+          setExpandList(!expandList);
+        }}
+      > <h1>Season {season}</h1>
+        <h1>{expandList ? '-' : '+'}</h1>
       </button>
-      {/*
-      <div>{JSON.stringify(episodeList.Episodes)}</div>
-      */}
-      <div id={`season${season}Container`} style={{ display: 'none' }}>
+
+      <div ref={ref} className='hidden'>
         {episodeList === null ? <h1>Loading...</h1> : 
           episodeList.Episodes.map((episode: episode) => {
             return (

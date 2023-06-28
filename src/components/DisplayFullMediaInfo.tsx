@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 // import { v4 as uuidv4 } from 'uuid';
 import { cleanMediaInfo } from '@/types';
@@ -6,11 +7,12 @@ import ManageLists from '@/components/ManageLists';
 import ManageMovieInfo from '@/components/ManageMovieInfo';
 import ManageReview from '@/components/ManageReview';
 import ManageWatched from '@/components/ManageWatched';
-import DisplayEpisodes from '@/components/DisplayEpisodes';
+// import DisplayEpisodes from '@/components/DisplayEpisodes';
+import DisplaySeasons from '@/components/DisplaySeasons';
 import easyFetch from '@/modules/easyFetch';
 
-export default function DisplayFullMediaInfo(props: { imdbID: string }) {
-  const { imdbID } = props;
+export default function DisplayFullMediaInfo({ imdbID }: { imdbID: string }) {
+  // const { imdbID } = props;
   const [mediaInfo, setMovieInfo] = useState<cleanMediaInfo | null | false>(null);
 
   useEffect(() => {
@@ -28,20 +30,32 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
 
   function returnList(key: string) {
     if (mediaInfo) {
-      // let specialCases = { Actor: 'Actors', Country: 'Countries', }
+      let specialCases: { [key: string]: string } = { Actor: 'Actors', Country: 'Countries', }
+      let singularForm: string = key;
+      let pluralForm: string = key + 's';
+      Object.keys(specialCases).forEach((caseKey: string) => {
+        if (key === caseKey || key === specialCases[caseKey]) {
+          singularForm = caseKey;
+          pluralForm = specialCases[caseKey];
+        } 
+        // else {
+        //   singularForm = key;
+        //   pluralForm = singularForm + 's'
+        // }
+      })
       // Then use object.keys() to iterate over it, 
       // if either the key or value match the arg given, set its singular/plural form accordingly
-      let singularForm = key;
-      let pluralForm;
-      if (key === 'Actors') {
-        singularForm = 'Actor';
-        pluralForm = key;
-      } else if (key === 'Country') {
-        singularForm = key;
-        pluralForm = 'Countries';
-      } else {
-        pluralForm = key + 's';
-      }
+      // let singularForm = key;
+      // let pluralForm;
+      // if (key === 'Actors') {
+      //   singularForm = 'Actor';
+      //   pluralForm = key;
+      // } else if (key === 'Country') {
+      //   singularForm = key;
+      //   pluralForm = 'Countries';
+      // } else {
+      //   pluralForm = key + 's';
+      // }
       return (
         <div className='m-4 bg-gray-700 p-4'>
           <h1 className='text-xl'>{mediaInfo[key].length === 1 ? singularForm : pluralForm}</h1>
@@ -62,7 +76,9 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
               <div className='flex w-auto flex-col justify-around'>
                 <h1 className='text-center text-3xl'>
                   {mediaInfo.Title} 
-                  {mediaInfo.Year ? <span className='px-4'>({mediaInfo.Year})</span> : []}
+                  {/* If year is greater than 9999, then its probably just 2 4 digit years mashed together */}
+                  <span className='px-4'>({mediaInfo.Year < 9999 ? mediaInfo.Year 
+                    : mediaInfo.Year.toString().slice(0,4) + ' - ' + mediaInfo.Year.toString().slice(4,8)})</span>
                 </h1>
                 <div className='flex justify-between p-4'>
                   <div className='flex-1 text-center m-auto'>Rated: {mediaInfo.Rated || 'N/A'}</div>
@@ -134,32 +150,13 @@ export default function DisplayFullMediaInfo(props: { imdbID: string }) {
             </div>
 
             {/* Show season info */}
-            {mediaInfo.Type !== 'series' ? [] :
-              <div className='my-4 mx-auto flex flex-col items-center w-4/5'>
-                <button className='text-2xl p-4 bg-gray-700 w-full flex justify-between'
-                  onClick={() => {
-                    const style = document.getElementById('seasonsContainer')?.style
-                    console.log(style)
-                    if (style) {
-                      console.log('CHANGING STYLE')
-                      console.log(style.display)
-                      style.display = style.display === 'none' ? 'block' : 'none'
-                    }
-                  }}
-                > <h1>{`Seasons 1 - ${mediaInfo.totalSeasons}`}</h1>
-                  <h1>Switch between + and -</h1>
-                  {/* To Get this working, probably need to incorporate state into this div, 
-                  so react knows this div needs updating when state changes */}
-                </button>
-                <div id='seasonsContainer' className='w-full' style={{ display: 'none'}}>
-                  {[...Array(mediaInfo.totalSeasons).keys()].map((season: number) => {
-                    return <DisplayEpisodes imdbID={mediaInfo.imdbID} season={season + 1} key={season + 1}/>
-                  })}
-                </div>
-              </div>
-            }
-            {mediaInfo.Season === null || mediaInfo.Type !== 'episode' ? [] : 
-              <DisplayEpisodes imdbID={mediaInfo.seriesID} season={mediaInfo.Season} key={mediaInfo.Season}/>}
+            <DisplaySeasons 
+              Type={mediaInfo.Type} 
+              totalSeasons={mediaInfo.totalSeasons} 
+              imdbID={mediaInfo.imdbID}
+              Season={mediaInfo.Season}
+              seriesID={mediaInfo.seriesID}
+            />
 
             {/* Manage User Info */}
             <div className='w-4/5 flex flex-wrap flex-col md:flex-row mx-auto'>

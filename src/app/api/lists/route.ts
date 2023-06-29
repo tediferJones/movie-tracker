@@ -7,10 +7,14 @@ export async function GET(req: Request) {
   const user = await currentUser();
   const username = new URL(req.url).searchParams.get('username')
 
-  // if username included in request, user that username, otherwise use logged in user's username
-
   if (user?.username) {
-    // Returns an obj structured like so { listname: [imdbID1, imdbID2], listname2: [imdbID3], etc... } 
+    // Create defaultList table, { username: string, listname: string} @unique(username)
+    // On the client, make sure to check if defaultListname exists in returned lists, if not set selector the same way we do now
+    //    - What if user deletes the list (i.e. deletes all the contents) that is their default list?
+    const defaultList  = await prisma.defaultList.findUnique({ where: { username: username ? username : user.username }})
+    console.log('THIS IS A TEST', defaultList)
+
+    // Returns an obj structured like so { defaultList: 'someListname', listname: [imdbID1, imdbID2], listname2: [imdbID3], etc... } 
     const dbResult = await prisma.lists.findMany({ where: { username: username ? username : user.username } })
     let newObj: { [key: string]: string[] } = {};
     dbResult.forEach((review: any) => {
@@ -20,7 +24,11 @@ export async function GET(req: Request) {
         newObj[review.listname].push(review.imdbID)
       }
     })
-    return NextResponse.json(newObj);
+    // return NextResponse.json(newObj);
+    return NextResponse.json({
+      defaultList: defaultList ? defaultList.defaultListname : null,
+      lists: newObj,
+    });
   }
 }
 

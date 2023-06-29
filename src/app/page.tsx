@@ -1,5 +1,6 @@
 import { currentUser } from '@clerk/nextjs';
 import DisplayLists from '@/components/DisplayLists';
+import ManageDefaultList from '@/components/ManageDefaultList';
 // import prisma from '@/client'
 
 export default async function Home() {
@@ -39,18 +40,6 @@ export default async function Home() {
   //      - But if we change our mind all we have to do is write a client component 
   //        this component should fetch all reviews with the same imdbID
   //
-  //    - Find some way for users to assign a defaul list,
-  //      as of now, it "usually" return the most recently added list as the default
-  //        - STORE DEFAULT LIST IN USER OBJ, i.e. put it in the clerk data
-  //        - Look at publicMetaData and privateMetaData, https://clerk.com/docs/users/overview
-  //        OR
-  //        - create a table called DefaultList, 
-  //          record = { username: string, listname: string }
-  //          unique = username and/or username&listname
-  //        - then just get record from prisma.DefaultList in /api/lists GET (or whatever returns the users lists)
-  //          and move that list name to the start or end of the array used to create the selector options
-  //          - this may involve controlling the order of the fields in the lists obj
-  //
   //    - Rewrite /movies page, each media type should have its own section, 
   //      i.e. 'Games' section will show all games in the DB
   //
@@ -68,6 +57,19 @@ export default async function Home() {
   //
   //    - See ManageLists component, consider merging mediaExistsInCurrentList and mediaExistsInAnyList in any list
   //      - resulting func: mediaExistsInList(key) => if (key) check that list, if no key, check all lists, return true or false
+  //
+  //    - Make a Filter&SortMedia componenet, should take an array of objs as its type,
+  //      - Dynamically infer the column names from the obj keys and add buttons to the top of each column that toggle sort ascending or descending
+  //      - Then figure out how to do the filtering
+  //      - A good place to setup/test this would be the /media page, its gunna be a big table that we want to be able to sort through
+  //
+  //    - Searchbar sends a request at every refresh, thats bad, if search='' dont send a request
+  //
+  //    - Revisit ManageDefaultList at some point, try to clean it up
+  //      - consider sticking all the state vars into one obj
+  //        this will make the fetch request and overall logic much more clear
+  //
+  //    - Implement defaultList in ManageLists component
   //
   //
   // Minor Changes:
@@ -90,6 +92,7 @@ export default async function Home() {
       {!(user?.username) ? <h1>Error: you need to login</h1>
       : <div>
         <h1>THIS IS THE HOME PAGE</h1>
+        <ManageDefaultList />
         <div className='text-xl'>Hello, {user.username}</div>
         <DisplayLists username={user.username}/>
       </div>

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import { userLists } from '@/types';
 import easyFetch from '@/modules/easyFetch';
 
 export default function ManageLists(props: { imdbID: string }) {
@@ -10,16 +11,15 @@ export default function ManageLists(props: { imdbID: string }) {
 
   useEffect(() => {
     easyFetch('/api/lists', 'GET', {})
-        .then((res: Response) => res.json())
-        .then((data: { [key: string]: string[] }) => {
-          console.log('FETCHING NEW DATA')
-          console.log('USER LISTS', data)
-          setUserLists(data)
-          if (Object.keys(data).length > 0) {
-            // Set default list
-            setCurrentList(Object.keys(data)[0])
-          }
-        });
+      .then((res: Response) => res.json())
+      .then((data: userLists) => {
+        console.log('USER LISTS', data)
+        setUserLists(data.lists)
+        if (Object.keys(data).length > 0) {
+          // Set default list
+          setCurrentList(Object.keys(data.lists)[0])
+        }
+      });
   }, [refreshTrigger]);
 
   function mediaExistsInCurrentList(): true | false {

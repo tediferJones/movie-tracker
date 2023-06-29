@@ -18,7 +18,7 @@ export default function DisplayLists(props: { username: string }) {
   useEffect(() => {
     easyFetch('/api/lists', 'GET', { username })
         .then((res: Response) => res.json())
-        .then((data: userLists) => setUserLists(data))
+        .then((data: userLists) => setUserLists(data.lists))
   }, []);
 
 

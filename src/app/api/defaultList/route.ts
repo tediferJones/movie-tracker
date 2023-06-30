@@ -6,18 +6,18 @@ import prisma from '@/client';
 // No point in being able to view other users defaultList, right?
 // Definitely shouldnt be able to POST/PUT/DELETE other users defautList
 
-export async function GET() {
-  console.log('\n GET USERS DEFAULT LIST \n')
-  const user = await currentUser();
-  let dbResult = null;
-
-  if (user?.username) {
-    dbResult = await prisma.defaultList.findUnique({ where: { username: user.username }})
-  }
-
-  // Make sure this handles HEAD requests properly
-  return NextResponse.json(dbResult)
-}
+// export async function GET() {
+//   console.log('\n GET USERS DEFAULT LIST \n')
+//   const user = await currentUser();
+//   let dbResult = null;
+// 
+//   if (user?.username) {
+//     dbResult = await prisma.defaultList.findUnique({ where: { username: user.username }})
+//   }
+// 
+//   // Make sure this handles HEAD requests properly
+//   return NextResponse.json(dbResult)
+// }
 
 export async function POST(req: Request) {
   const user = await currentUser();

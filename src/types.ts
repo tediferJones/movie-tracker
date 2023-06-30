@@ -120,7 +120,7 @@ interface watched {
 }
 
 interface userLists {
-  defaultLists: string | null,
+  defaultListname: string | null,
   lists: {
     [key: string]: string[]
   }

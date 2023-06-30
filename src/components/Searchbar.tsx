@@ -18,19 +18,23 @@ export default function Searchbar() {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const delaySetState = setTimeout(() => {
-      easyFetch('/api/search', 'GET', { 
-        // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
-        searchTerm: searchTerm.trim(), 
-        searchType, 
-        queryTerm: 's', 
-        queryType: 'type',
-      }).then((res: Response) => res.json())
-        .then((data: omdbSearch) => {
-          console.log('SEARCH RESULTS', data)
-          data.Response === 'True' ? setSearchResult(data) : setSearchResult(defaultState);
-        })
-    }, 1000)
+    let delaySetState: any;
+
+    if (searchTerm !== '') {
+      delaySetState = setTimeout(() => {
+        easyFetch('/api/search', 'GET', { 
+          // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
+          searchTerm: searchTerm.trim(), 
+          searchType, 
+          queryTerm: 's', 
+          queryType: 'type',
+        }).then((res: Response) => res.json())
+          .then((data: omdbSearch) => {
+            console.log('SEARCH RESULTS', data)
+            data.Response === 'True' ? setSearchResult(data) : setSearchResult(defaultState);
+          })
+      }, 1000)
+    }
 
     return () => clearTimeout(delaySetState)
   }, [searchTerm, searchType])

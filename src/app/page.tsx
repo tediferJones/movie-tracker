@@ -6,7 +6,7 @@ import ManageDefaultList from '@/components/ManageDefaultList';
 export default async function Home() {
   // USE OMDBAPI: https://www.omdbapi.com/
   // See .env file for omdb API key
-  // Format: http://www.omdbapi.com/?apikey=8e1df54b&<ENTER SEARCH PARAMS HERE>
+  // Format: http://www.omdbapi.com/?apikey=<OMDB_APIKEY>&<ENTER SEARCH PARAMS HERE>
   // Search Terms:
   //    TITLE/ID LOOK-UP
   //      i=IMDB-ID             Request by specific IMDB-ID, which would probably be pulled from some other request
@@ -33,7 +33,7 @@ export default async function Home() {
   //
   //    - move auth from ./layout to individual components
   //      - if done properly, users can still browse/filter the whole DB, and search for movies
-  //      - But if they try to do anything related a user (i.e. add/removing a movie a list), then require the login
+  //      - But if they try to do anything related a user (i.e. add/remove a movie some list), then require login
   //
   //    - Do we want users to be able to see other users movieReviews?
   //      - As of now, lets say no
@@ -54,6 +54,8 @@ export default async function Home() {
   //    - Error in ManageWatched Component (idk this kinda just started happening one day, if the issue disappears forget about this)
   //
   //    - Consider editing ManageLists component, by default it should display all users list, and the button should be add or remove depending on if it exists or not
+  //      - Eh this is kind of a bad idea, we're already displaying all lists the given media exists in
+  //      - if user has 100 lists, it will always show a scroll bar, and thats kind of ugly
   //
   //    - See ManageLists component, consider merging mediaExistsInCurrentList and mediaExistsInAnyList in any list
   //      - resulting func: mediaExistsInList(key) => if (key) check that list, if no key, check all lists, return true or false
@@ -63,13 +65,12 @@ export default async function Home() {
   //      - Then figure out how to do the filtering
   //      - A good place to setup/test this would be the /media page, its gunna be a big table that we want to be able to sort through
   //
-  //    - Searchbar sends a request at every refresh, thats bad, if search='' dont send a request
-  //
   //    - Revisit ManageDefaultList at some point, try to clean it up
   //      - consider sticking all the state vars into one obj
   //        this will make the fetch request and overall logic much more clear
   //
-  //    - Implement defaultList in ManageLists component
+  //    - Prisma generates its own types, use those instead of our predefined types files, 
+  //      these types should auto update as the schema changes
   //
   //
   // Minor Changes:

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import easyFetch from '@/modules/easyFetch';
+import { userLists } from '@/types';
 
 export default function ManageDefaultList() {
   const [defaultList, setDefaultList] = useState<string | null>(null)
@@ -16,10 +17,10 @@ export default function ManageDefaultList() {
   useEffect(() => {
     easyFetch('/api/lists', 'GET', {})
       .then((res: Response) => res.json())
-      .then((data: any) => {
-        console.log('hello')
-        console.log(data)
-        setDefaultList(data.defaultList)
+      .then((data: userLists) => {
+        // console.log('hello')
+        console.log('ManageDefaultList Data',data)
+        setDefaultList(data.defaultListname)
         setLists(Object.keys(data.lists))
         setNewDefaultList(Object.keys(data.lists)[0])
       })

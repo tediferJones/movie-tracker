@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs';
 import prisma from '@/client';
+import { userLists } from '@/types';
 
 export async function GET(req: Request) {
   console.log('\n GET USER LIST \n')
@@ -24,11 +25,16 @@ export async function GET(req: Request) {
         newObj[review.listname].push(review.imdbID)
       }
     })
-    // return NextResponse.json(newObj);
-    return NextResponse.json({
-      defaultList: defaultList ? defaultList.defaultListname : null,
+    const result: userLists = {
+      defaultListname: defaultList ? defaultList.defaultListname : '',
       lists: newObj,
-    });
+    };
+    return NextResponse.json(result);
+    // return NextResponse.json(newObj);
+    // return NextResponse.json({
+    //   defaultList: defaultList ? defaultList.defaultListname : null,
+    //   lists: newObj,
+    // });
   }
 }
 

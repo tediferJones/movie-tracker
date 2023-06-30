@@ -3,8 +3,7 @@ import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { userLists } from '@/types';
 import easyFetch from '@/modules/easyFetch';
 
-export default function ManageLists(props: { imdbID: string }) {
-  const { imdbID } = props;
+export default function ManageLists({ imdbID }: { imdbID: string }) {
   const [currentList, setCurrentList] = useState<string>('');
   const [userLists, setUserLists] = useState<{ [key: string]: string[] } | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
@@ -15,10 +14,7 @@ export default function ManageLists(props: { imdbID: string }) {
       .then((data: userLists) => {
         console.log('USER LISTS', data)
         setUserLists(data.lists)
-        if (Object.keys(data).length > 0) {
-          // Set default list
-          setCurrentList(Object.keys(data.lists)[0])
-        }
+        data.defaultListname ? setCurrentList(data.defaultListname) : setCurrentList(Object.keys(data.lists)[0])
       });
   }, [refreshTrigger]);
 

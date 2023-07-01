@@ -72,6 +72,8 @@ export default async function Home() {
   //    - Prisma generates its own types, use those instead of our predefined types files, 
   //      these types should auto update as the schema changes
   //
+  //    - Dont forget to delete LinkToMedia component
+  //
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that

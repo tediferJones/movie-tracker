@@ -38,24 +38,8 @@ export default function DisplayFullMediaInfo({ imdbID }: { imdbID: string }) {
           singularForm = caseKey;
           pluralForm = specialCases[caseKey];
         } 
-        // else {
-        //   singularForm = key;
-        //   pluralForm = singularForm + 's'
-        // }
       })
-      // Then use object.keys() to iterate over it, 
-      // if either the key or value match the arg given, set its singular/plural form accordingly
-      // let singularForm = key;
-      // let pluralForm;
-      // if (key === 'Actors') {
-      //   singularForm = 'Actor';
-      //   pluralForm = key;
-      // } else if (key === 'Country') {
-      //   singularForm = key;
-      //   pluralForm = 'Countries';
-      // } else {
-      //   pluralForm = key + 's';
-      // }
+
       return (
         <div className='m-4 bg-gray-700 p-4'>
           <h1 className='text-xl'>{mediaInfo[key].length === 1 ? singularForm : pluralForm}</h1>
@@ -77,8 +61,11 @@ export default function DisplayFullMediaInfo({ imdbID }: { imdbID: string }) {
                 <h1 className='text-center text-3xl'>
                   {mediaInfo.Title} 
                   {/* If year is greater than 9999, then its probably just 2 4 digit years mashed together */}
+                  {/*
                   <span className='px-4'>({mediaInfo.Year < 9999 ? mediaInfo.Year 
                     : mediaInfo.Year.toString().slice(0,4) + ' - ' + mediaInfo.Year.toString().slice(4,8)})</span>
+                  */}
+                  <span className='px-4'>({mediaInfo.Type === 'series' ? `${mediaInfo.Year} - ${mediaInfo.endYear ? mediaInfo.endYear : 'Present'}` : mediaInfo.Year})</span>
                 </h1>
                 <div className='flex justify-between p-4'>
                   <div className='flex-1 text-center m-auto'>Rated: {mediaInfo.Rated || 'N/A'}</div>

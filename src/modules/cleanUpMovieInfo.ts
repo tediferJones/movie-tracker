@@ -29,9 +29,17 @@ export default function cleanUpMovieInfo(movieObj: rawMediaInfo): cleanMediaInfo
   // Convert dates to UNIX time
   ['Released', 'DVD']
       .forEach((key: string) => movieObj[key] = movieObj[key] ? new Date(movieObj[key]).getTime() : undefined);
+
+  // TESTING YEAR CONVERSION
+  if (typeof(movieObj.Year) === 'string' && movieObj.Year.length > 4) {
+    movieObj.endYear = Number(movieObj.Year.slice(5)) || undefined;
+    movieObj.Year = Number(movieObj.Year.slice(0,4));
+  } else {
+    movieObj.Year = Number(movieObj.Year)
+  }
  
   // Remove all non-numeric characters from string and convert to number
-  ['Year', 'imdbVotes', 'Runtime', 'BoxOffice', 'totalSeasons', 'Season', 'Episode']
+  ['imdbVotes', 'Runtime', 'BoxOffice', 'totalSeasons', 'Season', 'Episode']
       .forEach((key: string) => movieObj[key] = movieObj[key] ? Number(movieObj[key].replace(/\D/g, '')) : undefined);
 
   // Remove extranious or repetitive data

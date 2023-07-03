@@ -74,6 +74,14 @@ export default async function Home() {
   //
   //    - Dont forget to delete LinkToMedia component
   //
+  //    - FOR media.Year, if Type = 'series' and Year > 9999, set Year to the first for digits on the number
+  //      - i.e. Seinfeld 19891998, should have Year of 1989
+  //      - If we want, we can add "endYear" to prisma schema, so that we can actually retain this information
+  //      - totalSeasons is already specific to Type='series', so adding 'endYear' probably wont make much of a difference
+  //
+  //    - Go back to CleanUpMovieInfo module and clean up where we add endYear, 
+  //      - These additions seem messy and the style doesnt match rest of the file
+  //
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that

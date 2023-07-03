@@ -74,6 +74,7 @@ model media {
   MetacriticRating Int? @db.Int
   cachedAt Int @db.Long
   totalSeasons Int? @db.Int
+  endYear Int? @db.Int
   Season Int? @db.Int
   Episode Int? @db.Int
   seriesID String?

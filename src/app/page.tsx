@@ -64,6 +64,7 @@ export default async function Home() {
   //      - Dynamically infer the column names from the obj keys and add buttons to the top of each column that toggle sort ascending or descending
   //      - Then figure out how to do the filtering
   //      - A good place to setup/test this would be the /media page, its gunna be a big table that we want to be able to sort through
+  //      - Sorting works, now start working on Filtering of media (actually removing certain results from the output)
   //
   //    - Revisit ManageDefaultList at some point, try to clean it up
   //      - consider sticking all the state vars into one obj

@@ -8,18 +8,33 @@ interface test extends media {
   [key: string]: any
 }
 
+// What attributes do we want to be able to sort by?
+// [ DONE ] Title
+// [ DONE ] Year
+// [ DONE ] Rated
+// [ DONE ] Runtime
+// Awards? Can only really do "has awards" or 'doesnt have awards'
+// [ DONE ] Type
+// DVD release? Seems kind of useless
+// BoxOffice, sort by profits
+// imdbVotes
+// [ DONE ] IMDBRating
+// [ DONE ] RottenTomatoesRating
+// [ DONE ] MetacriticRating
+// totalSeasons? Only exists on Type='series'
+
 export default function SortFilterMedia({ media }: { media: media[] }) {
   console.log(media);
   const [sortBy, setSortBy] = useState<string>('')
   const [reverseOrder, setReverseOrder] = useState<boolean>(false);
   const [filters, setFilters] = useState({
     Title: '', // Contains this string
-    Type: [], // movie, episode, series, or game
-    Rated: [], // PG, TV-MA, its gunna be hard to hardcode all rating, should probably pull this info from root table
-    minYear: 0, // Could go with positive infinite, but realisticly there will be no movie years before like 1850
-    maxYear: 9999, // We have about 8000 years till we have to worry about this
-    minRuntime: 0,
-    maxRuntime: 9999, // maybe go with positive infinity for this one
+    Type: getUnqValues('Type'),// [...new Set(media.map((item: media) => item.Type))],// [], // movie, episode, series, or game
+    Rated: getUnqValues('Rated'), // PG, TV-MA, its gunna be hard to hardcode all rating, should probably pull this info from root table
+    minYear: getMinValue('Year'),// Math.min(...media.map(item => item.Year)), // Could go with positive infinite, but realisticly there will be no movie years before like 1850
+    maxYear: getMaxValue('Year'),// Math.max(...media.map(item => item.Year)), // We have about 8000 years till we have to worry about this
+    minRuntime: getMinValue('Runtime'),
+    maxRuntime: getMaxValue('Runtime'), // maybe go with positive infinity for this one
     minIMDBRating: 0,
     maxIMDBRating: 100,
     minRottenTomatoesRating: 0,
@@ -28,29 +43,42 @@ export default function SortFilterMedia({ media }: { media: media[] }) {
     maxMetacriticRating: 100,
   })
 
+  function getMinValue(key: string): number {
+    let result: number = Infinity;
+    media.forEach((item: test) => {
+      if (item[key] && item[key] < result) {
+        result = item[key]
+      }
+    })
+    return result;
+  }
+
+  function getMaxValue(key: string): number {
+    let result: number = -Infinity;
+    media.forEach((item: test) => {
+      if (item[key] && item[key] > result) {
+        result = item[key];
+      }
+    })
+    return result;
+  }
+
+  function getUnqValues(key: string): string[] {
+    let result: string[] = [];
+    media.forEach((item: test) => {
+      if (item[key] && !result.includes(item[key])) {
+        result.push(item[key])
+      }
+    })
+    return result;
+  }
+
   const columns = ['Title', 'Year', 'Type', 'Rated', 'Runtime', 'IMDBRating', 'RottenTomatoesRating', 'MetacriticRating']
 
-  // We need to determine how to handle null/undefined,
-  // do we want to exclude those, or just push them to the end of the array?
-
-  // What attributes do we want to be able to sort by?
-  // [ DONE ] Title
-  // [ DONE ] Year
-  // [ DONE ] Rated
-  // [ DONE ] Runtime
-  // Awards? Can only really do "has awards" or 'doesnt have awards'
-  // [ DONE ] Type
-  // DVD release? Seems kind of useless
-  // BoxOffice, sort by profits
-  // imdbVotes
-  // [ DONE ] IMDBRating
-  // [ DONE ] RottenTomatoesRating
-  // [ DONE ] MetacriticRating
-  // totalSeasons? Only exists on Type='series'
 
   function sortFunc(a: test, b: test) {
     // This function sorts in ascending order by default
-    // Just reverse the order to display in descending order
+    // Toggle class to reverse ordering
 
     const typeIsNumber = ['Year', 'Runtime',  'IMDBRating', 'RottenTomatoesRating', 'MetacriticRating'];
 
@@ -79,8 +107,11 @@ export default function SortFilterMedia({ media }: { media: media[] }) {
     const specialCases: { [key: string]: Function } = {
       // Every expression here should return true or false
       Title: () => media.Title.includes(filters.Title),
-      minYear: () => media.Year > filters.minYear,
-      maxYear: () => media.Year < filters.maxYear,
+      Type: () => filters.Type.includes(media.Type),
+      minYear: () => media.Year >= filters.minYear,
+      maxYear: () => media.Year <= filters.maxYear,
+      minRuntime: () => media.Runtime ? media.Runtime >= filters.minRuntime : filters.minRuntime === getMinValue('Runtime') ? true : false,
+      maxRuntime: () => media.Runtime ? media.Runtime <= filters.maxRuntime : true,
     }
     let result = true;
 
@@ -98,9 +129,40 @@ export default function SortFilterMedia({ media }: { media: media[] }) {
       <button onClick={() => setReverseOrder(!reverseOrder)}>Display Order:{reverseOrder ? 'Descending' : 'Ascending'}</button>
       <div className='text-black flex gap-4'>
         {/* PUT FILTERS HERE */}
-        <input type='text' value={filters.Title} onChange={(e) => setFilters({ ...filters, Title: e.target.value})}/>
-        <input type='number' step={1} min={0} max={filters.maxYear} value={filters.minYear} onChange={(e) => setFilters({ ...filters, minYear: Number(e.target.value) })}/>
-        <input type='number' step={1} min={filters.minYear} max={9999} value={filters.maxYear} onChange={(e) => setFilters({ ...filters, maxYear: Number(e.target.value) })}/>
+        <input type='text' value={filters.Title} placeholder='Filter titles' onChange={(e) => setFilters({ ...filters, Title: e.target.value})}/>
+        <input type='number' step={1} min={Math.min(...media.map(item => item.Year))} max={filters.maxYear} value={filters.minYear} onChange={(e) => setFilters({ ...filters, minYear: Number(e.target.value) })}/>
+        <input type='number' step={1} min={filters.minYear} max={Math.max(...media.map(item => item.Year))} value={filters.maxYear} onChange={(e) => setFilters({ ...filters, maxYear: Number(e.target.value) })}/>
+
+        <input type='number' step={1} min={getMinValue('Runtime')} max={filters.maxRuntime} value={filters.minRuntime} onChange={(e) => setFilters({ ...filters, minRuntime: Number(e.target.value) })}/>
+        <input type='number' step={1} min={filters.minRuntime} max={getMaxValue('Runtime')} value={filters.maxRuntime} onChange={(e) => setFilters({ ...filters, maxRuntime: Number(e.target.value) })}/>
+
+        <input name='movie' type='checkbox' defaultChecked={true} onChange={(e) => e.target.checked ? setFilters({ ...filters, Type: filters.Type.concat('movie') }) : setFilters({ ...filters, Type: filters.Type.filter((type: string) => type !== 'movie')})}/>
+        <label htmlFor='movie' className='text-white'>Movies</label>
+
+        {// filters.Type
+          getUnqValues('Type').map((type: string) => {
+          return (
+            <>
+              <input name={type} type='checkbox' defaultChecked={true} 
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setFilters({ ...filters, Type: filters.Type.concat(type)})
+                  } else {
+                    setFilters({
+                      ...filters,
+                      Type: filters.Type.filter((existingType: string) => existingType !== type)
+                    })
+                  }
+                }} />
+              <label htmlFor={type} className='text-white'>{type}</label>
+            </>
+          )
+        })}
+
+        <div className='text-white'>
+          {JSON.stringify(filters.Type)}
+          {JSON.stringify(filters.Rated)}
+        </div>
       </div>
       <div className='flex p-2 m-1'>
         {columns.map((column: string) => {

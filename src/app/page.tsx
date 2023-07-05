@@ -83,6 +83,10 @@ export default async function Home() {
   //    - Go back to CleanUpMovieInfo module and clean up where we add endYear, 
   //      - These additions seem messy and the style doesnt match rest of the file
   //
+  //    TO DO SOON:
+  //      Get filtering working in SortFilterMedia component
+  //      Migrate from our made-up types to prismas generated types
+  //
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that

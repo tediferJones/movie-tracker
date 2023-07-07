@@ -35,12 +35,12 @@ export default function SortFilterMedia({ media }: { media: media[] }) {
     maxYear: getMaxValue('Year'),// Math.max(...media.map(item => item.Year)), // We have about 8000 years till we have to worry about this
     minRuntime: getMinValue('Runtime'),
     maxRuntime: getMaxValue('Runtime'), // maybe go with positive infinity for this one
-    minIMDBRating: 0,
-    maxIMDBRating: 100,
-    minRottenTomatoesRating: 0,
-    maxRottenTomatoesRating: 100,
-    minMetacriticRating: 0,
-    maxMetacriticRating: 100,
+    minIMDBRating: getMinValue('IMDBRating'),
+    maxIMDBRating: getMaxValue('IMDBRating'),
+    minRottenTomatoesRating: getMinValue('RottenTomatoesRating'),
+    maxRottenTomatoesRating: getMaxValue('RottenTomatoesRating'),
+    minMetacriticRating: getMinValue('MetacriticRating'),
+    maxMetacriticRating: getMaxValue('MetacriticRating'),
   })
 
   function getMinValue(key: string): number {
@@ -70,7 +70,7 @@ export default function SortFilterMedia({ media }: { media: media[] }) {
         result.push(item[key])
       }
     })
-    return result;
+    return result.sort();
   }
 
   const columns = ['Title', 'Year', 'Type', 'Rated', 'Runtime', 'IMDBRating', 'RottenTomatoesRating', 'MetacriticRating']
@@ -108,10 +108,15 @@ export default function SortFilterMedia({ media }: { media: media[] }) {
       // Every expression here should return true or false
       Title: () => media.Title.includes(filters.Title),
       Type: () => filters.Type.includes(media.Type),
+      Rated: () => media.Rated ? filters.Rated.includes(media.Rated) : false,
       minYear: () => media.Year >= filters.minYear,
       maxYear: () => media.Year <= filters.maxYear,
       minRuntime: () => media.Runtime ? media.Runtime >= filters.minRuntime : filters.minRuntime === getMinValue('Runtime') ? true : false,
       maxRuntime: () => media.Runtime ? media.Runtime <= filters.maxRuntime : true,
+      minIMDBRating: () => media.IMDBRating ? media.IMDBRating >= filters.minIMDBRating : false, // This will hide all N/A IMDBRatings
+      maxIMDBRating: () => media.IMDBRating ? media.IMDBRating <= filters.maxIMDBRating : false,
+      minRottenTomatoesRating: () => media.RottenTomatoesRating ? media.RottenTomatoesRating >= filters.minRottenTomatoesRating : filters.minRottenTomatoesRating === getMinValue('RottenTomatoesRating') ? true : false,
+      maxRottenTomatoesRating: () => media.RottenTomatoesRating ? media.RottenTomatoesRating <= filters.maxRottenTomatoesRating : filters.maxRottenTomatoesRating === getMaxValue('RottenTomatoesRating') ? true : false,
     }
     let result = true;
 
@@ -130,39 +135,77 @@ export default function SortFilterMedia({ media }: { media: media[] }) {
       <div className='text-black flex gap-4'>
         {/* PUT FILTERS HERE */}
         <input type='text' value={filters.Title} placeholder='Filter titles' onChange={(e) => setFilters({ ...filters, Title: e.target.value})}/>
+        <div className='text-white'>Year Filter:</div>
         <input type='number' step={1} min={Math.min(...media.map(item => item.Year))} max={filters.maxYear} value={filters.minYear} onChange={(e) => setFilters({ ...filters, minYear: Number(e.target.value) })}/>
         <input type='number' step={1} min={filters.minYear} max={Math.max(...media.map(item => item.Year))} value={filters.maxYear} onChange={(e) => setFilters({ ...filters, maxYear: Number(e.target.value) })}/>
 
+        <div className='text-white'>Runtime Filter</div>
         <input type='number' step={1} min={getMinValue('Runtime')} max={filters.maxRuntime} value={filters.minRuntime} onChange={(e) => setFilters({ ...filters, minRuntime: Number(e.target.value) })}/>
         <input type='number' step={1} min={filters.minRuntime} max={getMaxValue('Runtime')} value={filters.maxRuntime} onChange={(e) => setFilters({ ...filters, maxRuntime: Number(e.target.value) })}/>
 
+        <div className='text-white'>IMDBRating Filter</div>
+        <input type='number' step={0.1} min={getMinValue('IMDBRating') / 10} max={filters.maxIMDBRating / 10} value={(filters.minIMDBRating / 10).toFixed(1)} onChange={(e) => setFilters({ ...filters, minIMDBRating: Number(e.target.value) * 10 })}/>
+        <input type='number' step={0.1} min={filters.minIMDBRating / 10} max={getMaxValue('IMDBRating') / 10} value={(filters.maxIMDBRating / 10).toFixed(1)} onChange={(e) => setFilters({ ...filters, maxIMDBRating: Number(e.target.value) * 10 })}/>
+
+        <div className='text-white'>Rotten Tomatoes Rating Filter</div>
+        <input type='number' step={1} min={getMinValue('RottenTomatoesRating')} max={filters.maxRottenTomatoesRating} value={filters.minRottenTomatoesRating} onChange={(e) => setFilters({ ...filters, minRottenTomatoesRating: Number(e.target.value) })} />
+        <input type='number' step={1} min={filters.minRottenTomatoesRating} max={getMaxValue('RottenTomatoesRating')} value={filters.maxRottenTomatoesRating} onChange={(e) => setFilters({ ...filters, maxRottenTomatoesRating: Number(e.target.value) })} />
+
+        <div className='text-white'>Metacritic Rating Filter</div>
+        <input type='number' step={1} min={getMinValue('MetacriticRating')} max={filters.maxMetacriticRating} value={filters.minMetacriticRating} onChange={(e) => setFilters({ ...filters, minMetacriticRating: Number(e.target.value) })}/>
+        <input type='number' step={1} min={filters.minMetacriticRating} max={getMaxValue('MetacriticRating')} value={filters.maxMetacriticRating} onChange={(e) => setFilters({ ...filters, maxMetacriticRating: Number(e.target.value) })}/>
+
+        {JSON.stringify(filters.minIMDBRating)}
+        {/*
         <input name='movie' type='checkbox' defaultChecked={true} onChange={(e) => e.target.checked ? setFilters({ ...filters, Type: filters.Type.concat('movie') }) : setFilters({ ...filters, Type: filters.Type.filter((type: string) => type !== 'movie')})}/>
         <label htmlFor='movie' className='text-white'>Movies</label>
+        */}
 
-        {// filters.Type
-          getUnqValues('Type').map((type: string) => {
-          return (
-            <>
-              <input name={type} type='checkbox' defaultChecked={true} 
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setFilters({ ...filters, Type: filters.Type.concat(type)})
-                  } else {
-                    setFilters({
-                      ...filters,
-                      Type: filters.Type.filter((existingType: string) => existingType !== type)
-                    })
-                  }
-                }} />
-              <label htmlFor={type} className='text-white'>{type}</label>
-            </>
-          )
-        })}
+        <div>
+          {getUnqValues('Type').map((type: string) => {
+              return (
+                <div key={type}>
+                  <input name={type} type='checkbox' defaultChecked={true} 
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFilters({ ...filters, Type: filters.Type.concat(type)})
+                      } else {
+                        setFilters({
+                          ...filters,
+                          Type: filters.Type.filter((existingType: string) => existingType !== type)
+                        })
+                      }
+                    }} />
+                  <label htmlFor={type} className='text-white'>{type}</label>
+                </div>
+              )
+            })}
+        </div>
 
         <div className='text-white'>
-          {JSON.stringify(filters.Type)}
+          {getUnqValues('Rated').map((rating: string) => {
+            return (
+              <div key={rating}>
+                <label htmlFor={rating}>
+                  <input name={rating} type='checkbox' defaultChecked={true}
+                    onChange={(e) => e.target.checked 
+                      ? setFilters({ ...filters, Rated: filters.Rated.concat(rating) }) 
+                      : setFilters({ ...filters, Rated: filters.Rated.filter((existingRating: string) => existingRating !== rating)})
+                    }
+                  />
+                  {rating}
+                </label>
+
+              </div>
+            )
+          })}
+        </div>
+
+        {/*
+        <div className='text-white'>
           {JSON.stringify(filters.Rated)}
         </div>
+        */}
       </div>
       <div className='flex p-2 m-1'>
         {columns.map((column: string) => {

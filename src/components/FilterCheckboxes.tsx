@@ -19,7 +19,11 @@ export default function FilterCheckboxes({
       {selectors.map((selector: string | null) => {
         return (
           <div key={selector}>
-            <input id={selector ? selector : 'N/A'} name={selector ? selector : 'N/A'} type='checkbox' defaultChecked={true} 
+            <input id={selector ? selector : 'N/A'} 
+              name={selector ? selector : 'N/A'} 
+              type='checkbox' 
+              // defaultChecked={true} 
+              checked={filters[mediaKey].includes(selector)} 
               onChange={(e) => {
                 if (e.target.checked) {
                   setFilters({ ...filters, [mediaKey]: filters[mediaKey].concat(selector) })

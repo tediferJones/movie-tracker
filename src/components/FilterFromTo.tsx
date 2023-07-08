@@ -2,16 +2,14 @@
 
 export default function FilterFromTo({ 
   mediaKey,
-  absoluteMin,
-  absoluteMax,
   filters,
   setFilters,
+  initialFilters,
 }: { 
   mediaKey: string ,
-  absoluteMin: number,
-  absoluteMax: number,
   filters: any,
   setFilters: Function,
+  initialFilters: any,
 }) {
   let factor = 1;
   if (mediaKey === 'IMDBRating') {
@@ -25,7 +23,7 @@ export default function FilterFromTo({
       <input className='text-black' 
         type='number' 
         step={1 / factor} 
-        min={absoluteMin / factor} 
+        min={initialFilters['min' + mediaKey] / factor} 
         max={filters['max' + mediaKey] / factor} 
         value={(filters['min' + mediaKey] / factor).toFixed(mediaKey === 'IMDBRating' ? 1 : 0)} 
         onChange={(e) => setFilters({ ...filters, ['min' + mediaKey]: Number(e.target.value) * factor })}
@@ -35,7 +33,7 @@ export default function FilterFromTo({
         type='number' 
         step={1 / factor} 
         min={filters['min' + mediaKey] / factor} 
-        max={absoluteMax / factor} 
+        max={initialFilters['max' + mediaKey]/ factor} 
         value={(filters['max' + mediaKey] / factor).toFixed(mediaKey === 'IMDBRating' ? 1 : 0)}
         onChange={(e) => setFilters({ ...filters, ['max' + mediaKey]: Number(e.target.value) * factor})}
       />

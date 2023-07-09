@@ -83,6 +83,13 @@ export default async function Home() {
   //    - Go back to CleanUpMovieInfo module and clean up where we add endYear, 
   //      - These additions seem messy and the style doesnt match rest of the file
   //
+  //    - Revisit SortFilterMedia component, see comments at top of file for more info
+  //
+  //    - Move types from SortFilterMedia and sortFilterMediaUtils to types file
+  //
+  //    - Make a DisplayRecentlyWatched component,
+  //      - Should return array of all watch records with matching username, in order from newest to oldest
+  //
   //    TO DO SOON:
   //      Get filtering working in SortFilterMedia component
   //      Migrate from our made-up types to prismas generated types
@@ -95,6 +102,7 @@ export default async function Home() {
   //      - If we dont end up doing this, change the delete function in ManageWatched to match how we handle things everywhere else
   //    - Add proper type to sliderHandler func in ManageReview
   //    - DONT USE document.getElementByWHATEVER, use the React.useRef hook
+  //    - Consider adding ids to HTML, HTML should be somewhat readable on its own
   //
 
   const user = await currentUser();

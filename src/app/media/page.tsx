@@ -15,7 +15,16 @@ export default async function Movies() {
       <h1>Multiple Movies Page</h1>
       <hr />
       <h1>Total movies in our database ( {dbResults.length} )</h1>
-      <SortFilterMedia media={dbResults}/>
+      <SortFilterMedia mediaArr={dbResults} columns={{
+        Title: 'string',
+        Type: 'array',
+        Rated: 'array',
+        Year: 'number',
+        Runtime: 'number',
+        IMDBRating: 'number',
+        RottenTomatoesRating: 'number',
+        MetacriticRating: 'number',
+      }}/>
     </div>
   )
 }

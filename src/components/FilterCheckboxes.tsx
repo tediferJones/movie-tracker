@@ -14,8 +14,8 @@ export default function FilterCheckboxes({
   console.log('FILTER CHECK BOXES', selectors)
 
   return (
-    <div className='text-white'>
-      <h1>GET FILTER CHECKBOXES</h1>
+    <div className='text-white w-full flex gap-4 justify-center'>
+      <h1>Filter by {mediaKey}</h1>
       {selectors.map((selector: string | null) => {
         return (
           <div key={selector}>

@@ -15,12 +15,23 @@ export default function FilterFromTo({
   if (mediaKey === 'IMDBRating') {
     factor = 10;
   }
+
+  const specialCases: { [key: string]: string } = { 
+    IMDBRating: 'IMDB Rating', 
+    RottenTomatoesRating: 'Rotten Tomatoes Rating',
+    MetacriticRating: 'Metacritic Rating'
+  }
+
   return (
     <div className='text-white'>
+      {/*
       <h1>FILTER FROM TO</h1>
-      <div>{mediaKey} Filter:</div>
+      */}
+      <div>Filter {Object.keys(specialCases).includes(mediaKey) ? specialCases[mediaKey] : mediaKey}</div>
       {/* MINIMUM INPUT */}
-      <input className='text-black' 
+      <label htmlFor={'min' + mediaKey}>From</label>
+      <input className='text-black mx-2' 
+        id={'min' + mediaKey}
         type='number' 
         step={1 / factor} 
         min={initialFilters['min' + mediaKey] / factor} 
@@ -29,7 +40,9 @@ export default function FilterFromTo({
         onChange={(e) => setFilters({ ...filters, ['min' + mediaKey]: Number(e.target.value) * factor })}
       />
       {/* MAXIMUM INPUT */}
-      <input className='text-black' 
+      <label htmlFor={'max' + mediaKey}>to</label>
+      <input className='text-black mx-2' 
+        id={'max' + mediaKey}
         type='number' 
         step={1 / factor} 
         min={filters['min' + mediaKey] / factor} 

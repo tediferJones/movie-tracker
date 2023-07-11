@@ -1,13 +1,12 @@
 import { NextResponse  } from 'next/server';
 import { currentUser } from '@clerk/nextjs';
 import prisma from '@/client';
+import { watched } from '@prisma/client';
 
 export async function GET(req: Request) {
   const imdbID = new URL(req.url).searchParams.get('imdbID')
   const user = await currentUser();
-  // harvest imdbID from req
-  // return all records with matching imdbID and username
-  let dbResult: null | object[] = null;
+  let dbResult: null | watched[] = null;
   
   if (user?.username && imdbID) {
     dbResult = await prisma.watched.findMany({

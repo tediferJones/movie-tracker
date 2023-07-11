@@ -1,3 +1,5 @@
+import { media } from "@prisma/client";
+
 interface stringIndexableObject {
   [key: string]: any,
 }
@@ -126,6 +128,11 @@ interface userLists {
   }
 }
 
+interface strIdxMedia extends media {
+  // [key: string]: string[] | string | number | null,
+  [key: string]: any,
+}
+
 export type { 
   rawMediaInfo,
   cleanMediaInfo,
@@ -137,4 +144,5 @@ export type {
   review,
   watched,
   userLists,
+  strIdxMedia,
 }

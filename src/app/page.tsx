@@ -42,6 +42,8 @@ export default async function Home() {
   //
   //    - Rewrite /movies page, each media type should have its own section, 
   //      i.e. 'Games' section will show all games in the DB
+  //      INSTEAD: create pages for /media/games, /media/movies, 
+  //      each page should display a SortFilterMedia component with only that type
   //
   //    - WRITE SOME TESTS, try to test most components and modules
   //      - Cant test things that fetch... all our components fetch so we're kinda boned
@@ -72,23 +74,25 @@ export default async function Home() {
   //
   //    - Prisma generates its own types, use those instead of our predefined types files, 
   //      these types should auto update as the schema changes
+  //    - Move types from SortFilterMedia and sortFilterMediaUtils to types file
+  //    - Search for review and watched types, these can be fulfilled by prisma types
+  //    - Same goes for cleanMediaInfo type
+  //    - CHANGE ALL REFERENCES FROM reviews type, to singular form, i.e. 'review' and use prisma type if possible
+  //    - Delete "reviews" table once we have fully migrated to "review"
   //
   //    - Dont forget to delete LinkToMedia component
-  //
-  //    - FOR media.Year, if Type = 'series' and Year > 9999, set Year to the first for digits on the number
-  //      - i.e. Seinfeld 19891998, should have Year of 1989
-  //      - If we want, we can add "endYear" to prisma schema, so that we can actually retain this information
-  //      - totalSeasons is already specific to Type='series', so adding 'endYear' probably wont make much of a difference
   //
   //    - Go back to CleanUpMovieInfo module and clean up where we add endYear, 
   //      - These additions seem messy and the style doesnt match rest of the file
   //
   //    - Revisit SortFilterMedia component, see comments at top of file for more info
   //
-  //    - Move types from SortFilterMedia and sortFilterMediaUtils to types file
-  //
   //    - Make a DisplayRecentlyWatched component,
   //      - Should return array of all watch records with matching username, in order from newest to oldest
+  //
+  //    - Rewrite DisplayLists component to use SortFilterMedia component
+  //
+  //    - Remove delete request from /api/reviews
   //
   //    TO DO SOON:
   //      Get filtering working in SortFilterMedia component

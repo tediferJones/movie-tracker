@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState, ChangeEvent } from 'react';
-import { review } from '@/types';
+// import { review } from '@/types';
 import easyFetch from '@/modules/easyFetch';
+import { review } from '@prisma/client';
 
 export default function ManageReview({ imdbID }: { imdbID: string }) {
-  const defaultState = {
+  const defaultState: review = {
+    id: '',
     username: '',
     imdbID,
     watchAgain: null,
@@ -20,7 +22,7 @@ export default function ManageReview({ imdbID }: { imdbID: string }) {
   useEffect(() => {
     easyFetch('/api/reviews', 'GET', { imdbID })
         .then((res: Response) => res.json())
-        .then((data: review | undefined) => setExistingReview(data ? data : defaultState))
+        .then((data: review | null) => setExistingReview(data ? data : defaultState))
   }, [refreshTrigger])
 
   async function updateReview() {

@@ -9,7 +9,7 @@ export async function GET(req: Request) {
   let dbResult = null;
   console.log(imdbID)
   if (user?.username && imdbID) {
-    dbResult = await prisma.reviews.findFirst({ where: { username: user.username, imdbID } })
+    dbResult = await prisma.review.findFirst({ where: { username: user.username, imdbID } })
   }
   return NextResponse.json(dbResult, { status: dbResult ? 200 : 404 });
 }
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   // Should probably verify the params on the data var are correct before pushing to DB
   if (user?.username && data) {
-    await prisma.reviews.create({
+    await prisma.review.create({
       data: {
         ...data,
         username: user.username,
@@ -39,7 +39,7 @@ export async function PUT(req: Request) {
 
   // Should probably verify the params on the data var are correct before pushing to DB
   if (user?.username && data) {
-    await prisma.reviews.update({
+    await prisma.review.update({
       where: {
         username_imdbID: {
           username: user.username,
@@ -54,6 +54,7 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  // IF NOT USED, DELETE THIS
   const imdbID = new URL(req.url).searchParams.get('imdbID');
   console.log(imdbID);
   return NextResponse.json('reviews DELETE request')

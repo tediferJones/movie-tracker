@@ -1,9 +1,6 @@
-import { media } from "@prisma/client";
+import { strIdxMedia } from "@/types";
 
-interface strIdxMedia extends media {
-  [key: string]: any
-}
-export function getMinValue(key: string, mediaArr: media[]): number {
+export function getMinValue(key: string, mediaArr: strIdxMedia[]): number {
   let result: number = Infinity;
   mediaArr.forEach((item: strIdxMedia) => {
     item[key] && item[key] < result ? result = item[key] : undefined;
@@ -11,7 +8,7 @@ export function getMinValue(key: string, mediaArr: media[]): number {
   return result;
 }
 
-export function getMaxValue(key: string, mediaArr: media[]): number {
+export function getMaxValue(key: string, mediaArr: strIdxMedia[]): number {
   let result: number = -Infinity;
   mediaArr.forEach((item: strIdxMedia) => {
     item[key] && item[key] > result ? result = item[key] : undefined;
@@ -19,7 +16,7 @@ export function getMaxValue(key: string, mediaArr: media[]): number {
   return result;
 }
 
-export function getUnqValues(key: string, mediaArr: media[]): (string | null)[] {
+export function getUnqValues(key: string, mediaArr: strIdxMedia[]): (string | null)[] {
   let result: (string | null)[] = [];
   mediaArr.forEach((item: strIdxMedia) => {
     !result.includes(item[key]) ? result.push(item[key]) : undefined

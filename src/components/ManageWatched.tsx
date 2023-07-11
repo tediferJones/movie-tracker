@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { watched } from '@/types';
 import easyFetch from '@/modules/easyFetch';
+import { watched } from '@prisma/client';
 
 export default function ManageWatched(props: { imdbID: string }) {
   const { imdbID } = props;

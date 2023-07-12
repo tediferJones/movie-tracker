@@ -1,19 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// import { v4 as uuidv4 } from 'uuid';
-import { cleanMediaInfo } from '@/types';
 import ManageLists from '@/components/ManageLists';
 import ManageMovieInfo from '@/components/ManageMovieInfo';
 import ManageReview from '@/components/ManageReview';
 import ManageWatched from '@/components/ManageWatched';
-// import DisplayEpisodes from '@/components/DisplayEpisodes';
 import DisplaySeasons from '@/components/DisplaySeasons';
 import easyFetch from '@/modules/easyFetch';
+import { strIdxMedia } from '@/types';
 
 export default function DisplayFullMediaInfo({ imdbID }: { imdbID: string }) {
   // const { imdbID } = props;
-  const [mediaInfo, setMovieInfo] = useState<cleanMediaInfo | null | false>(null);
+  const [mediaInfo, setMovieInfo] = useState<strIdxMedia | null | false>(null);
 
   useEffect(() => {
     (async () => {

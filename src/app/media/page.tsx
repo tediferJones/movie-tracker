@@ -1,14 +1,9 @@
-// import { cleanMediaInfo } from '@/types';
 import prisma from '@/client';
 import { media } from '@prisma/client';
 import SortFilterMedia from '@/components/SortFilterMedia';
 
 export default async function Movies() {
-  // Use this page to show movies in our database, probably in order of cachedAt date
-
   const dbResults: media[] = await prisma.media.findMany();
-  // console.log(dbResults);
-  //
 
   return (
     <div>

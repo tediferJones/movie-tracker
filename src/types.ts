@@ -1,26 +1,19 @@
 import { media } from "@prisma/client";
 
-interface stringIndexableObject {
-  [key: string]: any,
-}
-
 interface ratingObj {
   Source: string,
   Value: string,
 }
 
-interface basicMovieInfo extends stringIndexableObject {
+interface strIdxRawMedia {
+  [key: string]: any,
   Title: string,
   imdbID: string,
   Type: string,
-}
-
-interface rawMediaInfo extends basicMovieInfo {
   Genre: string,
   Director: string,
   Writer: string,
   Actors: string,
-  // Add dirty rating obj here
   Ratings?: ratingObj[],
   Metascore?: string,
   imdbRating?: string,
@@ -46,35 +39,6 @@ interface rawMediaInfo extends basicMovieInfo {
   Poster: string,
   Production: string,
   Website: string,
-}
-
-interface cleanMediaInfo extends basicMovieInfo {
-  Genre: string[],
-  Director: string[],
-  Writer: string[],
-  Actors: string[],
-  // Add extracted rating data here
-  IMDBRating: number | null,
-  RottenTomatoesRating: number | null,
-  MetacriticRating: number | null,
-  cachedAt: number,
-  Released: number | null,
-  DVD: number | null,
-  Year: number,
-  imdbVotes: number | null,
-  Runtime: number | null,
-  Country: string[],
-  Language: string[],
-  BoxOffice: number | null,
-  totalSeasons: number | null,
-  Season: number | null,
-  Episode: number | null,
-  Rated: string | null,
-  Plot: string | null,
-  Awards: string | null,
-  Poster: string | null,
-  Production: string | null,
-  Website: string | null,
 }
 
 interface omdbSearchResult {
@@ -107,20 +71,6 @@ interface episodeList {
   totalSeasons: string,
 }
 
-interface review extends stringIndexableObject {
-  username: string,
-  imdbID: string,
-  watchAgain: boolean | null,
-  myRating: number,
-}
-
-interface watched {
-  date: number,
-  id: string,
-  imdbID: string,
-  username: string,
-}
-
 interface userLists {
   defaultListname: string | null,
   lists: {
@@ -134,15 +84,12 @@ interface strIdxMedia extends media {
 }
 
 export type { 
-  rawMediaInfo,
-  cleanMediaInfo,
   ratingObj,
+  strIdxRawMedia,
+  strIdxMedia,
   omdbSearchResult,
   omdbSearch,
   episode,
   episodeList,
-  review,
-  watched,
   userLists,
-  strIdxMedia,
 }

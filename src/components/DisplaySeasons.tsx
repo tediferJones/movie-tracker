@@ -15,7 +15,7 @@ export default function DisplaySeasons(
     totalSeasons: number | null, 
     imdbID: string,
     Season: number | null,
-    seriesID: string,
+    seriesID: string | null,
   }
 ) {
 
@@ -42,7 +42,7 @@ export default function DisplaySeasons(
         </>
         : Type === 'series' && totalSeasons && totalSeasons === 1 ? 
           <DisplayEpisodes imdbID={imdbID} season={totalSeasons} key={totalSeasons}/>
-        : Type === 'episode' && Season !== null ? 
+        : Type === 'episode' && Season !== null && seriesID ? 
           <DisplayEpisodes imdbID={seriesID} season={Season} key={Season}/>
         : []
       }

@@ -62,23 +62,9 @@ export default async function Home() {
   //    - See ManageLists component, consider merging mediaExistsInCurrentList and mediaExistsInAnyList in any list
   //      - resulting func: mediaExistsInList(key) => if (key) check that list, if no key, check all lists, return true or false
   //
-  //    - Make a Filter&SortMedia componenet, should take an array of objs as its type,
-  //      - Dynamically infer the column names from the obj keys and add buttons to the top of each column that toggle sort ascending or descending
-  //      - Then figure out how to do the filtering
-  //      - A good place to setup/test this would be the /media page, its gunna be a big table that we want to be able to sort through
-  //      - Sorting works, now start working on Filtering of media (actually removing certain results from the output)
-  //
   //    - Revisit ManageDefaultList at some point, try to clean it up
   //      - consider sticking all the state vars into one obj
   //        this will make the fetch request and overall logic much more clear
-  //
-  //    - Prisma generates its own types, use those instead of our predefined types files, 
-  //      these types should auto update as the schema changes
-  //    - Move types from SortFilterMedia and sortFilterMediaUtils to types file
-  //    - Search for review and watched types, these can be fulfilled by prisma types
-  //    - Same goes for cleanMediaInfo type
-  //    - CHANGE ALL REFERENCES FROM reviews type, to singular form, i.e. 'review' and use prisma type if possible
-  //    - Delete "reviews" table once we have fully migrated to "review"
   //
   //    - Dont forget to delete LinkToMedia component
   //
@@ -93,10 +79,14 @@ export default async function Home() {
   //    - Rewrite DisplayLists component to use SortFilterMedia component
   //
   //    - Remove delete request from /api/reviews
+  //      OR add a button to ManageReview component to actually use this delete route 
   //
-  //    TO DO SOON:
-  //      Get filtering working in SortFilterMedia component
-  //      Migrate from our made-up types to prismas generated types
+  //    - Rename reviews API route to review, and then update all fetch requests to match
+  //
+  //    - Add components to DisplayFullMediaInfo, like 'DisplayReviews' and 'DisplayInLists'
+  //      - DisplayReviews should show all reviews for a given imdbID
+  //      - DisplayInLists should show something like 'This movie exists in X number of lists from Y number of users'
+  //        - And if we want to get fancy, display links to each list
   //
   //
   // Minor Changes:

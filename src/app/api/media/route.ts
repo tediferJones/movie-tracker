@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { cleanMediaInfo, rawMediaInfo } from '@/types';
-import cleanUpMovieInfo from '@/modules/cleanUpMovieInfo';
+import { strIdxRawMedia, strIdxMedia } from '@/types';
+import cleanUpMediaInfo from '@/modules/cleanUpMediaInfo';
 import easyFetch from '@/modules/easyFetch';
 import prisma from '@/client';
 
@@ -23,9 +23,9 @@ export async function POST(req: Request) {
     apikey: process.env.OMDBAPI_KEY,
     i: imdbID,
   })
-  const rawData: rawMediaInfo = await res.json();
+  const rawData: strIdxRawMedia = await res.json();
   if (rawData.Response === 'True') {
-    const data: cleanMediaInfo = cleanUpMovieInfo(rawData);
+    const data: strIdxMedia = cleanUpMediaInfo(rawData);
     await prisma.media.create({ data });
     return NextResponse.json('\n Added movie to DB from /api/media \n')
   }
@@ -41,7 +41,7 @@ export async function PUT(req: Request) {
   const result = await res.json();
 
   if (result.Response === 'True') {
-    let data = cleanUpMovieInfo(result);
+    let data = cleanUpMediaInfo(result);
     await prisma.media.update({
       where: {
         imdbID: data.imdbID,

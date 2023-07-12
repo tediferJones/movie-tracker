@@ -78,8 +78,8 @@ export default async function Home() {
   //
   //    - Rewrite DisplayLists component to use SortFilterMedia component
   //
-  //    - Remove delete request from /api/reviews
-  //      OR add a button to ManageReview component to actually use this delete route 
+  //    - [ DONE ] Remove delete request from /api/reviews
+  //      [ DONE ] OR add a button to ManageReview component to actually use this delete route 
   //
   //    - Rename reviews API route to review, and then update all fetch requests to match
   //

@@ -50,12 +50,22 @@ export async function PUT(req: Request) {
     })
   }
 
-  return NextResponse.json('reviews PUT request')
+  return NextResponse.json('\n reviews PUT request \n')
 }
 
 export async function DELETE(req: Request) {
-  // IF NOT USED, DELETE THIS
+  const user = await currentUser();
   const imdbID = new URL(req.url).searchParams.get('imdbID');
-  console.log(imdbID);
-  return NextResponse.json('reviews DELETE request')
+
+  if (user?.username && imdbID) {
+    await prisma.review.delete({
+      where: {
+        username_imdbID: {
+          username: user.username,
+          imdbID,
+        }
+      }
+    })
+  }
+  return NextResponse.json('\n reviews DELETE request \n')
 }

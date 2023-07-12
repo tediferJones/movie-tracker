@@ -28,7 +28,7 @@ export default function ManageReview({ imdbID }: { imdbID: string }) {
   async function updateReview() {
     if (existingReview) {
       const fetchMethod = existingReview.username === '' ? 'POST' : 'PUT';
-      await easyFetch('/api/reviews', fetchMethod, { ...existingReview });
+      await easyFetch('/api/reviews', fetchMethod, { ...existingReview, id: undefined });
       setRefreshTrigger(!refreshTrigger);
     }
   }
@@ -39,6 +39,13 @@ export default function ManageReview({ imdbID }: { imdbID: string }) {
         ...existingReview, 
         myRating: Math.round(e.nativeEvent.offsetX / e.target.offsetWidth * 100),
       })
+    }
+  }
+
+  async function deleteFunc() {
+    if (existingReview && existingReview.imdbID) {
+      await easyFetch('/api/reviews', 'DELETE', { imdbID });
+      setRefreshTrigger(!refreshTrigger);
     }
   }
 
@@ -53,7 +60,12 @@ export default function ManageReview({ imdbID }: { imdbID: string }) {
     <>
       {!existingReview ? <h1>Loading your review...</h1> :
         <div className='m-4 flex flex-col bg-gray-700 p-4'>
-          <h1 className='mb-2 text-xl'>My Review</h1>
+          <div className='mb-2 flex justify-between'>
+            <h1 className='text-xl my-auto'>My Review</h1>
+            {existingReview.id === '' ? [] : 
+              <button className='bg-red-500 p-2' onClick={deleteFunc}>Delete Review</button>
+            }
+          </div>
           {/* <div>{JSON.stringify(existingReview)}</div> */}
           <div className='my-2 flex flex-wrap'>
             <div className='my-auto mr-4'>Watch Again?</div>

@@ -1,6 +1,7 @@
 import { currentUser } from '@clerk/nextjs';
 import DisplayLists from '@/components/DisplayLists';
 import ManageDefaultList from '@/components/ManageDefaultList';
+import DisplayWatched from '@/components/DisplayWatched';
 // import prisma from '@/client'
 
 export default async function Home() {
@@ -50,6 +51,8 @@ export default async function Home() {
   //      - Cant test things that fetch... all our components fetch so we're kinda boned
   //      - No point in testing pages, they are very simple anyways, and cant fetch from DB during tests so?
   //      - Seems like there is no point to testing this... but I would love to be proven wrong
+  //      - We need to write end 2 end tests, end to end tests can access the DB and hopefully maybe can use fetch
+  //      - Look at this guide for more info on testing: https://nextjs.org/docs/pages/building-your-application/optimizing/testing
   //
   //    - Setup/Post project to vercel, as we push changes to github the website should update
   //      - Vercel will use its own database, so make sure prisma schemas are correct before setup
@@ -90,6 +93,11 @@ export default async function Home() {
   //      - Should return array of all watch records with matching username, in order from newest to oldest
   //      - Will also need to fetch imdbID from media table, so we at least know what the title is
   //
+  //    - Edit modules/easyFetch, if no body is provided, just use an empty obj
+  //      - and make body param optional
+  //
+  //    - Make DisplayMiniMediaInfo more dynamic, use props to choose what info to display
+  //
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that
@@ -113,6 +121,7 @@ export default async function Home() {
       : <div>
         <h1>THIS IS THE HOME PAGE</h1>
         <ManageDefaultList />
+        <DisplayWatched />
         <div className='text-xl'>Hello, {user.username}</div>
         <DisplayLists username={user.username}/>
       </div>

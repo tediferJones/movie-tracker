@@ -20,7 +20,7 @@ export default function ManageReview({ imdbID }: { imdbID: string }) {
   const [isHovering, setIsHovering] = useState<boolean>(false)
 
   useEffect(() => {
-    easyFetch('/api/reviews', 'GET', { imdbID })
+    easyFetch('/api/review', 'GET', { imdbID })
         .then((res: Response) => res.json())
         .then((data: review | null) => setExistingReview(data ? data : defaultState))
   }, [refreshTrigger])
@@ -28,7 +28,7 @@ export default function ManageReview({ imdbID }: { imdbID: string }) {
   async function updateReview() {
     if (existingReview) {
       const fetchMethod = existingReview.username === '' ? 'POST' : 'PUT';
-      await easyFetch('/api/reviews', fetchMethod, { ...existingReview, id: undefined });
+      await easyFetch('/api/review', fetchMethod, { ...existingReview, id: undefined });
       setRefreshTrigger(!refreshTrigger);
     }
   }
@@ -44,7 +44,7 @@ export default function ManageReview({ imdbID }: { imdbID: string }) {
 
   async function deleteFunc() {
     if (existingReview && existingReview.imdbID) {
-      await easyFetch('/api/reviews', 'DELETE', { imdbID });
+      await easyFetch('/api/review', 'DELETE', { imdbID });
       setRefreshTrigger(!refreshTrigger);
     }
   }
@@ -63,7 +63,7 @@ export default function ManageReview({ imdbID }: { imdbID: string }) {
           <div className='mb-2 flex justify-between'>
             <h1 className='text-xl my-auto'>My Review</h1>
             {existingReview.id === '' ? [] : 
-              <button className='bg-red-500 p-2' onClick={deleteFunc}>Delete Review</button>
+              <button className='bg-red-500 p-2' onClick={deleteFunc}>Delete My Review</button>
             }
           </div>
           {/* <div>{JSON.stringify(existingReview)}</div> */}

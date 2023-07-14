@@ -16,6 +16,15 @@ export async function GET(req: Request) {
       }
     })
   }
+  
+  // If user but no imdbID, return all records with matching username
+  if (user?.username && !imdbID) {
+    dbResult = await prisma.watched.findMany({
+      where: {
+        username: user.username,
+      },
+    })
+  }
 
   return NextResponse.json(dbResult)
 }

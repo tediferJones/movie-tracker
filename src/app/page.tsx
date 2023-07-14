@@ -44,6 +44,7 @@ export default async function Home() {
   //      i.e. 'Games' section will show all games in the DB
   //      INSTEAD: create pages for /media/games, /media/movies, 
   //      each page should display a SortFilterMedia component with only that type
+  //      - Isn't this kind of redundant?  Could just use SortFilterMedia component, and filter all except 'movie' or whatever
   //
   //    - WRITE SOME TESTS, try to test most components and modules
   //      - Cant test things that fetch... all our components fetch so we're kinda boned
@@ -73,9 +74,6 @@ export default async function Home() {
   //
   //    - Revisit SortFilterMedia component, see comments at top of file for more info
   //
-  //    - Make a DisplayRecentlyWatched component,
-  //      - Should return array of all watch records with matching username, in order from newest to oldest
-  //
   //    - Rewrite DisplayLists component to use SortFilterMedia component
   //
   //    - [ DONE ] Remove delete request from /api/reviews
@@ -87,6 +85,10 @@ export default async function Home() {
   //      - DisplayReviews should show all reviews for a given imdbID
   //      - DisplayInLists should show something like 'This movie exists in X number of lists from Y number of users'
   //        - And if we want to get fancy, display links to each list
+  //
+  //    - Make a DisplayRecentlyWatched component,
+  //      - Should return array of all watch records with matching username, in order from newest to oldest
+  //      - Will also need to fetch imdbID from media table, so we at least know what the title is
   //
   //
   // Minor Changes:

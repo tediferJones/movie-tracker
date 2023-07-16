@@ -7,9 +7,11 @@ import easyFetch from '@/modules/easyFetch';
 export default function DisplayMiniMediaInfo({ 
   imdbID, 
   display,
+  date,
 }: { 
   imdbID: string, 
   display: string[],
+  date?: number,
 }) {
   const [movieInfo, setMovieInfo] = useState<strIdxMedia | null>(null);
 
@@ -19,39 +21,18 @@ export default function DisplayMiniMediaInfo({
         .then((data: any) => setMovieInfo(data))
   }, [])
 
-
-  // How do we keep this compact and not stupidly redundant?
-  // Just put everything in the HTML with a bunch of ternary statements
-  // Only display the ones that exist in the display prop
-  
-  // OLD VERSION
-  // <h1 className='text-3xl'>{movieInfo.Title}</h1>
-  // <a href={`/media/${movieInfo.imdbID}`}>LINK TO MOVIE</a>
-  // {movieInfo.Poster ? <img src={movieInfo.Poster}/> : []}
-  //
-
-  function exists(key: string, element: any) {
-    if (display.includes(key) && movieInfo && movieInfo[key]) {
-      return element
-    }
-    return []
+  function exists(key: string) {
+    return display.includes(key) && movieInfo && movieInfo[key] !== null;
   }
-  // {display.includes('Title') && movieInfo?.Title ? <h1>{movieInfo.Title}</h1> : []}
-  // {display.includes('Poster') && movieInfo?.Poster ? <img src={movieInfo.Poster} /> : []}
-  // {display.includes('Runtime') && movieInfo?.Runtime ? <div>{movieInfo.Runtime} mins</div> : []}
 
-  return (
-    <div>
-      {movieInfo === null ? <h1>Loading...</h1> :
-        <a href={`/media/${imdbID}`}>
-
-          <div className='m-4 p-4 bg-gray-700'>
-            {exists('Title', <h1>{movieInfo.Title}</h1>)}
-            {exists('Poster', <img src={movieInfo?.Poster ? movieInfo.Poster : undefined} />)}
-            {exists('Runtime', <div>{movieInfo.Runtime} mins</div>)}
-          </div>
-        </a>
-      }
-    </div>
+      // <div className='m-4 p-4 bg-gray-700 flex'>
+      // </div>
+  return (movieInfo === null ? <h1>Loading...</h1> :
+    <a href={`/media/${imdbID}`}>
+        {exists('Title') ? <h1>{movieInfo.Title}</h1> : []}
+        {exists('Poster') ? <img src={movieInfo.Poster as string} /> : []}
+        {exists('Runtime') ? <div>Runtime: {movieInfo.Runtime} mins</div> : []}
+        {date ? <div>Watched {new Date(date).toLocaleString('en-us', { dateStyle: 'full', timeStyle: 'short'})}</div> : []}
+    </a>
   )
 }

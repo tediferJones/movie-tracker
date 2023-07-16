@@ -17,16 +17,17 @@ export default function DisplayWatched() {
 
   return (
     <div>
-      <h1>Display Watched Component</h1>
-      {watched === null ? <div>Loading...</div>
-        : watched.map((item: watched) => {
-          return (
-            <div key={item.username + item.imdbID + item.date }>
-              {JSON.stringify(item)}
-              <DisplayMiniMediaInfo imdbID={item.imdbID} display={['Title', 'Runtime']}/>
-            </div>
-          )
-        })
+      <h1>Recently Watched Media:</h1>
+      {watched === null ? <div>Loading...</div> :
+        <div className='flex flex-wrap'>
+          {watched.sort((a: watched, b: watched) => b.date - a.date).map((item: watched) => {
+            return (
+              <div key={item.username + item.imdbID + item.date } className='w-full m-4 p-4 bg-gray-700'>
+                <DisplayMiniMediaInfo imdbID={item.imdbID} display={['Title']} date={item.date}/>
+              </div>
+            )
+          })}
+        </div>
       }
     </div>
   )

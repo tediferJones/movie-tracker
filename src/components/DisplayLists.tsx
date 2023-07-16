@@ -31,7 +31,7 @@ export default function DisplayLists(props: { username: string }) {
             <h1 className='text-2xl'>{listname}</h1>
             {userLists[listname].map((imdbID: string) => {
               return (
-                <DisplayMiniMediaInfo key={imdbID} imdbID={imdbID}/>
+                <DisplayMiniMediaInfo key={imdbID} imdbID={imdbID} display={['Title', 'Poster']}/>
               )
             })}
           </div>

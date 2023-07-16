@@ -10,12 +10,9 @@ export default function DisplayWatched() {
   const [watched, setWatched] = useState<watched[] | null>(null)
 
   useEffect(() => {
-
-    console.log('fetch watched records')
     easyFetch('/api/watched', 'GET', {})
       .then((res: Response) => res.json())
       .then((data: watched[]) => setWatched(data))
-
   }, []);
 
   return (
@@ -26,7 +23,7 @@ export default function DisplayWatched() {
           return (
             <div key={item.username + item.imdbID + item.date }>
               {JSON.stringify(item)}
-              <DisplayMiniMediaInfo imdbID={item.imdbID}/>
+              <DisplayMiniMediaInfo imdbID={item.imdbID} display={['Title', 'Runtime']}/>
             </div>
           )
         })

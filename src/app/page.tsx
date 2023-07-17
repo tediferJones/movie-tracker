@@ -57,8 +57,6 @@ export default async function Home() {
   //    - Setup/Post project to vercel, as we push changes to github the website should update
   //      - Vercel will use its own database, so make sure prisma schemas are correct before setup
   //
-  //    - Error in ManageWatched Component (idk this kinda just started happening one day, if the issue disappears forget about this)
-  //
   //    - Consider editing ManageLists component, by default it should display all users list, and the button should be add or remove depending on if it exists or not
   //      - Eh this is kind of a bad idea, we're already displaying all lists the given media exists in
   //      - if user has 100 lists, it will always show a scroll bar, and thats kind of ugly
@@ -70,8 +68,6 @@ export default async function Home() {
   //      - consider sticking all the state vars into one obj
   //        this will make the fetch request and overall logic much more clear
   //
-  //    - Dont forget to delete LinkToMedia component
-  //
   //    - Go back to CleanUpMovieInfo module and clean up where we add endYear, 
   //      - These additions seem messy and the style doesnt match rest of the file
   //
@@ -79,24 +75,18 @@ export default async function Home() {
   //
   //    - Rewrite DisplayLists component to use SortFilterMedia component
   //
-  //    - [ DONE ] Remove delete request from /api/reviews
-  //      [ DONE ] OR add a button to ManageReview component to actually use this delete route 
-  //
-  //    - Rename reviews API route to review, and then update all fetch requests to match
-  //
   //    - Add components to DisplayFullMediaInfo, like 'DisplayReviews' and 'DisplayInLists'
   //      - DisplayReviews should show all reviews for a given imdbID
   //      - DisplayInLists should show something like 'This movie exists in X number of lists from Y number of users'
   //        - And if we want to get fancy, display links to each list
   //
   //    - Make a DisplayRecentlyWatched component,
-  //      - Should return array of all watch records with matching username, in order from newest to oldest
-  //      - Will also need to fetch imdbID from media table, so we at least know what the title is
+  //      - [ DONE ] Should return array of all watch records with matching username, in order from newest to oldest
+  //      - [ DONE ] Will also need to fetch imdbID from media table, so we at least know what the title is
+  //      - Should have a max height or only display 5 most recent results with a button to show 5 more results
   //
   //    - Edit modules/easyFetch, if no body is provided, just use an empty obj
   //      - and make body param optional
-  //
-  //    - Make DisplayMiniMediaInfo more dynamic, use props to choose what info to display
   //
   //
   // Minor Changes:
@@ -106,7 +96,8 @@ export default async function Home() {
   //      - If we dont end up doing this, change the delete function in ManageWatched to match how we handle things everywhere else
   //    - Add proper type to sliderHandler func in ManageReview
   //    - DONT USE document.getElementByWHATEVER, use the React.useRef hook
-  //    - Consider adding ids to HTML, HTML should be somewhat readable on its own
+  //    - Consider adding IDs to the HTML, HTML should be somewhat readable on its own
+  //    - Add some transitions/animations for drop downs and loading state (see t3 stack tutorial for loading state example)
   //
 
   const user = await currentUser();

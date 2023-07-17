@@ -30,11 +30,6 @@ export async function GET(req: Request) {
       lists: newObj,
     };
     return NextResponse.json(result);
-    // return NextResponse.json(newObj);
-    // return NextResponse.json({
-    //   defaultList: defaultList ? defaultList.defaultListname : null,
-    //   lists: newObj,
-    // });
   }
 }
 

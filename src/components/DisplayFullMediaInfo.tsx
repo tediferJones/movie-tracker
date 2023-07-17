@@ -79,12 +79,12 @@ export default function DisplayFullMediaInfo({ imdbID }: { imdbID: string }) {
                 <h1 className='px-4 text-xl'>Ratings:</h1>
                 <div className='flex flex-wrap justify-around'>
                   <div className='p-4 text-center'>
-                    IMDB: {mediaInfo.IMDBRating ? `${mediaInfo.IMDBRating / 10} / 10` : 'N/A'}
+                    IMDB: {mediaInfo.IMDBRating ? `${(mediaInfo.IMDBRating / 10).toFixed(1)} / 10` : 'N/A'}
                   </div>
                   <div className='p-4 text-center'>
                     RottenTomatoes: {mediaInfo.RottenTomatoesRating ? `${mediaInfo.RottenTomatoesRating}%` : 'N/A'}
                   </div>
-                  <div className='p-4 text-center'>Metacritic: {mediaInfo.MetacriticRating || 'N/A'}</div>
+                  <div className='p-4 text-center'>Metacritic: {`${mediaInfo.MetacriticRating}/100` || 'N/A'}</div>
                 </div>
                 <div className='flex p-4'>
                   <div className='pr-2 text-xl'>Awards: </div>

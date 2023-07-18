@@ -17,9 +17,6 @@ export default async function Home() {
   //      s=SOMETHING           Request search of term (returns multiple, use this for searchbar)
   //      y=YEAR                Additional param
 
-  // How to delay fetch until user is done typing: 
-  // https://stackoverflow.com/questions/42217121/how-to-start-search-only-when-user-stops-typing
-
   // This would be a good place to have filters for movies in the list attached to "this" account
   //   For Example: 
   //      - Show recent movies added to my list
@@ -36,11 +33,6 @@ export default async function Home() {
   //      - if done properly, users can still browse/filter the whole DB, and search for movies
   //      - But if they try to do anything related a user (i.e. add/remove a movie some list), then require login
   //
-  //    - Do we want users to be able to see other users movieReviews?
-  //      - As of now, lets say no
-  //      - But if we change our mind all we have to do is write a client component 
-  //        this component should fetch all reviews with the same imdbID
-  //
   //    - Rewrite /movies page, each media type should have its own section, 
   //      i.e. 'Games' section will show all games in the DB
   //      INSTEAD: create pages for /media/games, /media/movies, 
@@ -50,7 +42,8 @@ export default async function Home() {
   //    - WRITE SOME TESTS, try to test most components and modules
   //      - Cant test things that fetch... all our components fetch so we're kinda boned
   //      - No point in testing pages, they are very simple anyways, and cant fetch from DB during tests so?
-  //      - Seems like there is no point to testing this... but I would love to be proven wrong
+  //      
+  //      SOLUTION:
   //      - We need to write end 2 end tests, end to end tests can access the DB and hopefully maybe can use fetch
   //      - Look at this guide for more info on testing: https://nextjs.org/docs/pages/building-your-application/optimizing/testing
   //
@@ -74,19 +67,33 @@ export default async function Home() {
   //    - Revisit SortFilterMedia component, see comments at top of file for more info
   //
   //    - Rewrite DisplayLists component to use SortFilterMedia component
+  //      - We could do this but seems like it could easily get over complicated
+  //      - Consider giving each list its own page /lists/[username]/[listname] and display a SortFilterMedia component there
   //
   //    - Add components to DisplayFullMediaInfo, like 'DisplayReviews' and 'DisplayInLists'
-  //      - DisplayReviews should show all reviews for a given imdbID
+  //      - [ DONE ] DisplayReviews should show all reviews for a given imdbID
   //      - DisplayInLists should show something like 'This movie exists in X number of lists from Y number of users'
   //        - And if we want to get fancy, display links to each list
+  //        - Edit API route so it can returns all list records with matching imdbID
   //
-  //    - Make a DisplayRecentlyWatched component,
+  //    - [ DONE ] Make a DisplayRecentlyWatched component,
   //      - [ DONE ] Should return array of all watch records with matching username, in order from newest to oldest
   //      - [ DONE ] Will also need to fetch imdbID from media table, so we at least know what the title is
-  //      - Should have a max height or only display 5 most recent results with a button to show 5 more results
+  //      - [ DONE ] Should have a max height or only display 5 most recent results with a button to show 5 more results
+  //
+  //    - [ DONE ] Do we want users to be able to see other users movieReviews?
+  //      - [ DONE ] As of now, lets say no
+  //      - [ DONE ] But if we change our mind all we have to do is write a client component 
+  //        this component should fetch all reviews with the same imdbID
   //
   //    - Edit modules/easyFetch, if no body is provided, just use an empty obj
   //      - and make body param optional
+  //
+  //    - Consider converting DisplaySeasons and DisplayEpisodes to use our new DisplayDropDown component
+  //      - Will have to nest a DisplayDropDown within another DisplayDropDown to emulate the current version
+  //
+  //    - Remove unknown console.logs in api routes, leave the basics like "media get request for ${imdbID}"
+  //      - Server output/logs seem very cluttered
   //
   //
   // Minor Changes:

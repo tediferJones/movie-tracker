@@ -6,9 +6,12 @@ export async function GET(req: Request) {
   console.log('\n REVIEW GET REQUEST \n')
   const user = await currentUser();
   const imdbID = new URL(req.url).searchParams.get('imdbID')
+  const getAll = new URL(req.url).searchParams.get('getAll')
   let dbResult = null;
   console.log(imdbID)
-  if (user?.username && imdbID) {
+  if (user?.username && imdbID && getAll) {
+    dbResult = await prisma.review.findMany({ where: { imdbID } })
+  } else if (user?.username && imdbID) {
     dbResult = await prisma.review.findFirst({ where: { username: user.username, imdbID } })
   }
   return NextResponse.json(dbResult, { status: dbResult ? 200 : 404 });

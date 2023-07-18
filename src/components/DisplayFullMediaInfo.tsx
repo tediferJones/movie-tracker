@@ -6,6 +6,7 @@ import ManageMovieInfo from '@/components/ManageMovieInfo';
 import ManageReview from '@/components/ManageReview';
 import ManageWatched from '@/components/ManageWatched';
 import DisplaySeasons from '@/components/DisplaySeasons';
+import DisplayReviews from '@/components/DisplayReviews';
 import easyFetch from '@/modules/easyFetch';
 import { strIdxMedia } from '@/types';
 
@@ -58,12 +59,11 @@ export default function DisplayFullMediaInfo({ imdbID }: { imdbID: string }) {
               <div className='flex w-auto flex-col justify-around'>
                 <h1 className='text-center text-3xl'>
                   {mediaInfo.Title} 
-                  {/* If year is greater than 9999, then its probably just 2 4 digit years mashed together */}
-                  {/*
-                  <span className='px-4'>({mediaInfo.Year < 9999 ? mediaInfo.Year 
-                    : mediaInfo.Year.toString().slice(0,4) + ' - ' + mediaInfo.Year.toString().slice(4,8)})</span>
-                  */}
-                  <span className='px-4'>({mediaInfo.Type === 'series' ? `${mediaInfo.Year} - ${mediaInfo.endYear ? mediaInfo.endYear : 'Present'}` : mediaInfo.Year})</span>
+                  <span className='px-4'>
+                    ({mediaInfo.Type === 'series'
+                      ? `${mediaInfo.Year} - ${mediaInfo.endYear ? mediaInfo.endYear : 'Present'}` 
+                      : mediaInfo.Year})
+                  </span>
                 </h1>
                 <div className='flex justify-between p-4'>
                   <div className='flex-1 text-center m-auto'>Rated: {mediaInfo.Rated || 'N/A'}</div>
@@ -156,6 +156,8 @@ export default function DisplayFullMediaInfo({ imdbID }: { imdbID: string }) {
             <div className='w-4/5 m-auto'>
               <ManageReview imdbID={mediaInfo.imdbID} />
             </div>
+
+            <DisplayReviews imdbID={mediaInfo.imdbID}/>
 
             {/* OLD FORMAT IS BELOW */}
             <h1>Put other user's reviews down here, maybe add some info like "This movie appears in X other lists, and 90% of reviewers would watch it again"</h1>

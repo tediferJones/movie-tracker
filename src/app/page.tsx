@@ -65,10 +65,16 @@ export default async function Home() {
   //      - These additions seem messy and the style doesnt match rest of the file
   //
   //    - Revisit SortFilterMedia component, see comments at top of file for more info
+  //      - [ DONE ] Make columns an optional prop, by default use the columns defined in /media/page
+  //      - [ DONE ] Component will fail to render if Type or Rated is not included
+  //      - [ DONE ] Make sure we only show filters for columns that are included, 
+  //        As of now if we remove runtime from columns, it will still display filters for runtime
+  //      - Clean up how filters are generated in this component
   //
   //    - Rewrite DisplayLists component to use SortFilterMedia component
   //      - We could do this but seems like it could easily get over complicated
-  //      - Consider giving each list its own page /lists/[username]/[listname] and display a SortFilterMedia component there
+  //      - [ DONE ] Consider giving each list its own page /lists/[username]/[listname] and display a SortFilterMedia component there
+  //      - Add links to each list, should point to /lists/[username]/[listname]
   //
   //    - Add components to DisplayFullMediaInfo, like 'DisplayReviews' and 'DisplayInLists'
   //      - [ DONE ] DisplayReviews should show all reviews for a given imdbID
@@ -88,6 +94,8 @@ export default async function Home() {
   //
   //    - Edit modules/easyFetch, if no body is provided, just use an empty obj
   //      - and make body param optional
+  //      THESE COMPONENT USE AN EMPTY BODY
+  //      - ManageLists, ManageDefaultLists, displayWatched
   //
   //    - Consider converting DisplaySeasons and DisplayEpisodes to use our new DisplayDropDown component
   //      - Will have to nest a DisplayDropDown within another DisplayDropDown to emulate the current version
@@ -95,9 +103,13 @@ export default async function Home() {
   //    - Remove unknown console.logs in api routes, leave the basics like "media get request for ${imdbID}"
   //      - Server output/logs seem very cluttered
   //
+  //    - Go to every page that takes params, and make sure params are defined with uriDecode, 
+  //      THIS IS IMPORTANT, otherwise characters like spaces will be read as '%20'
   //
   // Minor Changes:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that
+  //      - Do we want to convert from mongoDB to some kind of SQL db? SQLite would be prefered, but mySQL is also an option
+  //      - Remember all the reasons we switched to mongoDB, mainly the lack of foreign key constraints
   //    - Try to remove the weird fake type coercion in /modules/CleanUpMovieInfo
   //    - Consider making all PUT and DELETE requests based on id and username(like /api/watched).  This makes API requests more restFUL
   //      - If we dont end up doing this, change the delete function in ManageWatched to match how we handle things everywhere else

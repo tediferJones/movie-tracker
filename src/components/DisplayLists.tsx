@@ -20,7 +20,7 @@ export default function DisplayLists({ username }: { username: string }) {
       {Object.keys(userLists).map((listname: string) => {
         return (
           <div key={listname} className='bg-gray-700 m-4 p-4'>
-            <DisplayDropDown header={listname} content={userLists[listname]}/>
+            <DisplayDropDown header={listname} content={userLists[listname]} username={username} />
           </div>
         )
       })}

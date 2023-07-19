@@ -15,7 +15,25 @@ import FilterFromTo from '@/components/FilterFromTo';
 // Do we want to make a type for this component?  
 //   - Is that even possible given that this component can output different numbers of columns?
 
-export default function SortFilterMedia({ mediaArr, columns }: { mediaArr: strIdxMedia[], columns: { [key: string]: 'string' | 'array' | 'number' } }) {
+export default function SortFilterMedia({
+  mediaArr,
+  columns,
+}: {
+  mediaArr: strIdxMedia[],
+  columns: { [key: string]: 'string' | 'array' | 'number' },
+}) {
+  if (Object.keys(columns).length === 0) {
+    columns = {
+      Title: 'string',
+      Year: 'number',
+      Runtime: 'number',
+      IMDBRating: 'number',
+      RottenTomatoesRating: 'number',
+      MetacriticRating: 'number',
+      Type: 'array',
+      Rated: 'array',
+    }
+  }
   // string | number | (string | null)[] 
   let initialFilters: { [key: string]: any } = {}
   Object.keys(columns).forEach((columnName: string) => {
@@ -79,6 +97,36 @@ export default function SortFilterMedia({ mediaArr, columns }: { mediaArr: strId
       <button onClick={() => setReverseOrder(!reverseOrder)}>Display Order:{reverseOrder ? 'Descending' : 'Ascending'}</button>
       <button className='p-2 bg-red-500' onClick={() => setFilters(initialFilters)}>RESET FILTERS TO INITIAL STATE</button>
       <div className='text-black flex gap-4 flex-wrap justify-around'>
+        {Object.keys(columns).map((columnName: string) => {
+          let result;
+          if (columns[columnName] === 'string') {
+            result = <div className='my-auto' key={columnName}>
+              <label className='text-white mr-2' htmlFor='title'>Filter Title</label>
+              <input id='title'
+                type='text'
+                value={filters.Title}
+                placeholder='Filter titles' 
+                onChange={(e) => setFilters({ ...filters, Title: e.target.value})}
+              />
+            </div>
+          } else if (columns[columnName] === 'array') {
+            result = <FilterCheckboxes selectors={initialFilters[columnName]} 
+              mediaKey={columnName} 
+              filters={filters} 
+              setFilters={setFilters} 
+              key={columnName}
+            />
+          } else if (columns[columnName] === 'number') {
+            result = <FilterFromTo mediaKey={columnName} 
+              initialFilters={initialFilters} 
+              filters={filters} 
+              setFilters={setFilters} 
+              key={columnName}
+            />
+          }
+          return result;
+        })}
+        {/*
         <div className='my-auto'>
           <label className='text-white mr-2' htmlFor='title'>Filter Title</label>
           <input id='title' type='text' value={filters.Title} placeholder='Filter titles' onChange={(e) => setFilters({ ...filters, Title: e.target.value})}/>
@@ -92,6 +140,7 @@ export default function SortFilterMedia({ mediaArr, columns }: { mediaArr: strId
 
         <FilterCheckboxes selectors={initialFilters.Type} mediaKey='Type' filters={filters} setFilters={setFilters} />
         <FilterCheckboxes selectors={initialFilters.Rated} mediaKey='Rated' filters={filters} setFilters={setFilters} />
+        */}
       </div>
       <div>Filtered Length: {sortedAndFilteredMediaArr.length}</div>
       <div className='flex p-2 m-1'>

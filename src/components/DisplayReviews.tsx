@@ -17,7 +17,7 @@ export default function DisplayReviews({ imdbID }: { imdbID: string }) {
     <div className='w-4/5 mx-auto'>
       <h1 className='pl-4 text-xl'>Reviews</h1>
       {allReviews === null ? <h1>Loading...</h1> :
-        allReviews.length === 0 ? <h1>No reviews available</h1> :
+        allReviews.length === 0 ? <h1 className='text-center py-4'>No reviews available</h1> :
           allReviews.map((review: review) => {
             return (
               <div className='m-4 bg-gray-700 p-4' key={review.username}>

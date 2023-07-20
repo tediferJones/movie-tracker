@@ -7,6 +7,7 @@ import ManageReview from '@/components/ManageReview';
 import ManageWatched from '@/components/ManageWatched';
 import DisplaySeasons from '@/components/DisplaySeasons';
 import DisplayReviews from '@/components/DisplayReviews';
+import DisplayMediaLists from '@/components/DisplayMediaLists';
 import easyFetch from '@/modules/easyFetch';
 import { strIdxMedia } from '@/types';
 
@@ -157,10 +158,8 @@ export default function DisplayFullMediaInfo({ imdbID }: { imdbID: string }) {
               <ManageReview imdbID={mediaInfo.imdbID} />
             </div>
 
-            <DisplayReviews imdbID={mediaInfo.imdbID}/>
-
-            {/* OLD FORMAT IS BELOW */}
-            <h1>Put other user's reviews down here, maybe add some info like "This movie appears in X other lists, and 90% of reviewers would watch it again"</h1>
+            <DisplayReviews imdbID={mediaInfo.imdbID} />
+            <DisplayMediaLists imdbID={mediaInfo.imdbID} />
           </>}
     </>
   )

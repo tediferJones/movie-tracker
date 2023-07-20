@@ -12,10 +12,8 @@ export default async function listname({
     listname: string,
   },
 }) {
-  let { username, listname } = params;
-  username = decodeURI(username);
-  listname = decodeURI(listname);
-  
+  const username = decodeURI(params.username)
+  const listname = decodeURI(params.listname)
 
   const listMediaIDs: listMediaID[] = await prisma.lists.findMany({
     select: {
@@ -34,35 +32,11 @@ export default async function listname({
     },
   });
 
-  console.log(username, decodeURI(listname))
-
-  // See /media/page for SortFilterMedia setup
-  // We need to get an array of all media data associated with the imdbIDs in the given list
-  //
-  // Do we want to individually request each imdbID?  That seems pretty stupid
-  // Should probably just edit /api/media to return multiple imdbIDs if requested
-  // imdbID url prop should be extracted in the api as an array,
-  // however, if the request only has one imdbID, dont return an array with a single item, just return the item
-  //
-  // OR DONT USE THE API AT ALL, just hit the DB directly from this file, this page will use SSR anyways
-
-  // {JSON.stringify(listMediaIDs)}
-  // <hr/>
-  // {JSON.stringify(mediaArr)}
   return (
     <div>
       <h1>Specific list page</h1>
       <h1>Put a SortFilterMedia component here and read in list data</h1>
-      <SortFilterMedia mediaArr={mediaArr} columns={{
-        Title: 'string',
-        Type: 'array',
-        Rated: 'array',
-        Year: 'number',
-        Runtime: 'number',
-        IMDBRating: 'number',
-        RottenTomatoesRating: 'number',
-        MetacriticRating: 'number',
-      }}/>
+      <SortFilterMedia mediaArr={mediaArr} columns={{}}/>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import DisplayLists from '@/components/DisplayLists';
 
 export default async function List({ params }: { params: any } ) {
-  const { username } = params;
+  const username = decodeURI(params.username)
   
   return (
     <div>

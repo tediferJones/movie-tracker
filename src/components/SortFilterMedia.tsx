@@ -47,8 +47,8 @@ export default function SortFilterMedia({
     }
   })
 
-  console.log(mediaArr);
-  console.log(initialFilters);
+  // console.log(mediaArr);
+  // console.log(initialFilters);
   const [sortByColumnName, setSortByColumnName] = useState<string>('')
   const [reverseOrder, setReverseOrder] = useState<boolean>(false);
   const [filters, setFilters] = useState<{ [key: string]: any }>(initialFilters); // {

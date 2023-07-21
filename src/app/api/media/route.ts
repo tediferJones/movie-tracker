@@ -8,37 +8,36 @@ export async function GET(req: Request) {
   console.log('\n FETCH SINGLE MOVIE RECORD FROM DB \n')
   const imdbID = new URL(req.url).searchParams.get('imdbID')
   let result = null;
-  // console.log(imdbID)
+
   if (imdbID) {
     result = await prisma.media.findFirst({ where: { imdbID } })
   }
+
   return NextResponse.json(result, { status: result ? 200 : 404 })
 }
 
 export async function POST(req: Request) {
   const { imdbID } = await req.json();
-  // console.log(imdbID)
-
-  const res = await easyFetch('https://www.omdbapi.com/', 'GET', {
+  const rawData: strIdxRawMedia = await easyFetch('https://www.omdbapi.com/', 'GET', {
     apikey: process.env.OMDBAPI_KEY,
     i: imdbID,
   })
-  const rawData: strIdxRawMedia = await res.json();
+
   if (rawData.Response === 'True') {
     const data: strIdxMedia = cleanUpMediaInfo(rawData);
     await prisma.media.create({ data });
     return NextResponse.json('\n Added movie to DB from /api/media \n')
   }
+
   return NextResponse.json('\n Failed to add movie to DB from /api/media \n')
 }
 
 export async function PUT(req: Request) {
   const { imdbID } = await req.json();
-  const res = await easyFetch('https://www.omdbapi.com/', 'GET', {
+  const result = await easyFetch('https://www.omdbapi.com/', 'GET', {
     apikey: process.env.OMDBAPI_KEY,
     i: imdbID,
   })
-  const result = await res.json();
 
   if (result.Response === 'True') {
     let data = cleanUpMediaInfo(result);
@@ -51,5 +50,6 @@ export async function PUT(req: Request) {
     console.log(`\n SUCCESSFUL UPDATE OF MOVIE: ${data.Title} \n`)
     return NextResponse.json({ movieHasBeenUpdated: true })
   }
+
   return NextResponse.json({ movieHasBeenUpdated: false })
 }

@@ -10,19 +10,22 @@ export default function DisplayWatched() {
   const [watched, setWatched] = useState<watched[] | null>(null)
 
   useEffect(() => {
-    easyFetch('/api/watched', 'GET', {})
-      .then((res: Response) => res.json())
+    easyFetch('/api/watched', 'GET')
       .then((data: watched[]) => setWatched(data))
   }, []);
 
-  function listItem(item: any) {
-    return <DisplayMiniMediaInfo className='m-2 flex justify-between bg-gray-700 p-4'
-      key={item.username + item.imdbID + item.date} 
-      imdbID={item.imdbID} 
-      display={['Title']} 
-      date={item.date}
-    />
-  } 
+  function listItems(): JSX.Element[] {
+    if (watched === null) return [];
+
+    return watched.map((item: watched) => {
+      return <DisplayMiniMediaInfo className='m-2 flex justify-between bg-gray-700 p-4'
+        key={item.username + item.imdbID + item.date} 
+        imdbID={item.imdbID} 
+        display={['Title']} 
+        date={item.date}
+      />
+    })
+  }
 
   return (
     <div>
@@ -31,7 +34,7 @@ export default function DisplayWatched() {
         {watched === null ? [] : <h1>You have {watched.length} watch records</h1>}
       </div>
       {watched === null ? <div>Loading...</div> :
-        <ExpandableList arr={watched} createElement={listItem}/>
+        <ExpandableList arr={listItems()} />
       }
     </div>
   )

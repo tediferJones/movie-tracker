@@ -28,8 +28,7 @@ export default function Searchbar() {
           searchType, 
           queryTerm: 's', 
           queryType: 'type',
-        }).then((res: Response) => res.json())
-          .then((data: omdbSearch) => {
+        }).then((data: omdbSearch) => {
             console.log('SEARCH RESULTS', data)
             data.Response === 'True' ? setSearchResult(data) : setSearchResult(defaultState);
           })

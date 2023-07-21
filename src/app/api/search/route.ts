@@ -22,5 +22,5 @@ export async function GET(req: Request) {
     [queryTerm]: searchTerm, 
   });
 
-  return NextResponse.json(await omdbResult.json())
+  return NextResponse.json(await omdbResult)
 }

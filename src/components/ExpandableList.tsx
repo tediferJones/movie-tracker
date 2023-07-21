@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 
-export default function ExpandableList({ arr, createElement }: { arr: any[], createElement: Function }) {
+export default function ExpandableList({ arr }: { arr: JSX.Element[] }) {
   const [length, setLength] = useState<number>(5);
 
   return (
     <div className='flex flex-col'>
       <h1>Expandable List</h1>
-      {arr.slice(0, length).map((item: any) => createElement(item))}
+      {arr.slice(0, length)}
 
       <div className='flex'>
         {length >= arr.length ? [] :

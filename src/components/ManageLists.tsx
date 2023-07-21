@@ -9,8 +9,7 @@ export default function ManageLists({ imdbID }: { imdbID: string }) {
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
 
   useEffect(() => {
-    easyFetch('/api/lists', 'GET', {})
-      .then((res: Response) => res.json())
+    easyFetch('/api/lists', 'GET')
       .then((data: userLists) => {
         console.log('USER LISTS', data)
         setUserLists(data.lists)

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
 import DisplayEpisodes from "@/components/DisplayEpisodes";
+import DisplayDropDown from '@/components/DisplayDropDown';
 
 export default function DisplaySeasons(
   { 
@@ -18,34 +18,32 @@ export default function DisplaySeasons(
     seriesID: string | null,
   }
 ) {
-
-  const [displaySeasons, setDisplaySeasons] = useState<boolean>(false);
-  const ref = useRef<HTMLDivElement>(null);
+  function nestedDropDown(): JSX.Element[] {
+    return [...Array(totalSeasons).keys()].map((season: number) => {
+      return <DisplayEpisodes imdbID={imdbID} 
+        season={season + 1} 
+        key={season + 1} 
+      />
+    })
+  }
 
   return (
     <div className='my-4 mx-auto w-4/5'>
       {Type === 'series' && totalSeasons && totalSeasons > 1 ?
-        <>
-          <button className='text-2xl p-4 bg-gray-700 w-full flex justify-between'
-            onClick={() => {
-              ref.current?.classList.toggle('hidden');
-              setDisplaySeasons(!displaySeasons);
-            }}
-          > <h1>{`Seasons 1 - ${totalSeasons}`}</h1>
-            <h1>{displaySeasons ? '-' : '+'}</h1>
-          </button>
-          <div ref={ref} className='w-full hidden' >
-            {[...Array(totalSeasons).keys()].map((season: number) => {
-              return <DisplayEpisodes imdbID={imdbID} season={season + 1} key={season + 1}/>
-            })}
-          </div>
-        </>
-        : Type === 'series' && totalSeasons && totalSeasons === 1 ? 
-          <DisplayEpisodes imdbID={imdbID} season={totalSeasons} key={totalSeasons}/>
-        : Type === 'episode' && Season !== null && seriesID ? 
-          <DisplayEpisodes imdbID={seriesID} season={Season} key={Season}/>
-        : []
-      }
+        <DisplayDropDown header={`Seasons 1 - ${totalSeasons}`} 
+          content={nestedDropDown()} 
+          hideContentCount={true} 
+        />
+      : Type === 'series' && totalSeasons && totalSeasons === 1 ? 
+        <DisplayEpisodes imdbID={imdbID} 
+          season={totalSeasons} 
+          key={totalSeasons}/>
+      : Type === 'episode' && Season !== null && seriesID ? 
+        <DisplayEpisodes imdbID={seriesID} 
+          season={Season} 
+          key={Season}
+        />
+      : []}
     </div>
   )
 }

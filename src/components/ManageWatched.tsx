@@ -11,8 +11,7 @@ export default function ManageWatched(props: { imdbID: string }) {
  
   useEffect(() => {
     easyFetch('/api/watched', 'GET', { imdbID })
-        .then((res: Response) => res.json())
-        .then((data: watched[]) => setWatchHistory(data))
+      .then((data: watched[]) => setWatchHistory(data))
   }, [refreshTrigger])
 
   async function newWatched() {

@@ -9,7 +9,6 @@ export default function DisplayReviews({ imdbID }: { imdbID: string }) {
 
   useEffect(() => {
     easyFetch('/api/review', 'GET', { imdbID, getAll: true })
-      .then((res: Response) => res.json())
       .then((data: review[]) => setAllReviews(data))
   }, []);
 

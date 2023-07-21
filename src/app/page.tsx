@@ -33,12 +33,6 @@ export default async function Home() {
   //      - if done properly, users can still browse/filter the whole DB, and search for movies
   //      - But if they try to do anything related a user (i.e. add/remove a movie some list), then require login
   //
-  //    - Rewrite /movies page, each media type should have its own section, 
-  //      i.e. 'Games' section will show all games in the DB
-  //      INSTEAD: create pages for /media/games, /media/movies, 
-  //      each page should display a SortFilterMedia component with only that type
-  //      - Isn't this kind of redundant?  Could just use SortFilterMedia component, and filter all except 'movie' or whatever
-  //
   //    - WRITE SOME TESTS, try to test most components and modules
   //      - Cant test things that fetch... all our components fetch so we're kinda boned
   //      - No point in testing pages, they are very simple anyways, and cant fetch from DB during tests so?
@@ -68,22 +62,19 @@ export default async function Home() {
   //        As of now if we remove runtime from columns, it will still display filters for runtime
   //      - Clean up how filters are generated in this component
   //
-  //    - Edit modules/easyFetch, if no body is provided, just use an empty obj
-  //      - and make body param optional
-  //      THESE COMPONENT USE AN EMPTY BODY
-  //      - ManageLists, ManageDefaultLists, displayWatched
-  //
-  //    - Consider converting DisplaySeasons and DisplayEpisodes to use our new DisplayDropDown component
-  //      - Will have to nest a DisplayDropDown within another DisplayDropDown to emulate the current version
-  //      - Implement this in DisplaySeasons component
-  //    - [ DONE ] Consider creating ExpandableList component, should mimic the ui from DisplayWatched
-  //
   //    - Remove unknown console.logs in api routes, leave the basics like "media get request for ${imdbID}"
   //      - Server output/logs seem very cluttered
   //
   //    - Add a refresh trigger to DisplayFullMediaInfo component,
   //      - We want this trigger to be able to cause child components to refresh
   //        For Example: When we update/submit our review, the component that displays all reviews should also refresh
+  //
+  //    - [ DONE ] Can we make easyFetch return the result of .then((res: Response) => res.json())?
+  //      - [ DONE ] That could remove a line from like literally every component with a fetch request
+  //      - Now simplify easyFetch, should only have one return statement
+  //      - and only use one .json() if possible
+  //
+  //    - DisplayMediaLists, if lists are from a single user, dont display 'in 5 lists from 1 user', display 'in 5 lists from tedifer_jones'
   //
   //
   // Minor Changes:
@@ -97,6 +88,7 @@ export default async function Home() {
   //    - DONT USE document.getElementByWHATEVER, use the React.useRef hook
   //    - Consider adding IDs to the HTML, HTML should be somewhat readable on its own
   //    - Add some transitions/animations for drop downs and loading state (see t3 stack tutorial for loading state example)
+  //    - Conside replacing all <a> tags with <Link> tags, this is 'the react way'
   //
 
   const user = await currentUser();

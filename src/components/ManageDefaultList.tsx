@@ -15,8 +15,7 @@ export default function ManageDefaultList() {
   // Answer: Then we need to update the record, and we default to PUT anyways so i guess we're just fine?
 
   useEffect(() => {
-    easyFetch('/api/lists', 'GET', {})
-      .then((res: Response) => res.json())
+    easyFetch('/api/lists', 'GET')
       .then((data: userLists) => {
         // console.log('hello')
         console.log('ManageDefaultList Data',data)

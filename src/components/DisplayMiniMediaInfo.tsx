@@ -19,8 +19,7 @@ export default function DisplayMiniMediaInfo({
 
   useEffect(() => {
     easyFetch('/api/media', 'GET', { imdbID })
-        .then((res: any) => res.json())
-        .then((data: any) => setMovieInfo(data))
+      .then((data: any) => setMovieInfo(data))
   }, [])
 
   function exists(key: string) {

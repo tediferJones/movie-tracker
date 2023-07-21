@@ -12,18 +12,18 @@ import easyFetch from '@/modules/easyFetch';
 import { strIdxMedia } from '@/types';
 
 export default function DisplayFullMediaInfo({ imdbID }: { imdbID: string }) {
-  // const { imdbID } = props;
   const [mediaInfo, setMovieInfo] = useState<strIdxMedia | null | false>(null);
 
   useEffect(() => {
     (async () => {
       // must await POST request, because if we GET before POST is completed, there will be nothing to GET
-      const checkForImdbID = await easyFetch('/api/media', 'HEAD', { imdbID });
+      const checkForImdbID = await fetch('/api/media' + '?' + new URLSearchParams({ imdbID }), { method: 'HEAD' });
+
       if (checkForImdbID.status === 404) {
         await easyFetch('/api/media', 'POST', { imdbID });
       }
-      const res: Response = await easyFetch('/api/media', 'GET', { imdbID });
-      const data = await res.json();
+
+      const data: strIdxMedia = await easyFetch('/api/media', 'GET', { imdbID });
       data ? setMovieInfo(data) : setMovieInfo(false);
     })();
   }, [])

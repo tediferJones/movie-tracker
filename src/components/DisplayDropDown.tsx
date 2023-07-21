@@ -1,29 +1,31 @@
 'use client';
 
 import { useState, useRef } from "react";
-import DisplayMiniMediaInfo from "@/components/DisplayMiniMediaInfo";
 
 export default function DisplayDropDown({
   header,
   content,
   username,
+  hideContentCount,
 } : {
   header: string,
-  content: string[],
+  content: JSX.Element[],
   username?: string,
+  hideContentCount?: boolean,
 }) {
   const [displayContent, setDisplayContent] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   return (
-    <div>
+    <div className='bg-gray-700 m-4 p-4'>
       <h1 className='flex cursor-pointer justify-between text-2xl'
         onClick={() => {
           ref.current?.classList.toggle('hidden')
           setDisplayContent(!displayContent);
         }}
       > <div className='my-auto'>
-          {header} ({content.length})
+          {header} {hideContentCount ? [] : `(${content.length})` }
         </div>
+
         <div className='flex'>
           {!username ? [] : 
             <a className='mr-4 bg-blue-400 p-2'
@@ -35,14 +37,9 @@ export default function DisplayDropDown({
           </div>
         </div>
       </h1>
+
       <div ref={ref} className='hidden'>
-        {content.map((imdbID: string) => {
-          return <DisplayMiniMediaInfo className='flex p-4' 
-            key={imdbID} 
-            imdbID={imdbID} 
-            display={['Title', 'Poster']}
-          />
-        })}
+        {content}
       </div>
     </div>
   )

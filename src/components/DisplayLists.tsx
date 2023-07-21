@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { userLists } from '@/types';
+import DisplayMiniMediaInfo from '@/components/DisplayMiniMediaInfo';
 import DisplayDropDown from '@/components/DisplayDropDown';
 import easyFetch from '@/modules/easyFetch';
 
@@ -10,19 +11,28 @@ export default function DisplayLists({ username }: { username: string }) {
   
   useEffect(() => {
     easyFetch('/api/lists', 'GET', { username })
-      .then((res: Response) => res.json())
       .then((data: userLists) => setUserLists(data.lists))
   }, []);
+
+  function listItems(listname: string): JSX.Element[] {
+    return userLists[listname].map((imdbID: string) => {
+      return <DisplayMiniMediaInfo className='flex p-4' 
+        key={imdbID} 
+        imdbID={imdbID} 
+        display={['Title', 'Poster']}
+      />
+    })
+  }
 
   return (
     <div>
       <h1>{username}'s List</h1>
       {Object.keys(userLists).map((listname: string) => {
-        return (
-          <div key={listname} className='bg-gray-700 m-4 p-4'>
-            <DisplayDropDown header={listname} content={userLists[listname]} username={username} />
-          </div>
-        )
+        return <DisplayDropDown header={listname} 
+          content={listItems(listname)} 
+          username={username} 
+          key={listname}
+        />
       })}
     </div>
   )

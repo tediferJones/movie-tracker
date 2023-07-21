@@ -1,16 +1,15 @@
 'use client';
 
-import easyFetch from '@/modules/easyFetch';
-import { lists } from '@prisma/client';
 import { useState, useEffect } from 'react';
+import { lists } from '@prisma/client';
 import ExpandableList from '@/components/ExpandableList';
+import easyFetch from '@/modules/easyFetch';
 
 export default function DisplayMediaLists({ imdbID }: { imdbID: string }) {
   const [lists, setLists] = useState<lists[] | null>(null);
 
   useEffect(() => {
     easyFetch('/api/lists', 'GET', { imdbID })
-      .then((res: Response) => res.json())
       .then((data: lists[]) => setLists(data))
   }, []);
 
@@ -22,16 +21,20 @@ export default function DisplayMediaLists({ imdbID }: { imdbID: string }) {
     return result;
   }
 
-  function listItem(item: any) {
-    return (
-      <div className='p-4 m-2 bg-gray-700 flex justify-between' key={`${item.username}-${item.listname}`}>
-        <h2 className='my-auto'>{item.username}</h2>
-        <h2 className='my-auto'>{item.listname}</h2>
-        <a className='p-2 bg-blue-400'
-          href={`/lists/${item.username}/${item.listname}`}
-        >Go To List</a>
-      </div>
-    )
+  function listItems() {
+    if (!lists) return [];
+
+    return lists.map((item: lists) => {
+      return (
+        <div className='p-4 m-2 bg-gray-700 flex justify-between' key={`${item.username}-${item.listname}`}>
+          <h2 className='my-auto'>{item.username}</h2>
+          <h2 className='my-auto'>{item.listname}</h2>
+          <a className='p-2 bg-blue-400'
+            href={`/lists/${item.username}/${item.listname}`}
+          >Go To List</a>
+        </div>
+      )
+    })
   }
 
   return (
@@ -44,9 +47,8 @@ export default function DisplayMediaLists({ imdbID }: { imdbID: string }) {
               This media appears in {lists.length} list{lists.length === 1 ? '' : 's'}, 
               from {uniqueUsers().length} {uniqueUsers().length === 1 ? 'user' : 'different users'}
             </h1>
-            <ExpandableList arr={lists} createElement={listItem} />
+            <ExpandableList arr={listItems()} />
           </>
-
       }
     </div>
   )

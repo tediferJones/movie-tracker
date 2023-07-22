@@ -58,10 +58,6 @@ export default async function Home() {
   //    - Go back to CleanUpMovieInfo module and clean up where we add endYear, 
   //      - These additions seem messy and the style doesnt match rest of the file
   //
-  //    - Revisit SortFilterMedia component, see comments at top of file for more info
-  //        As of now if we remove runtime from columns, it will still display filters for runtime
-  //      - Clean up how filters are generated in this component
-  //
   //    - Remove unknown console.logs in api routes, leave the basics like "media get request for ${imdbID}"
   //      - Server output/logs seem very cluttered
   //
@@ -69,12 +65,13 @@ export default async function Home() {
   //      - We want this trigger to be able to cause child components to refresh
   //        For Example: When we update/submit our review, the component that displays all reviews should also refresh
   //
-  //    - [ DONE ] Can we make easyFetch return the result of .then((res: Response) => res.json())?
-  //      - [ DONE ] That could remove a line from like literally every component with a fetch request
-  //      - Now simplify easyFetch, should only have one return statement
-  //      - and only use one .json() if possible
-  //
   //    - DisplayMediaLists, if lists are from a single user, dont display 'in 5 lists from 1 user', display 'in 5 lists from tedifer_jones'
+  //
+  //    - Try to move contents of DisplayFullMediaInfo component into /media/[imdbID] page, try to make it render serverside
+  //      - If we can pull that off, try to do the same for the other pages
+  //
+  //    - SortFilterMedia component, consider using a nested object by type, like { string: ..., array: ..., }
+  //      - This will allow us to remove the any type when setting initial filter state
   //
   //
   // Minor Changes:

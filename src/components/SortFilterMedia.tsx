@@ -6,15 +6,6 @@ import { getMinValue, getMaxValue, getUnqValues } from '@/modules/sortFilterMedi
 import FilterCheckboxes from '@/components/FilterCheckboxes';
 import FilterFromTo from '@/components/FilterFromTo';
 
-// What other attributes could we potentially want to be able to sort by?
-// Awards?, DVD, BoxOffice, imdbVotes, totalSeasons? (would only apply if Type='series')
-
-// TO DO:
-// Delete extranious comments
-// Style the filters section of this component
-// Do we want to make a type for this component?  
-//   - Is that even possible given that this component can output different numbers of columns?
-
 export default function SortFilterMedia({
   mediaArr,
   columns,
@@ -34,8 +25,8 @@ export default function SortFilterMedia({
       Rated: 'array',
     }
   }
-  // string | number | (string | null)[] 
-  let initialFilters: { [key: string]: any } = {}
+ 
+  let initialFilters: { [key: string]: string | number | (string | null)[] } = {}
   Object.keys(columns).forEach((columnName: string) => {
     if (columnName === 'Title') {
       initialFilters[columnName] = ''
@@ -47,11 +38,9 @@ export default function SortFilterMedia({
     }
   })
 
-  // console.log(mediaArr);
-  // console.log(initialFilters);
   const [sortByColumnName, setSortByColumnName] = useState<string>('')
   const [reverseOrder, setReverseOrder] = useState<boolean>(false);
-  const [filters, setFilters] = useState<{ [key: string]: any }>(initialFilters); // {
+  const [filters, setFilters] = useState<{ [key: string]: any }>(initialFilters);
 
   function sortFunc(a: strIdxMedia, b: strIdxMedia) {
     // Sort in ascending order, and push all nulls to front of array
@@ -110,7 +99,7 @@ export default function SortFilterMedia({
               />
             </div>
           } else if (columns[columnName] === 'array') {
-            result = <FilterCheckboxes selectors={initialFilters[columnName]} 
+            result = <FilterCheckboxes selectors={initialFilters[columnName] as (string | null)[]} 
               mediaKey={columnName} 
               filters={filters} 
               setFilters={setFilters} 
@@ -126,21 +115,6 @@ export default function SortFilterMedia({
           }
           return result;
         })}
-        {/*
-        <div className='my-auto'>
-          <label className='text-white mr-2' htmlFor='title'>Filter Title</label>
-          <input id='title' type='text' value={filters.Title} placeholder='Filter titles' onChange={(e) => setFilters({ ...filters, Title: e.target.value})}/>
-        </div>
-
-        <FilterFromTo mediaKey='Year' initialFilters={initialFilters} filters={filters} setFilters={setFilters} />
-        <FilterFromTo mediaKey='Runtime' initialFilters={initialFilters} filters={filters} setFilters={setFilters} />
-        <FilterFromTo mediaKey='IMDBRating' initialFilters={initialFilters} filters={filters} setFilters={setFilters} />
-        <FilterFromTo mediaKey='RottenTomatoesRating' initialFilters={initialFilters} filters={filters} setFilters={setFilters} />
-        <FilterFromTo mediaKey='MetacriticRating' initialFilters={initialFilters} filters={filters} setFilters={setFilters} />
-
-        <FilterCheckboxes selectors={initialFilters.Type} mediaKey='Type' filters={filters} setFilters={setFilters} />
-        <FilterCheckboxes selectors={initialFilters.Rated} mediaKey='Rated' filters={filters} setFilters={setFilters} />
-        */}
       </div>
       <div>Filtered Length: {sortedAndFilteredMediaArr.length}</div>
       <div className='flex p-2 m-1'>
@@ -168,8 +142,7 @@ export default function SortFilterMedia({
         })}
       </div>
       <div className={reverseOrder ? 'flex flex-col-reverse' : 'flex flex-col'}>
-        {// mediaArr.filter(filterFunc).sort(sortFunc)
-          sortedAndFilteredMediaArr.map((item: strIdxMedia) => {
+        {sortedAndFilteredMediaArr.map((item: strIdxMedia) => {
           return (
             <a className='flex justify-between p-2 m-1 bg-gray-700'
               key={item.imdbID}

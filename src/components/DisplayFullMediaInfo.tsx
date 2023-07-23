@@ -85,7 +85,7 @@ export default function DisplayFullMediaInfo({ imdbID }: { imdbID: string }) {
                   <div className='p-4 text-center'>
                     RottenTomatoes: {mediaInfo.RottenTomatoesRating ? `${mediaInfo.RottenTomatoesRating}%` : 'N/A'}
                   </div>
-                  <div className='p-4 text-center'>Metacritic: {`${mediaInfo.MetacriticRating}/100` || 'N/A'}</div>
+                  <div className='p-4 text-center'>Metacritic: {mediaInfo.MetacriticRating ? `${mediaInfo.MetacriticRating}/100` : 'N/A'}</div>
                 </div>
                 <div className='flex p-4'>
                   <div className='pr-2 text-xl'>Awards: </div>

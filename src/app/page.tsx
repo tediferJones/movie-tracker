@@ -26,24 +26,17 @@ export default async function Home() {
 
   // The master TO-DO list
   //
-  // Feature additions:
-  //      FIELDS THAT ALMOST CERTAINLY EXISTS: mongoDB-ID, Title, Year, imdbID, Type, cachedAt 
-  //
+  // Major additions:
   //    - move auth from ./layout to individual components
   //      - if done properly, users can still browse/filter the whole DB, and search for movies
   //      - But if they try to do anything related a user (i.e. add/remove a movie some list), then require login
+  //    - Add a testing framework and write some tests
+  //      - More info: https://nextjs.org/docs/pages/building-your-application/optimizing/testing
+  //      - I think we need to write E2E tests, or just find some way to mock data from props or fetch requests
+  //    - Post our project to Vercel, setup a seperate DB for production
   //
-  //    - WRITE SOME TESTS, try to test most components and modules
-  //      - Cant test things that fetch... all our components fetch so we're kinda boned
-  //      - No point in testing pages, they are very simple anyways, and cant fetch from DB during tests so?
-  //      
-  //      SOLUTION:
-  //      - We need to write end 2 end tests, end to end tests can access the DB and hopefully maybe can use fetch
-  //      - Look at this guide for more info on testing: https://nextjs.org/docs/pages/building-your-application/optimizing/testing
   //
-  //    - Setup/Post project to vercel, as we push changes to github the website should update
-  //      - Vercel will use its own database, so make sure prisma schemas are correct before setup
-  //
+  // Feature additions:
   //    - Consider editing ManageLists component, by default it should display all users list, and the button should be add or remove depending on if it exists or not
   //      - Eh this is kind of a bad idea, we're already displaying all lists the given media exists in
   //      - if user has 100 lists, it will always show a scroll bar, and thats kind of ugly
@@ -54,9 +47,6 @@ export default async function Home() {
   //    - Revisit ManageDefaultList at some point, try to clean it up
   //      - consider sticking all the state vars into one obj
   //        this will make the fetch request and overall logic much more clear
-  //
-  //    - Go back to CleanUpMovieInfo module and clean up where we add endYear, 
-  //      - These additions seem messy and the style doesnt match rest of the file
   //
   //    - Remove unknown console.logs in api routes, leave the basics like "media get request for ${imdbID}"
   //      - Server output/logs seem very cluttered
@@ -74,11 +64,10 @@ export default async function Home() {
   //      - This will allow us to remove the any type when setting initial filter state
   //
   //
-  // Minor Changes:
+  // Minor additions:
   //    - Prisma still says more than 10 instances are running sometimes, we should probably try to address that
   //      - Do we want to convert from mongoDB to some kind of SQL db? SQLite would be prefered, but mySQL is also an option
   //      - Remember all the reasons we switched to mongoDB, mainly the lack of foreign key constraints
-  //    - Try to remove the weird fake type coercion in /modules/CleanUpMovieInfo
   //    - Consider making all PUT and DELETE requests based on id and username(like /api/watched).  This makes API requests more restFUL
   //      - If we dont end up doing this, change the delete function in ManageWatched to match how we handle things everywhere else
   //    - Add proper type to sliderHandler func in ManageReview

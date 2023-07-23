@@ -1,50 +1,51 @@
 import { strIdxRawMedia, ratingObj, strIdxMedia } from '@/types';
 
-export default function cleanUpMediaInfo(mediaObj: strIdxRawMedia): strIdxMedia {
-  // Delete all keys that dont contain any usable data
-  Object.keys(mediaObj).forEach((key: string) => {
-    if (mediaObj[key] === 'N/A') {
-      delete mediaObj[key];
-    }
-  });
+export default function cleanUpMediaInfo(rawMedia: strIdxRawMedia): strIdxMedia {
+  function keyExists(key: string): boolean {
+    return rawMedia[key] && rawMedia[key] !== 'N/A';
+  }
 
-  // Extract ratings and put them in the root of the mediaObj, instead of having an array of objects
-  mediaObj.Ratings?.forEach((ratingObj: ratingObj) => {
-    let ratingValue: number = Number(ratingObj.Value.slice(0, ratingObj.Value.indexOf('/' || '%')));
-    if (ratingObj.Source === 'Internet Movie Database') { 
-      ratingObj.Source = 'IMDB';
-      // All ratings are stored in the database as base 100, its essentially a percentage in integer form
-      // But imdb ratings are out of 10 with step of 0.1, so just multiply by 10 to get an integer
-      ratingValue = ratingValue * 10;
-    }
-    mediaObj[`${ratingObj.Source} Rating`.replaceAll(' ', '')] = ratingValue;
-  });
+  let cleanMedia = {} as strIdxMedia;
 
   // Split these strings into arrays of individual names
   ['Actors', 'Writer', 'Director', 'Genre', 'Country', 'Language']
-      .forEach((key: string) => mediaObj[key] = mediaObj[key] ? mediaObj[key].split(', ') : undefined);
+      .forEach((key: string) => keyExists(key) ? cleanMedia[key] = rawMedia[key].split(', ') : undefined);
 
   // Convert dates to UNIX time
   ['Released', 'DVD']
-      .forEach((key: string) => mediaObj[key] = mediaObj[key] ? new Date(mediaObj[key]).getTime() : undefined);
+      .forEach((key: string) => keyExists(key) ? cleanMedia[key] = new Date(rawMedia[key]).getTime() : undefined);
 
-  // TESTING YEAR CONVERSION
-  if (typeof(mediaObj.Year) === 'string' && mediaObj.Year.length > 4) {
-    mediaObj.endYear = Number(mediaObj.Year.slice(5)) || undefined;
-    mediaObj.Year = Number(mediaObj.Year.slice(0,4));
-  } else {
-    mediaObj.Year = Number(mediaObj.Year)
-  }
- 
   // Remove all non-numeric characters from string and convert to number
   ['imdbVotes', 'Runtime', 'BoxOffice', 'totalSeasons', 'Season', 'Episode']
-      .forEach((key: string) => mediaObj[key] = mediaObj[key] ? Number(mediaObj[key].replace(/\D/g, '')) : undefined);
+    .forEach((key: string) => keyExists(key) ? cleanMedia[key] = Number(rawMedia[key].replace(/\D/g, '')) : undefined);
+ 
+  // No conversion needed
+  ['Title', 'imdbID', 'Type', 'Poster', 'Rated', 'Plot', 'Awards', 'Production', 'Website']
+    .forEach((key: string) => keyExists(key) ? cleanMedia[key] = rawMedia[key] : undefined)
 
-  // Remove extranious or repetitive data
-  ['Ratings', 'Metascore', 'imdbRating', 'Response']
-      .forEach((key: string) => delete mediaObj[key]);
+  // Extract ratings and put them in the root of cleanMedia
+  rawMedia.Ratings?.forEach((ratingObj: ratingObj) => {
+    let ratingValue = Number(ratingObj.Value.slice(0, ratingObj.Value.indexOf('/' || '%')));
+    if (ratingObj.Source === 'Internet Movie Database') { 
+      ratingObj.Source = 'IMDB';
+      // IMDBRating needs to be multiplied by 10 so all rating in the database are rated out of 100
+      ratingValue = ratingValue * 10;
+    }
+    cleanMedia[`${ratingObj.Source} Rating`.replaceAll(' ', '')] = ratingValue;
+  });
 
-  mediaObj.cachedAt = Date.now();
-  const cleanMovieObj: any = mediaObj;
-  return cleanMovieObj;
+  // If year is formatted as '2004-2008', then Year=2004 and endYear=2008
+  if (rawMedia.Year.includes('\u2013')) { 
+    const splitAt = rawMedia.Year.indexOf('\u2013')
+    cleanMedia.Year = Number(rawMedia.Year.slice(0, splitAt));
+    if (rawMedia.Year.slice(splitAt + 1)) {
+      cleanMedia.endYear = Number(rawMedia.Year.slice(splitAt + 1));
+    }
+  } else {
+    cleanMedia.Year = Number(rawMedia.Year);
+  }
+
+  cleanMedia.cachedAt = Date.now();
+
+  return cleanMedia;
 }

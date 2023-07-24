@@ -33,6 +33,7 @@ export default async function Home() {
   //    - Add a testing framework and write some tests
   //      - More info: https://nextjs.org/docs/pages/building-your-application/optimizing/testing
   //      - I think we need to write E2E tests, or just find some way to mock data from props or fetch requests
+  //      - Or maybe integration tests?  if it hits the DB it should probably be an integration test (if I recall correctly)
   //    - Post our project to Vercel, setup a seperate DB for production
   //
   //
@@ -62,6 +63,8 @@ export default async function Home() {
   //
   //    - SortFilterMedia component, consider using a nested object by type, like { string: ..., array: ..., }
   //      - This will allow us to remove the any type when setting initial filter state
+  //
+  //    - If a type is only used in a single file, move it from the types files to that file
   //
   //
   // Minor additions:

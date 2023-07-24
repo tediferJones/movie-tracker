@@ -1,27 +1,49 @@
 import { strIdxRawMedia, ratingObj, strIdxMedia } from '@/types';
 
+type dataType = {
+  keys: string[],
+  convert: Function,
+}
+
+type conversions = {
+  [key: string]: dataType,
+}
+
 export default function cleanUpMediaInfo(rawMedia: strIdxRawMedia): strIdxMedia {
-  function keyExists(key: string): boolean {
-    return rawMedia[key] && rawMedia[key] !== 'N/A';
-  }
+  const conversions: conversions = {
+    array: {
+      keys: ['Actors', 'Writer', 'Director', 'Genre', 'Country', 'Language'],
+      convert: (key: string) => rawMedia[key].split(', '),
+    },
+    date: {
+      keys: ['Released', 'DVD'],
+      convert: (key: string) => new Date(rawMedia[key]).getTime(),
+    },
+    number: {
+      keys: ['imdbVotes', 'Runtime', 'BoxOffice', 'totalSeasons', 'Season', 'Episode'],
+      convert: (key: string) => Number(rawMedia[key].replace(/\D/g, '')),
+    },
+    string: {
+      keys: ['Title', 'imdbID', 'Type', 'Poster', 'Rated', 'Plot', 'Awards', 'Production', 'Website'],
+      convert: (key: string) => rawMedia[key],
+    },
+    year: {
+      keys: ['Year'],
+      convert: (key: string) => {
+        if (rawMedia[key].length > 5) {
+          cleanMedia['end' + key] = Number(rawMedia[key].slice(5));
+        }
+        return Number(rawMedia[key].slice(0, 4));
+      },
+    },
+  };
 
   let cleanMedia = {} as strIdxMedia;
-
-  // Split these strings into arrays of individual names
-  ['Actors', 'Writer', 'Director', 'Genre', 'Country', 'Language']
-      .forEach((key: string) => keyExists(key) ? cleanMedia[key] = rawMedia[key].split(', ') : undefined);
-
-  // Convert dates to UNIX time
-  ['Released', 'DVD']
-      .forEach((key: string) => keyExists(key) ? cleanMedia[key] = new Date(rawMedia[key]).getTime() : undefined);
-
-  // Remove all non-numeric characters from string and convert to number
-  ['imdbVotes', 'Runtime', 'BoxOffice', 'totalSeasons', 'Season', 'Episode']
-    .forEach((key: string) => keyExists(key) ? cleanMedia[key] = Number(rawMedia[key].replace(/\D/g, '')) : undefined);
- 
-  // No conversion needed
-  ['Title', 'imdbID', 'Type', 'Poster', 'Rated', 'Plot', 'Awards', 'Production', 'Website']
-    .forEach((key: string) => keyExists(key) ? cleanMedia[key] = rawMedia[key] : undefined)
+  Object.keys(conversions).forEach((dataType: string) => {
+    conversions[dataType].keys.forEach((key: string) => {
+      rawMedia[key] && rawMedia[key] !== 'N/A' ? cleanMedia[key] = conversions[dataType].convert(key) : undefined;
+    })
+  });
 
   // Extract ratings and put them in the root of cleanMedia
   rawMedia.Ratings?.forEach((ratingObj: ratingObj) => {
@@ -33,17 +55,6 @@ export default function cleanUpMediaInfo(rawMedia: strIdxRawMedia): strIdxMedia 
     }
     cleanMedia[`${ratingObj.Source} Rating`.replaceAll(' ', '')] = ratingValue;
   });
-
-  // If year is formatted as '2004-2008', then Year=2004 and endYear=2008
-  if (rawMedia.Year.includes('\u2013')) { 
-    const splitAt = rawMedia.Year.indexOf('\u2013')
-    cleanMedia.Year = Number(rawMedia.Year.slice(0, splitAt));
-    if (rawMedia.Year.slice(splitAt + 1)) {
-      cleanMedia.endYear = Number(rawMedia.Year.slice(splitAt + 1));
-    }
-  } else {
-    cleanMedia.Year = Number(rawMedia.Year);
-  }
 
   cleanMedia.cachedAt = Date.now();
 

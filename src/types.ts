@@ -74,6 +74,12 @@ interface userLists {
   }
 }
 
+interface newDefaultList {
+  defaultListname: string | null,
+  listnames: string[],
+  newDefaultListname: string,
+}
+
 interface strIdxMedia extends media {
   // [key: string]: string[] | string | number | null,
   [key: string]: any,
@@ -88,4 +94,5 @@ export type {
   episode,
   episodeList,
   userLists,
+  newDefaultList,
 }

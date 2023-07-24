@@ -1,52 +1,50 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { userLists, newDefaultList } from '@/types';
 import easyFetch from '@/modules/easyFetch';
-import { userLists } from '@/types';
 
 export default function ManageDefaultList() {
-  const [defaultList, setDefaultList] = useState<string | null>(null)
-  const [lists, setLists] = useState<string[] | null>(null)
-  const [newDefaultList, setNewDefaultList] = useState<string>('')
-
+  const [userData, setUserData] = useState<newDefaultList | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false)
-
-  // WHAT HAPPENS IF WE DELETE DEFAULT LIST?
-  // Answer: Then we need to update the record, and we default to PUT anyways so i guess we're just fine?
 
   useEffect(() => {
     easyFetch('/api/lists', 'GET')
       .then((data: userLists) => {
-        // console.log('hello')
-        console.log('ManageDefaultList Data',data)
-        setDefaultList(data.defaultListname)
-        setLists(Object.keys(data.lists))
-        setNewDefaultList(Object.keys(data.lists)[0])
+        const listnames = Object.keys(data.lists);
+        setUserData({
+          defaultListname: data.defaultListname,
+          listnames,
+          newDefaultListname: data.defaultListname && listnames.includes(data.defaultListname) 
+            ? data.defaultListname : Object.keys(data.lists)[0],
+        })
       })
   }, [refreshTrigger])
 
   return (
     <div>
       <h1>THIS IS THE ManageDefaultList Component</h1>
-      {lists === null ? <h1>Loading...</h1> :
+      {userData === null ? <h1>Loading...</h1> :
         <div className='bg-gray-700 p-4'>
-          <h1>Your default list is: {defaultList ? defaultList : 'No Default List Found'}</h1>
-          <h1>NEW DEFAULT LIST: {newDefaultList}</h1>
-          {/* This button will pretty much always show "set this list as default list", 
-          unless the selected list is already the default list, then it should show "remove as defaultList" and delete user's record,
-          This will leave the program with assigning defaultList by alphabetical order*/}
-          <select className='text-black' onChange={(e) => setNewDefaultList(e.target.value)} value={newDefaultList}>
-            {lists.map((listname: string) => <option value={listname} key={listname}>{listname}</option>)}
+          <h1>Your default list is: {userData.defaultListname ? userData.defaultListname : 'No Default List Found'}</h1>
+
+          <select className='text-black' 
+            onChange={(e) => setUserData({ ...userData, newDefaultListname: e.target.value })} 
+            value={userData.newDefaultListname}
+          >
+            {userData.listnames.map((listname: string) => <option value={listname} key={listname}>{listname}</option>)}
           </select>
+
           <button onClick={async() => {
-            console.log(newDefaultList)
             let method = 'PUT';
-            if (defaultList === null) method = 'POST';
-            if (defaultList === newDefaultList) method = 'DELETE';
-            // if (defaultList && !Object.keys(lists).includes(defaultList)) method = 'PUT'
-            await easyFetch('/api/defaultList', method, { defaultListname: newDefaultList })
+            if (!userData.defaultListname) method = 'POST';
+            if (userData.defaultListname === userData.newDefaultListname) method = 'DELETE';
+
+            await easyFetch('/api/defaultList', method, { defaultListname: userData.newDefaultListname })
             setRefreshTrigger(!refreshTrigger)
-          }}>{defaultList === newDefaultList ? 'Remove default list' : `Make ${newDefaultList} my default list`}</button>
+          }}>{userData.defaultListname === userData.newDefaultListname ? 
+              'Remove default list' : `Make ${userData.newDefaultListname} my default list`}
+          </button>
         </div>
       }
     </div>

@@ -42,13 +42,6 @@ export default async function Home() {
   //      - Eh this is kind of a bad idea, we're already displaying all lists the given media exists in
   //      - if user has 100 lists, it will always show a scroll bar, and thats kind of ugly
   //
-  //    - See ManageLists component, consider merging mediaExistsInCurrentList and mediaExistsInAnyList in any list
-  //      - resulting func: mediaExistsInList(key) => if (key) check that list, if no key, check all lists, return true or false
-  //
-  //    - Revisit ManageDefaultList at some point, try to clean it up
-  //      - consider sticking all the state vars into one obj
-  //        this will make the fetch request and overall logic much more clear
-  //
   //    - Remove unknown console.logs in api routes, leave the basics like "media get request for ${imdbID}"
   //      - Server output/logs seem very cluttered
   //
@@ -64,7 +57,10 @@ export default async function Home() {
   //    - SortFilterMedia component, consider using a nested object by type, like { string: ..., array: ..., }
   //      - This will allow us to remove the any type when setting initial filter state
   //
-  //    - If a type is only used in a single file, move it from the types files to that file
+  //    - Try to simplify ManageLists component, still seems a bit too complicated for what its doing
+  //
+  //    - DO SOME STYLING
+  //
   //
   //
   // Minor additions:

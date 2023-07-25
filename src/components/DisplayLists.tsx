@@ -25,8 +25,8 @@ export default function DisplayLists({ username }: { username: string }) {
   }
 
   return (
-    <div>
-      <h1>{username}'s List</h1>
+    <div className='m-4 mx-auto w-4/5 p-4'>
+      <h1 className='2xl ml-4 text-2xl'>{username}'s List</h1>
       {Object.keys(userLists).map((listname: string) => {
         return <DisplayDropDown header={listname} 
           content={listItems(listname)} 

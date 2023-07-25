@@ -28,7 +28,7 @@ export default function DisplayWatched() {
   }
 
   return (
-    <div>
+    <div className='m-4 mx-auto w-4/5 p-4'>
       <div className='flex justify-between'>
         <h1>Recently Watched Media:</h1>
         {watched === null ? [] : <h1>You have {watched.length} watch records</h1>}

@@ -7,7 +7,6 @@ export default function ExpandableList({ arr }: { arr: JSX.Element[] }) {
 
   return (
     <div className='flex flex-col'>
-      <h1>Expandable List</h1>
       {arr.slice(0, length)}
 
       <div className='flex'>

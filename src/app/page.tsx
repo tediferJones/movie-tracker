@@ -61,6 +61,8 @@ export default async function Home() {
   //
   //    - DO SOME STYLING
   //
+  //    - Add loading spinners for any component that uses fetch (pretty much all of them)
+  //
   //
   //
   // Minor additions:
@@ -83,16 +85,11 @@ export default async function Home() {
   // await prisma.watched.deleteMany({});
 
   return (
-    <div>
-      {!(user?.username) ? <h1>Error: you need to login</h1>
+    !(user?.username) ? <h1>Error: you need to login</h1>
       : <div>
-        <h1>THIS IS THE HOME PAGE</h1>
         <ManageDefaultList />
         <DisplayWatched />
-        <div className='text-xl'>Hello, {user.username}</div>
         <DisplayLists username={user.username}/>
       </div>
-      }
-    </div>
-  )
+  )      
 }

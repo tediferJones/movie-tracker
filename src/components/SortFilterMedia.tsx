@@ -82,9 +82,13 @@ export default function SortFilterMedia({
 
   return (
     <div>
-      <h1>SORT AND FILTER COMPONENT</h1>
-      <button onClick={() => setReverseOrder(!reverseOrder)}>Display Order:{reverseOrder ? 'Descending' : 'Ascending'}</button>
-      <button className='p-2 bg-red-500' onClick={() => setFilters(initialFilters)}>RESET FILTERS TO INITIAL STATE</button>
+      {JSON.stringify(filters) === JSON.stringify(initialFilters) ? [] : 
+        <div className='my-4 flex justify-center'>
+          <button className='p-2 bg-red-500 m-auto' onClick={() => setFilters(initialFilters)}>
+            RESET FILTERS TO INITIAL STATE
+          </button>
+        </div>
+      }
       <div className='text-black flex gap-4 flex-wrap justify-around'>
         {Object.keys(columns).map((columnName: string) => {
           let result;

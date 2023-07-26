@@ -22,8 +22,8 @@ export default function RootLayout({
         <body className={inter.className}>
           <div className='py-4 px-8 flex justify-between'>
             <a href='/' className='my-auto'>HOME PAGE</a>
-            <a href='/media'>All Media Page</a>
-            <a href='/lists'>Lists Page</a>
+            <a href='/media' className='my-auto'>All Media Page</a>
+            <a href='/lists' className='my-auto'>Lists Page</a>
             <div className='flex gap-4'>
               <UserButton />
               <p className='my-auto'>My Account</p>

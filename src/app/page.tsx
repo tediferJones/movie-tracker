@@ -2,7 +2,7 @@ import { currentUser } from '@clerk/nextjs';
 import DisplayLists from '@/components/DisplayLists';
 import ManageDefaultList from '@/components/ManageDefaultList';
 import DisplayWatched from '@/components/DisplayWatched';
-// import prisma from '@/client'
+import prisma from '@/client'
 
 export default async function Home() {
   // USE OMDBAPI: https://www.omdbapi.com/
@@ -56,12 +56,15 @@ export default async function Home() {
   //
   //    - SortFilterMedia component, consider using a nested object by type, like { string: ..., array: ..., }
   //      - This will allow us to remove the any type when setting initial filter state
+  //      - see cleanUpMediaInfo component for more detail
   //
   //    - Try to simplify ManageLists component, still seems a bit too complicated for what its doing
   //
   //    - DO SOME STYLING
   //
   //    - Add loading spinners for any component that uses fetch (pretty much all of them)
+  //
+  //    - Change fetch requests to omdbAPI so that it fetchs the whole plot, default is 'short'
   //
   //
   //
@@ -81,7 +84,8 @@ export default async function Home() {
   const user = await currentUser();
   // await prisma.media.deleteMany({});
   // await prisma.lists.deleteMany({});
-  // await prisma.reviews.deleteMany({});
+  // await prisma.defaultList.deleteMany({});
+  // await prisma.review.deleteMany({});
   // await prisma.watched.deleteMany({});
 
   return (

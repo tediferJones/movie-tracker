@@ -66,6 +66,8 @@ export default async function Home() {
   //
   //    - Change fetch requests to omdbAPI so that it fetchs the whole plot, default is 'short'
   //
+  //    - Check .gitignore before resuming project
+  //
   //
   //
   // Minor additions:

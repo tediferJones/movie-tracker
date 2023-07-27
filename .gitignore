@@ -37,3 +37,8 @@ next-env.d.ts
 # Personal Exclusions
 notes.txt
 .env
+
+/src/app/api/media/route.ts
+/src/components/DisplayFullMediaInfo.tsx
+/src/modules/cleanUpMediaInfo.ts
+

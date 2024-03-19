@@ -1,5 +1,3 @@
-import { media } from "@prisma/client";
-
 interface ratingObj {
   Source: string,
   Value: string,
@@ -80,15 +78,15 @@ interface newDefaultList {
   newDefaultListname: string,
 }
 
-interface strIdxMedia extends media {
-  // [key: string]: string[] | string | number | null,
-  [key: string]: any,
-}
+// interface strIdxMedia extends media {
+//   // [key: string]: string[] | string | number | null,
+//   [key: string]: any,
+// }
 
 export type { 
   ratingObj,
   strIdxRawMedia,
-  strIdxMedia,
+  // strIdxMedia,
   omdbSearchResult,
   omdbSearch,
   episode,

@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import * as React from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
-export function ToggleTheme() {
-  const { setTheme, resolvedTheme } = useTheme()
+export default function ToggleTheme() {
+  const { setTheme, resolvedTheme } = useTheme();
   return (
     <button
       className='p-2 border-2 rounded-lg'

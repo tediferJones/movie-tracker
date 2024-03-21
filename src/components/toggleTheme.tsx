@@ -8,7 +8,7 @@ export default function ToggleTheme() {
   const { setTheme, resolvedTheme } = useTheme();
   return (
     <button
-      className='p-2 border-2 rounded-lg'
+      className='p-2 border-2'
       onClick={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}
       aria-label='toggle theme'
     >

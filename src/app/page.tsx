@@ -22,7 +22,7 @@
 export default function Home() {
   return (
     <div>
-      <button className='rounded-lg bg-gray-300 px-4 py-2 font-medium dark:bg-gray-700'>
+      <button className='px-4 py-2 font-medium colorPrimary'>
         TEST DARK MODE
       </button>
     </div>

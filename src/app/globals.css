@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body * {
+  @apply rounded-lg;
+}
+
+.colorPrimary {
+  @apply dark:bg-gray-700;
+  @apply bg-gray-300;
+}

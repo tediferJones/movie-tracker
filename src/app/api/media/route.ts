@@ -1,12 +1,23 @@
 import { db } from '@/drizzle/db';
 import { media } from '@/drizzle/schema';
+import easyFetch from '@/lib/easyFetch';
 import { NextResponse } from 'next/server';
-// import { strIdxRawMedia, strIdxMedia } from '@/types';
+import { strIdxRawMedia, /*strIdxMedia*/ } from '@/types';
+import formatMediaInfo from '@/lib/formatMediaInfo';
 // import cleanUpMediaInfo from '@/modules/cleanUpMediaInfo';
 // import easyFetch from '@/modules/easyFetch';
 // import prisma from '@/client';
 
 export async function GET(req: Request) {
+  const imdbId = new URL(req.url).searchParams.get('imdbId')
+  const omdbResult = await easyFetch<strIdxRawMedia>('https://www.omdbapi.com/', 'GET', {
+    apikey: process.env.OMDBAPI_KEY,
+    i: imdbId,
+  })
+  if (omdbResult.Response !== 'True') return NextResponse.json('Not found', { status: 404 })
+  console.log('omdb result', omdbResult)
+  console.log('formatted result', formatMediaInfo(omdbResult))
+
   const result = await db.select().from(media).all();
   // await db.insert(media).values({ title: 'testTitle', imdbId: 'testId' })
   return NextResponse.json({

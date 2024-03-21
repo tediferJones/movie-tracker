@@ -7,7 +7,7 @@ export default async function Header() {
   const user = await currentUser();
   return (
     <>
-      <div className='flex flex-col flex-wrap items-center gap-4 border-b-[1px] px-8 py-4 sm:flex-row sm:justify-between'>
+      <div className='flex flex-col flex-wrap items-center gap-4 border-b-[1px] rounded-none px-8 py-4 sm:flex-row sm:justify-between'>
         <h1 className='text-nowrap text-2xl font-extrabold'>Movie Tracker</h1>
         <div className='flex items-center gap-4'>
           {user?.username}

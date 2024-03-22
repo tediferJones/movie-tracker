@@ -1,29 +1,65 @@
 import { db } from '@/drizzle/db';
-import { media } from '@/drizzle/schema';
+import { countries, genres, languages, media, people } from '@/drizzle/schema';
 import easyFetch from '@/lib/easyFetch';
 import { NextResponse } from 'next/server';
 import { strIdxRawMedia, /*strIdxMedia*/ } from '@/types';
 import formatMediaInfo from '@/lib/formatMediaInfo';
+import { eq } from 'drizzle-orm';
 // import cleanUpMediaInfo from '@/modules/cleanUpMediaInfo';
 // import easyFetch from '@/modules/easyFetch';
 // import prisma from '@/client';
 
 export async function GET(req: Request) {
   const imdbId = new URL(req.url).searchParams.get('imdbId')
+
+  if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
+
+  // If result already exists in db, return related records
+  const dbResult = await db.select().from(media).where(eq(media.imdbId, imdbId)).get();
+  if (dbResult) {
+    return NextResponse.json({
+      mediaInfo: dbResult,
+      genres: (await db.select({ genre: genres.genre }).from(genres).where(eq(genres.imdbId, imdbId)))
+        .map(rec => rec.genre)
+      ,
+      countries: (await db.select({ country: countries.country }).from(countries).where(eq(countries.imdbId, imdbId)))
+        .map(rec => rec.country)
+      ,
+      languages: (await db.select({ language: languages.language }).from(languages).where(eq(languages.imdbId, imdbId)))
+        .map(rec => rec.language)
+      ,
+      ...(await db.select({ name: people.name, position: people.position }).from(people).where(eq(people.imdbId, imdbId)))
+      .reduce((newObj, rec) => {
+        if (!newObj[rec.position]) newObj[rec.position] = [];
+        newObj[rec.position].push(rec.name)
+        return newObj
+      }, {} as { [key: string]: string[] })
+      ,
+    })
+  }
+
+  // if imdbId does not exist, fetch info and add to db
   const omdbResult = await easyFetch<strIdxRawMedia>('https://www.omdbapi.com/', 'GET', {
     apikey: process.env.OMDBAPI_KEY,
     i: imdbId,
   })
   if (omdbResult.Response !== 'True') return NextResponse.json('Not found', { status: 404 })
-  console.log('omdb result', omdbResult)
-  console.log('formatted result', formatMediaInfo(omdbResult))
+  const formattedMedia = formatMediaInfo(omdbResult);
+  console.log('orignal', omdbResult)
+  console.log('formatted', formattedMedia)
 
-  const result = await db.select().from(media).all();
-  // await db.insert(media).values({ title: 'testTitle', imdbId: 'testId' })
-  return NextResponse.json({
-    test: 'idk',
-    dbRes: result,
-  });
+  try {
+    await db.insert(media).values(formattedMedia.mediaInfo)
+    await db.insert(genres).values(formattedMedia.genres)
+    await db.insert(countries).values(formattedMedia.countries)
+    await db.insert(languages).values(formattedMedia.languages)
+    await db.insert(people).values(formattedMedia.people)
+  } catch (err) {
+    console.log('THIS IS THE ERROR', err)
+    return GET(req)
+  }
+
+  return GET(req)
 }
 
 // export async function GET(req: Request) {

@@ -83,6 +83,17 @@ interface newDefaultList {
 //   [key: string]: any,
 // }
 
+import { media } from '@/drizzle/schema';
+type MediaTable = typeof media.$inferSelect
+
+interface FormattedMediaInfo {
+  mediaInfo: MediaTable,
+  genres: any,
+  countries: any,
+  languages: any,
+  people: any,
+}
+
 export type { 
   ratingObj,
   strIdxRawMedia,
@@ -93,4 +104,6 @@ export type {
   episodeList,
   userLists,
   newDefaultList,
+  FormattedMediaInfo,
+  MediaTable,
 }

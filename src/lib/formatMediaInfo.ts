@@ -1,4 +1,4 @@
-import { ratingObj, strIdxRawMedia } from '@/types';
+import { FormattedMediaInfo, MediaTable, ratingObj, strIdxRawMedia } from '@/types';
 
 function toCamelCase(pascalStr: string) {
   if (pascalStr === 'DVD') return 'dvd'
@@ -23,12 +23,7 @@ function toDate(str: string) {
   return new Date(str).getTime()
 }
 
-export default function formatMediaInfo(info: strIdxRawMedia) {
-  // const formatter: { [key: string]: { key: string, data?: (str: string) => any } } = {
-  //   Title: { key: 'title' },
-  //   Year: { key: 'year', data: (val) => Number(val) }
-  // }
-
+export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInfo {
   const formatterV2: { [key: string]: (str: string) => any } = {
     // It would probably be beneficial to use a map instead of an obj
     // This way we can format like so:
@@ -77,29 +72,22 @@ export default function formatMediaInfo(info: strIdxRawMedia) {
   const formatted = Object.keys(info).reduce((newObj, oldKey) => {
     const newKey = toCamelCase(oldKey)
     if (info[oldKey] === 'N/A' || ['imdbRating', 'metascore', 'response'].includes(newKey)) return newObj;
-
-    if (newKey === 'ratings') {
-      const oldRatings: ratingObj[] = info[oldKey]
-      return {
-        ...newObj,
-        ...oldRatings.reduce((newObj, key) => {
-          const ratingFixer = getRating[key.Source]
-          newObj[ratingFixer.key] = ratingFixer.rating(key.Value)
-          return newObj
-        }, {} as { [key: string]: number })
-      }
-    }
-
-    const newData = formatterV2?.[newKey]?.(info[oldKey]) || info[oldKey];
-    newObj[newKey] = newData
+    newObj[newKey] = formatterV2?.[newKey]?.(info[oldKey]) || info[oldKey];
     return newObj
   }, {} as { [key: string]: any })
-  // return formatted
-  const { genre, director, writer, actor, country, language, ...rest } = formatted
-  const imdbId = formatted.imdbId
-  const people: { [key: string]: string[] } = { director, writer, actor }
+
+  const { genre, director, writer, actor, country, language, ratings, ...rest } = formatted;
+  const imdbId = formatted.imdbId;
+  const people: { [key: string]: string[] } = { director, writer, actor };
   return {
-    mediaInfo: rest,
+    mediaInfo: {
+      ...rest,
+      ...(ratings as ratingObj[]).reduce((newObj, key) => {
+        const ratingFixer = getRating[key.Source]
+        newObj[ratingFixer.key] = ratingFixer.rating(key.Value)
+        return newObj
+      }, {} as { [key: string]: number })
+    } as MediaTable,
     genres: genre.map((genre: string) => ({ imdbId, genre })),
     countries: country.map((country: string) => ({ imdbId, country })),
     languages: language.map((language: string) => ({ imdbId, language })),

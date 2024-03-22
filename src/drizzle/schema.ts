@@ -22,12 +22,11 @@ export const media = sqliteTable('media', {
   season: integer('season'),
   episode: integer('episode'),
   seriesId: integer('seriesId'),
-  // probably need to add:
-  // production
-  // website
-  // imdbRating
-  // tomatoRating
-  // metaRating
+  production: text('production'),
+  website: text('website'),
+  imdbRating: text('imdbRating'),
+  tomatoRating: text('tomatoRating'),
+  metaRating: text('metaRating'),
 });
 
 export const people = sqliteTable('people', {

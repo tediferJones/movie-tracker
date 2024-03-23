@@ -9,33 +9,43 @@ import { eq } from 'drizzle-orm';
 // import easyFetch from '@/modules/easyFetch';
 // import prisma from '@/client';
 
+async function getExistingMedia(imdbId: string, mediaInfo?: typeof media.$inferSelect) {
+  return {
+    ...(mediaInfo ? mediaInfo : await db.select().from(media).where(eq(media.imdbId, imdbId)).get()),
+    genres: (await db.select({ genre: genres.genre }).from(genres).where(eq(genres.imdbId, imdbId)))
+    .map(rec => rec.genre)
+    ,
+    countries: (await db.select({ country: countries.country }).from(countries).where(eq(countries.imdbId, imdbId)))
+    .map(rec => rec.country)
+    ,
+    languages: (await db.select({ language: languages.language }).from(languages).where(eq(languages.imdbId, imdbId)))
+    .map(rec => rec.language)
+    ,
+    ...(await db.select({ name: people.name, position: people.position }).from(people).where(eq(people.imdbId, imdbId)))
+    .reduce((newObj, rec) => {
+      if (!newObj[rec.position]) newObj[rec.position] = [];
+      newObj[rec.position].push(rec.name)
+      return newObj
+    }, {} as { [key: string]: string[] })
+    ,
+  }
+}
+
 export async function GET(req: Request) {
   const imdbId = new URL(req.url).searchParams.get('imdbId')
 
   if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
 
+  // await db.delete(media)
+  // await db.delete(genres)
+  // await db.delete(countries)
+  // await db.delete(languages)
+  // await db.delete(people)
+
   // If result already exists in db, return related records
   const dbResult = await db.select().from(media).where(eq(media.imdbId, imdbId)).get();
   if (dbResult) {
-    return NextResponse.json({
-      mediaInfo: dbResult,
-      genres: (await db.select({ genre: genres.genre }).from(genres).where(eq(genres.imdbId, imdbId)))
-        .map(rec => rec.genre)
-      ,
-      countries: (await db.select({ country: countries.country }).from(countries).where(eq(countries.imdbId, imdbId)))
-        .map(rec => rec.country)
-      ,
-      languages: (await db.select({ language: languages.language }).from(languages).where(eq(languages.imdbId, imdbId)))
-        .map(rec => rec.language)
-      ,
-      ...(await db.select({ name: people.name, position: people.position }).from(people).where(eq(people.imdbId, imdbId)))
-      .reduce((newObj, rec) => {
-        if (!newObj[rec.position]) newObj[rec.position] = [];
-        newObj[rec.position].push(rec.name)
-        return newObj
-      }, {} as { [key: string]: string[] })
-      ,
-    })
+    return NextResponse.json(await getExistingMedia(imdbId, dbResult))
   }
 
   // if imdbId does not exist, fetch info and add to db
@@ -56,10 +66,9 @@ export async function GET(req: Request) {
     await db.insert(people).values(formattedMedia.people)
   } catch (err) {
     console.log('THIS IS THE ERROR', err)
-    return GET(req)
   }
 
-  return GET(req)
+  return NextResponse.json(await getExistingMedia(imdbId))
 }
 
 // export async function GET(req: Request) {

@@ -18,11 +18,7 @@
 //   - Buttons and anchor tags should have consistent padding and rounding
 // - Copy basic manifest from password-manager, better to have this setup as early as possible
 // - Work on simplifying searchbar
-// - Convert year to startYear and endYear, 
-//  - sometimes year is formatted as 2001-2002, which turn into 20012002 in db
 // - Make sure api always fetches long form of plot
-// - Create seperate types for newMediaInfo(formatted for table insert) and exisitingMediaInfo (info extracted from tables)
-// - Import loading component from password-manager
 
 export default function Home() {
   return (

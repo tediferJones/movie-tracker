@@ -1,4 +1,6 @@
-import { FormattedMediaInfo, MediaTable, ratingObj, strIdxRawMedia } from '@/types';
+import { media, people } from '@/drizzle/schema';
+import { FormattedMediaInfo, ratingObj, strIdxRawMedia } from '@/types';
+type PeopleInsert = typeof people.$inferInsert;
 
 function toCamelCase(pascalStr: string) {
   if (pascalStr === 'DVD') return 'dvd'
@@ -76,8 +78,16 @@ export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInf
     return newObj
   }, {} as { [key: string]: any })
 
-  const { genre, director, writer, actor, country, language, ratings, ...rest } = formatted;
-  const imdbId = formatted.imdbId;
+  function formatYear(year: string) {
+    const splitIndex = year.indexOf('–') // THIS CHAR IS NOT A NORMAL - (i.e. minus symbol)
+    return {
+      startYear: Number(splitIndex >= 0 ? year.slice(0, splitIndex) : year.slice(0, 4)),
+      endYear: splitIndex >= 0 ? Number(year.slice(splitIndex + 1)) : null,
+    }
+  }
+
+  const { genre, director, writer, actor, country, language, ratings, year, ...rest } = formatted;
+  const imdbId: string = formatted.imdbId;
   const people: { [key: string]: string[] } = { director, writer, actor };
   return {
     mediaInfo: {
@@ -86,8 +96,9 @@ export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInf
         const ratingFixer = getRating[key.Source]
         newObj[ratingFixer.key] = ratingFixer.rating(key.Value)
         return newObj
-      }, {} as { [key: string]: number })
-    } as MediaTable,
+      }, {} as { [key: string]: number }),
+      ...formatYear(info.Year),
+    } as typeof media.$inferInsert,
     genres: genre.map((genre: string) => ({ imdbId, genre })),
     countries: country.map((country: string) => ({ imdbId, country })),
     languages: language.map((language: string) => ({ imdbId, language })),
@@ -96,6 +107,6 @@ export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInf
       return arr.concat(
         people[position].map(name => ({ imdbId, position, name }))
       )
-    }, [] as { name: string, imdbId: string, position: string }[])
+    }, [] as PeopleInsert[])
   };
 }

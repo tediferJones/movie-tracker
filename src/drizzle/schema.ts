@@ -7,8 +7,9 @@ export const media = sqliteTable('media', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   imdbId: text('imdbId').notNull().unique(),
   title: text('title').notNull(),
-  year: integer('year').notNull(),
-  rated: text('rated').notNull(),
+  startYear: integer('startYear').notNull(),
+  endYear: integer('endYear'),
+  rated: text('rated'),
   released: integer('released'),
   runtime: integer('runtime'),
   plot: text('plot'),
@@ -24,9 +25,9 @@ export const media = sqliteTable('media', {
   seriesId: integer('seriesId'),
   production: text('production'),
   website: text('website'),
-  imdbRating: text('imdbRating'),
-  tomatoRating: text('tomatoRating'),
-  metaRating: text('metaRating'),
+  imdbRating: integer('imdbRating'),
+  tomatoRating: integer('tomatoRating'),
+  metaRating: integer('metaRating'),
 });
 
 export const people = sqliteTable('people', {

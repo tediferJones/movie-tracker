@@ -1,3 +1,4 @@
+// OLD TYPES
 interface ratingObj {
   Source: string,
   Value: string,
@@ -83,15 +84,23 @@ interface newDefaultList {
 //   [key: string]: any,
 // }
 
-import { media } from '@/drizzle/schema';
-type MediaTable = typeof media.$inferSelect
+// NEW TYPES
+import { countries, genres, languages, media, people } from '@/drizzle/schema';
 
 interface FormattedMediaInfo {
-  mediaInfo: MediaTable,
-  genres: any,
-  countries: any,
-  languages: any,
-  people: any,
+  mediaInfo: typeof media.$inferInsert,
+  genres: (typeof genres.$inferInsert)[],
+  countries: (typeof countries.$inferInsert)[],
+  languages: (typeof languages.$inferInsert)[],
+  people: (typeof people.$inferInsert)[],
+}
+
+type MediaSelect = typeof media.$inferSelect
+interface ExistingMediaInfo extends MediaSelect {
+  genres: string[],
+  countries: string[],
+  languages: string[],
+  people: string[],
 }
 
 export type { 
@@ -105,5 +114,5 @@ export type {
   userLists,
   newDefaultList,
   FormattedMediaInfo,
-  MediaTable,
+  ExistingMediaInfo,
 }

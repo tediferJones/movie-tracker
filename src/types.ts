@@ -97,10 +97,13 @@ interface FormattedMediaInfo {
 
 type MediaSelect = typeof media.$inferSelect
 interface ExistingMediaInfo extends MediaSelect {
-  genres: string[],
-  countries: string[],
-  languages: string[],
-  people: string[],
+  [key: string]: any,
+  genre: string[],
+  country: string[],
+  language: string[],
+  actor: string[],
+  director: string[],
+  writer: string[]
 }
 
 export type { 

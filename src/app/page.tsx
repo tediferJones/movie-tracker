@@ -19,6 +19,7 @@
 // - Copy basic manifest from password-manager, better to have this setup as early as possible
 // - Work on simplifying searchbar
 // - Make sure api always fetches long form of plot
+// - Store default list in clerk public data
 
 export default function Home() {
   return (

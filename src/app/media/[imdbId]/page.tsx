@@ -3,17 +3,30 @@ import Loading from '@/components/loading';
 // import DisplayFullMediaInfo from '@/OLD-components/DisplayFullMediaInfo';
 
 import easyFetch from '@/lib/easyFetch';
-import { ExistingMediaInfo } from '@/types';
-import { useEffect, useState } from 'react';
+import { ExistingMediaInfo, strIdxRawMedia } from '@/types';
+import Link from 'next/link';
+import { Fragment, useEffect, useState } from 'react';
 
 export default function Media({ params }: { params: { imdbId: string } }) {
   const [media, setMedia] = useState<ExistingMediaInfo>();
+  const [seriesTitle, setSeriesTitle] = useState<string>();
 
   useEffect(() => {
     easyFetch<ExistingMediaInfo>('/api/media', 'GET', { imdbId: params.imdbId })
       .then(data => {
         console.log(data)
         setMedia(data)
+        if (data.seriesId) {
+          easyFetch<strIdxRawMedia>('/api/search', 'GET', { 
+            searchTerm: data.seriesId, 
+            searchType: 'series', 
+            queryTerm: 'i', 
+            queryType: 'type',
+          }).then(data => {
+              console.log('SEARCH RESULTS', data)
+              if (data.Response) setSeriesTitle(data.Title)
+            })
+        }
       })
   }, [])
 
@@ -22,33 +35,62 @@ export default function Media({ params }: { params: { imdbId: string } }) {
     return `${hours ? `${hours}h` : ''}${mins % 60}m`
   }
 
+  function fromCamelCase(str: string, isPlural?: boolean) {
+    if (str === 'seriesId') return 'Series'
+    return str.split('').reduce((str, char, i) => {
+      if (i === 0) return char.toUpperCase();
+      if ('A' <= char && char <= 'Z') return `${str} ${char}`;
+      return str + char;
+    }, '') + (isPlural ? 's' : '')
+  }
+
+  function getLinks(arr: string[], urlParam: string) {
+    return arr.map((person: string, i: number, arr: string[]) => {
+      return <Fragment key={`${urlParam}-${person}`}>
+        <Link href={`/${urlParam}/${person}`}
+          className='underline'
+        >{person}</Link>
+        {i + 1 < arr.length ? ', ' : ''}
+      </Fragment>
+    })
+  }
+
+  function formatSeason(n: number) {
+    const str = n.toString();
+    return n > 10 ? str : '0' + str 
+  }
+
   return !media ? <Loading /> : 
     <div>
       <div className='mx-auto my-4 flex w-4/5 flex-wrap md:flex-nowrap gap-4'>
         {media.poster ? <img className='m-auto' src={media.poster}/> : []}
-        <div className='flex w-auto flex-col justify-around border-2 p-4'>
+        <div className='flex w-auto flex-col justify-around border-2 p-4 text-lg'>
           <h1 className='text-center text-3xl pb-4'>
-            {media.title} 
+            <Link href={`https://www.imdb.com/title/${media.imdbId}`}
+              className='underline'
+            >
+              {media.title} 
+            </Link>
             <span className='px-4'>
               ({media.startYear + (media.endYear ? ` - ${media.endYear}` : '')})
             </span>
           </h1>
           <hr />
-          <div className='flex justify-between p-4'>
+          <div className='p-4 flex flex-wrap gap-4'>
             <div className='flex-1 text-center m-auto'>Rated: {media.rated || 'N/A'}</div>
             <div className='flex-1 text-center m-auto'>
               Runtime: {media.runtime ? formatTime(media.runtime) : 'N/A'}
             </div>
-            {/*
-            <div className='flex-1 text-center m-auto'>
-              Released: {media.released ? new Date(media.released).toLocaleDateString(undefined, {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              }) : 'N/A'}
-            </div>
-            */}
+            {!media.totalSeasons ? [] :
+              <div className='flex-1 text-center m-auto'>
+                Seasons: {media.totalSeasons}
+              </div>
+            }
+            {!(media.season && media.episode) ? [] : 
+              <div className='text-center'>
+                {`S${formatSeason(media.season)}E${formatSeason(media.episode)}`}
+              </div>
+            }
           </div>
           <hr />
           <p className='py-4 text-center'>
@@ -72,6 +114,59 @@ export default function Media({ params }: { params: { imdbId: string } }) {
               {media.awards ? media.awards : `This ${media.type} has no awards`}
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className='p-4 border-2 w-4/5 mx-auto'>
+        <div className='flex flex-wrap justify-center gap-4 text-lg pb-4'>
+          {['director', 'writer', 'actor'].map(position => {
+            if (!media[position]) return [];
+            return  <span key={position}>
+              {fromCamelCase(position, media[position].length !== 1)}: {getLinks(media[position], 'people')}
+            </span>
+          })}
+        </div>
+        <hr />
+        <div className='py-4 px-8 grid grid-cols-3 gap-4'>
+          <h3 className='text-xl col-span-3'>Details:</h3>
+          {[
+            'type', 'seriesId', 'released', 'dvd',
+            'genre', 'country', 'language', 'boxOffice',
+            'production', 'website', 'imdbVotes',
+          ].map(key => {
+            const fixer: { [key: string]: Function } = {
+              released: (n: number) => new Date(n).toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              }),
+              dvd: (n: number) => new Date(n).toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              }),
+              genre: (arr: string[]) => getLinks(arr, 'genres'),
+              country: (arr: string[]) => getLinks(arr, 'countries'),
+              language: (arr: string[]) => getLinks(arr, 'languages'),
+              boxOffice: (n: number) => `$ ${n.toLocaleString()}`,
+              imdbVotes: (n: number) => n.toLocaleString(),
+              seriesId: (imdbId: string) => <Link
+                href={`/media/${imdbId}`}
+                className='underline'
+              >{seriesTitle}</Link>,
+            }
+            if (!media[key]) return [];
+            return <Fragment key={key}>
+              <div className='text-center'>
+                {fromCamelCase(key)}
+              </div>
+              <div className='text-center col-span-2'>
+                {fixer[key] ? fixer[key](media[key]) : fromCamelCase(media[key].toString())}
+              </div>
+            </Fragment>
+          })}
         </div>
       </div>
 

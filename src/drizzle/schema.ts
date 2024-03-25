@@ -1,4 +1,4 @@
-import { text, sqliteTable, integer } from 'drizzle-orm/sqlite-core';
+import { text, sqliteTable, integer, primaryKey, foreignKey } from 'drizzle-orm/sqlite-core';
 
 // Use this command to push changes to external DB:
 // npx drizzle-kit push:sqlite
@@ -54,3 +54,34 @@ export const countries = sqliteTable('countries', {
   imdbId: text('imdbId').notNull(),
   country: text('country').notNull(),
 })
+
+export const watched = sqliteTable('watched', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  imdbId: text('imdbId').notNull(),
+  username: text('username').notNull(),
+  date: integer('date').notNull(),
+})
+
+export const listnames = sqliteTable('listnames', {
+  username: text('username').notNull(),
+  listname: text('listname').notNull(),
+}, table => ({
+    pk: primaryKey({ columns: [
+      table.username,
+      table.listname,
+    ]})
+  }))
+
+export const lists = sqliteTable('lists', {
+  imdbId: text('imdbId').notNull(),
+  username: text('username'),
+  listname: text('listname'),
+}, table => ({
+    // Error says its deprecated, but drizzle docs still recommends this method
+    // If it works just let it be
+    userReference: foreignKey(() => ({
+      columns: [table.username, table.listname],
+      foreignColumns: [listnames.username, listnames.listname],
+      name: 'listId'
+    }))
+  }))

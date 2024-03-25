@@ -1,5 +1,5 @@
 import { db } from '@/drizzle/db';
-import { countries, genres, languages, media, people } from '@/drizzle/schema';
+import { countries, genres, languages, media, people, watched } from '@/drizzle/schema';
 import easyFetch from '@/lib/easyFetch';
 import { NextResponse } from 'next/server';
 import { strIdxRawMedia, /*strIdxMedia*/ } from '@/types';
@@ -41,6 +41,7 @@ export async function GET(req: Request) {
   // await db.delete(countries)
   // await db.delete(languages)
   // await db.delete(people)
+  // await db.delete(watched)
 
   // If result already exists in db, return related records
   const dbResult = await db.select().from(media).where(eq(media.imdbId, imdbId)).get();

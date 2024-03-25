@@ -1,5 +1,7 @@
 'use client';
+import ListManager from '@/components/listManager';
 import Loading from '@/components/loading';
+import WatchManger from '@/components/watchManager';
 // import DisplayFullMediaInfo from '@/OLD-components/DisplayFullMediaInfo';
 
 import easyFetch from '@/lib/easyFetch';
@@ -62,6 +64,11 @@ export default function Media({ params }: { params: { imdbId: string } }) {
 
   return !media ? <Loading /> : 
     <div>
+      <div className='w-4/5 mx-auto my-4 relative flex gap-4'>
+        <WatchManger imdbId={media.imdbId} />
+        <ListManager imdbId={media.imdbId} />
+      </div>
+
       <div className='mx-auto my-4 flex w-4/5 flex-wrap md:flex-nowrap gap-4'>
         {media.poster ? <img className='m-auto' src={media.poster}/> : []}
         <div className='flex w-auto flex-col justify-around border-2 p-4 text-lg'>
@@ -128,7 +135,9 @@ export default function Media({ params }: { params: { imdbId: string } }) {
         </div>
         <hr />
         <div className='py-4 px-8 grid grid-cols-3 gap-4'>
-          <h3 className='text-xl col-span-3'>Details:</h3>
+          <h3 className='text-xl col-span-3 flex justify-between'>Details: 
+            <button className='colorPrimary text-sm'>Update</button>
+          </h3>
           {[
             'type', 'seriesId', 'released', 'dvd',
             'genre', 'country', 'language', 'boxOffice',
@@ -170,11 +179,12 @@ export default function Media({ params }: { params: { imdbId: string } }) {
         </div>
       </div>
 
+
+      {/*
       <div className='break-words'>{Object.keys(media || {}).map(key => {
         // @ts-ignore
         return <p key={key}>{key}: {media[key]}</p>
       })}</div>
-      {/*
       <p>{JSON.stringify(media, null, 2)}</p>
       {Object.keys(media || {}).map(key => {
         // return <p key={key}>{key}: {media[key].toString()}</p>

@@ -9,16 +9,43 @@ export async function GET(req: Request) {
   if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
 
   const imdbId = new URL(req.url).searchParams.get('imdbId')
-  if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
 
   return NextResponse.json(
-    await db.select().from(lists).where(
+    imdbId ? await db.select().from(lists).where(
       and(
         eq(lists.username, user.username),
         eq(lists.imdbId, imdbId)
       )
-    )
+    ) : await db.selectDistinct({ listname: lists.listname }).from(lists)
+      .where(eq(lists.username, user.username))
   )
+    
+  // if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
+  // return NextResponse.json(
+  //   await db.select().from(lists).where(
+  //     and(
+  //       eq(lists.username, user.username),
+  //       eq(lists.imdbId, imdbId)
+  //     )
+  //   )
+  // )
+}
+
+export async function POST(req: Request) {
+  const user = await currentUser();
+  if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
+
+  const { imdbId, listname } = await req.json();
+
+  if (imdbId) {
+    await db.insert(lists).values({
+      imdbId,
+      listname,
+      username: user.username,
+    })
+  } else {
+    // await db.in
+  }
 }
 
 // import { lists } from '@prisma/client';

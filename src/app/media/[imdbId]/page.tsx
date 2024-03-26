@@ -1,6 +1,7 @@
 'use client';
 import ListManager from '@/components/listManager';
 import Loading from '@/components/loading';
+import ReviewManager from '@/components/reviewManager';
 import WatchManger from '@/components/watchManager';
 // import DisplayFullMediaInfo from '@/OLD-components/DisplayFullMediaInfo';
 
@@ -68,6 +69,8 @@ export default function Media({ params }: { params: { imdbId: string } }) {
         <WatchManger imdbId={media.imdbId} />
         <ListManager imdbId={media.imdbId} />
       </div>
+
+      <ReviewManager imdbId={media.imdbId}/>
 
       <div className='mx-auto my-4 flex w-4/5 flex-wrap md:flex-nowrap gap-4'>
         {media.poster ? <img className='m-auto' src={media.poster}/> : []}

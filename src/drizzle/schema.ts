@@ -62,26 +62,55 @@ export const watched = sqliteTable('watched', {
   date: integer('date').notNull(),
 })
 
-export const listnames = sqliteTable('listnames', {
-  username: text('username').notNull(),
-  listname: text('listname').notNull(),
+export const reviews = sqliteTable('reviews', {
+  username: text('username'),
+  imdbId: text('imdbId'),
+  watchAgain: integer('watchAgain', { mode: 'boolean' }),
+  rating: integer('rating'),
+  review: text('review'),
 }, table => ({
-    pk: primaryKey({ columns: [
-      table.username,
-      table.listname,
-    ]})
+    pk: primaryKey({
+      columns: [
+        table.username,
+        table.imdbId,
+      ]
+    })
   }))
 
 export const lists = sqliteTable('lists', {
-  imdbId: text('imdbId').notNull(),
   username: text('username'),
   listname: text('listname'),
+  imdbId: text('imdbId'),
 }, table => ({
-    // Error says its deprecated, but drizzle docs still recommends this method
-    // If it works just let it be
-    userReference: foreignKey(() => ({
-      columns: [table.username, table.listname],
-      foreignColumns: [listnames.username, listnames.listname],
-      name: 'listId'
-    }))
+    pk: primaryKey({
+      columns: [
+        table.username,
+        table.listname,
+        table.imdbId,
+      ]
+    })
   }))
+
+// export const listnames = sqliteTable('listnames', {
+//   username: text('username').notNull(),
+//   listname: text('listname').notNull(),
+// }, table => ({
+//     pk: primaryKey({ columns: [
+//       table.username,
+//       table.listname,
+//     ]})
+//   }))
+// 
+// export const lists = sqliteTable('lists', {
+//   imdbId: text('imdbId').notNull(),
+//   username: text('username'),
+//   listname: text('listname'),
+// }, table => ({
+//     // Error says its deprecated, but drizzle docs still recommends this method
+//     // If it works just let it be
+//     userReference: foreignKey(() => ({
+//       columns: [table.username, table.listname],
+//       foreignColumns: [listnames.username, listnames.listname],
+//       name: 'listId'
+//     }))
+//   }))

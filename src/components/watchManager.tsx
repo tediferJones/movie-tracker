@@ -22,14 +22,14 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
         <div className='flex flex-col gap-4 max-h-[40vh] overflow-y-auto'>
           {watched.map(record => {
             const date = new Date(record.date)
-            return <span key={record.date} className='flex gap-4 justify-center items-center'>
+            return <span key={record.date} className='flex gap-2 justify-center items-center'>
               {date.toLocaleDateString(undefined, {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
               })} at {date.toLocaleTimeString()}
-              <Trash2 className='text-red-700'
+              <Trash2 className='text-red-700 min-h-6 min-w-6'
                 onClick={() => {
                   easyFetch('/api/watched', 'DELETE', { id: record.id }, true)
                     .then(() => setRefreshTrigger(!refreshTrigger))

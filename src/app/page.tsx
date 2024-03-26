@@ -21,7 +21,6 @@ import ListnameManager from '@/components/listnameManager';
 // - Copy basic manifest from password-manager, better to have this setup as early as possible
 // - Work on simplifying searchbar
 // - Make sure api always fetches long form of plot
-// - Store default list in clerk public data
 // - Media page needs the following components:
 //   - Watch manager
 //   - List manager
@@ -34,6 +33,16 @@ import ListnameManager from '@/components/listnameManager';
 //     this way if we delete a movie from the media table, it should automatically delete all related entries
 //     - This would primarily be useful for listnames and lists table,
 //       when you delete a listname, delete all list items associated with that name
+// - Do we want users to be able to create a blank list?
+//   - If we do, then we need to create another table and thus another api route
+//   - Otherwise, listmanager also needs to be able to create new lists
+// - Get lists working
+//   - Delete default list and listnames api routes, they shouldnt be needed any longer
+//   - Delete listnames component if it is not used
+// - Create UserLists component
+//  - List all existing lists with links to each list's page
+//  - Also allow user to set their default list here
+//    - Store default list value in clerk public user info
 
 export default function Home() {
   return (

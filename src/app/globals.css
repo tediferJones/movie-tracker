@@ -6,10 +6,13 @@ body * {
   @apply rounded-lg;
 }
 
-.colorPrimary {
-  @apply dark:bg-gray-700;
-  @apply bg-gray-300;
+button {
   @apply px-4;
   @apply py-2;
   @apply font-medium;
+}
+
+.colorPrimary {
+  @apply dark:bg-gray-700;
+  @apply bg-gray-300;
 }

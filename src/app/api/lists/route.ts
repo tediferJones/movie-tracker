@@ -10,15 +10,31 @@ export async function GET(req: Request) {
 
   const imdbId = new URL(req.url).searchParams.get('imdbId')
 
+  if (!imdbId) {
+    // If no imdbId, just return unique listnames, this will be used to set default list client side
+    return NextResponse.json(
+      await db.selectDistinct({ listname: lists.listname }).from(lists).where(eq(lists.username, user.username))
+    )
+  }
+
   return NextResponse.json(
-    imdbId ? await db.select().from(lists).where(
+    await db.select({ listname: lists.listname }).from(lists).where(
       and(
         eq(lists.username, user.username),
         eq(lists.imdbId, imdbId)
       )
-    ) : await db.selectDistinct({ listname: lists.listname }).from(lists)
-      .where(eq(lists.username, user.username))
+    )
   )
+
+  // return NextResponse.json(
+  //   imdbId ? await db.select().from(lists).where(
+  //     and(
+  //       eq(lists.username, user.username),
+  //       eq(lists.imdbId, imdbId)
+  //     )
+  //   ) : await db.selectDistinct({ listname: lists.listname }).from(lists)
+  //     .where(eq(lists.username, user.username))
+  // )
     
   // if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
   // return NextResponse.json(
@@ -36,16 +52,33 @@ export async function POST(req: Request) {
   if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
 
   const { imdbId, listname } = await req.json();
+  if (!imdbId || !listname) return NextResponse.json('Bad request', { status: 400 })
 
-  if (imdbId) {
-    await db.insert(lists).values({
-      imdbId,
-      listname,
-      username: user.username,
-    })
-  } else {
-    // await db.in
-  }
+  await db.insert(lists).values({
+    imdbId,
+    listname,
+    username: user.username,
+  })
+
+  return new NextResponse
+}
+
+export async function DELETE(req: Request) {
+  const user = await currentUser();
+  if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
+
+  const { imdbId, listname } = await req.json();
+  if (!imdbId || !listname) return NextResponse.json('Bad request', { status: 400 })
+
+  await db.delete(lists).where(
+    and(
+      eq(lists.username, user.username),
+      eq(lists.listname, listname),
+      eq(lists.imdbId, imdbId),
+    )
+  )
+
+  return new NextResponse
 }
 
 // import { lists } from '@prisma/client';

@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     await db.select().from(reviews).where(and(
       eq(reviews.username, user.username),
       eq(reviews.imdbId, imdbId),
-    ))
+    )).get() || null
   )
 }
 
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
   if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
 
   const { imdbId, review, rating, watchAgain } = await req.json();
+  console.log(imdbId, review, rating, watchAgain)
   if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
 
   await db.insert(reviews).values({

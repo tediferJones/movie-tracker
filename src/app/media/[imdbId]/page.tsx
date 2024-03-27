@@ -63,9 +63,9 @@ export default function Media({ params }: { params: { imdbId: string } }) {
     return n > 10 ? str : '0' + str 
   }
 
-  return !media ? <Loading /> : 
+  return !media ? <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'><Loading /></div> : 
     <div>
-      <div className='w-4/5 mx-auto my-4 relative flex gap-4'>
+      <div className='w-4/5 mx-auto my-4 relative flex gap-4 max-h-[60vh]'>
         <WatchManger imdbId={media.imdbId} />
         <ListManager imdbId={media.imdbId} />
       </div>

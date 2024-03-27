@@ -1,4 +1,4 @@
-import ListnameManager from '@/components/listnameManager';
+import DefaultListManager from '@/components/defaultListManager';
 
 // OLD NOTES
 // See .env file for omdb API key
@@ -21,10 +21,6 @@ import ListnameManager from '@/components/listnameManager';
 // - Copy basic manifest from password-manager, better to have this setup as early as possible
 // - Work on simplifying searchbar
 // - Make sure api always fetches long form of plot
-// - Media page needs the following components:
-//   - Watch manager
-//   - List manager
-//   - Review manager
 // - Add foreign keys to table schemas, especially for imdbID,
 //    - See here: https://orm.drizzle.team/docs/indexes-constraints#foreign-key
 // - Remove id primary key from media table, use imdbId as primary key
@@ -33,9 +29,6 @@ import ListnameManager from '@/components/listnameManager';
 //     this way if we delete a movie from the media table, it should automatically delete all related entries
 //     - This would primarily be useful for listnames and lists table,
 //       when you delete a listname, delete all list items associated with that name
-// - Do we want users to be able to create a blank list?
-//   - If we do, then we need to create another table and thus another api route
-//   - Otherwise, listmanager also needs to be able to create new lists
 // - Get lists working
 //   - Delete default list and listnames api routes, they shouldnt be needed any longer
 //   - Delete listnames component if it is not used
@@ -43,11 +36,20 @@ import ListnameManager from '@/components/listnameManager';
 //  - List all existing lists with links to each list's page
 //  - Also allow user to set their default list here
 //    - Store default list value in clerk public user info
+// - Fix listManage component
+//   - What happens if user adds a movie to a list that already contains that movie
+// - Add input validation for client and server
+// - Go to listManager component, try to merge fetch calls in useEffect hook
+//   - This will also help simplify the associated api route
+// - Fix reviewManager
+//   - Watch again should not be null by default
+//   - Rating slider should directly correlate to value on initial load
+//     - Right now, default value is 0 but slider shows 100%
 
 export default function Home() {
   return (
     <div>
-      <ListnameManager />
+      <DefaultListManager />
     </div>
   );
 }

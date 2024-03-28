@@ -23,7 +23,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   }, [refreshTrigger])
 
   return (
-    <form className='flex-1 flex flex-col justify-between gap-4 text-center border-2 p-4'
+    <form className='w-1/2 flex flex-col justify-between gap-4 text-center border-2 p-4'
       onSubmit={e => {
         e.preventDefault();
         easyFetch('/api/lists', 'POST', {

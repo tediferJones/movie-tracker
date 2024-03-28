@@ -41,10 +41,17 @@ import DefaultListManager from '@/components/defaultListManager';
 // - Add input validation for client and server
 // - Go to listManager component, try to merge fetch calls in useEffect hook
 //   - This will also help simplify the associated api route
-// - Fix reviewManager
-//   - Watch again should not be null by default
-//   - Rating slider should directly correlate to value on initial load
-//     - Right now, default value is 0 but slider shows 100%
+// - Double check reviewManager works as intended
+// - Add formatter module to src/lib, move formatters from mediaInfo to this new file
+//   - This will be very useful later when we implement tables
+// - Create Seasons dropdowns from media of type series or episodes
+// - Add update function to mediaInfo
+//   - Requires PUT route in /api/media
+// - Add defaultList column to lists table
+//   - Consider breaking lists table into a seperate tables
+//      - listnames = { username, listname, isDefault }
+//      - listItems = imdbId + FOREIGN KEY TO LISTNAMES TABLE
+//
 
 export default function Home() {
   return (

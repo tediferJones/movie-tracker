@@ -25,7 +25,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   }, [refreshTrigger])
 
   return !existingReview ? <Loading /> :
-    <div className='m-4 flex flex-col gap-4 p-4 border-2 w-4/5 mx-auto my-4'>
+    <div className='flex flex-col gap-4 p-4 border-2'>
       <div className='flex justify-between'>
         <h1 className='text-xl my-auto'>My Review</h1>
         {!existingReview.username ? [] : 
@@ -39,15 +39,18 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
       </div>
 
       <div className='flex sm:flex-row flex-col gap-4'>
-        <div className='m-auto'>Watch Again?</div>
-        <button className={`flex-1 ${existingReview.watchAgain === true ? 'bg-green-400' : 'colorPrimary'}`}
-          onClick={() => setExistingReview({ ...existingReview, watchAgain: true, })}
+        <div className='m-auto ml-0'>Watch Again?</div>
+        <button className={`w-1/4 ${existingReview.watchAgain === true ? 'bg-green-500' : 'colorPrimary'}`}
+          onClick={() => setExistingReview({
+            ...existingReview,
+            watchAgain: [null, false].includes(existingReview.watchAgain) ? true : null,
+          })}
         >Watch Again</button>
-        <button className={`flex-1 ${existingReview.watchAgain === null ? 'bg-orange-400' : 'colorPrimary'}`}
-          onClick={() => setExistingReview({ ...existingReview, watchAgain: null, })}
-        >No Opinion</button>
-        <button className={`flex-1 ${existingReview.watchAgain === false ? 'bg-red-500' : 'colorPrimary'}`}
-          onClick={() => setExistingReview({ ...existingReview, watchAgain: false, })}
+        <button className={`w-1/4 ${existingReview.watchAgain === false ? 'bg-red-500' : 'colorPrimary'}`}
+          onClick={() => setExistingReview({
+            ...existingReview,
+            watchAgain: [null, true].includes(existingReview.watchAgain) ? false : null,
+          })}
         >Not Worth It</button>
       </div>
 
@@ -85,16 +88,16 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
             <div className='absolute w-full h-full flex justify-center items-center'
             >Click to {lockRating ? 'Set' : 'Edit'}</div>
           }
-          <div className='h-full bg-orange-400' 
+          <div className='h-full bg-yellow-500' // bg-orange-400
             style={{
-              width: `${existingReview.rating}%`, 
+              width: `${existingReview.rating || 0}%`, 
               pointerEvents: 'none'
             }}
           ></div>
         </div>
       </div>
 
-      <textarea className='p-2' 
+      <textarea className='p-2 border-2' 
         name='myReview' 
         value={existingReview.review || ''} 
         onChange={(e) => setExistingReview({ 
@@ -107,7 +110,6 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
 
       <button className='colorPrimary'
         onClick={() => {
-          console.log(existingReview)
           easyFetch('/api/reviews', existingReview.username ? 'PUT' : 'POST', existingReview, true)
             .then(() => setRefreshTrigger(!refreshTrigger))
         }}

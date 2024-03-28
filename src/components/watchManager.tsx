@@ -16,7 +16,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
   }, [refreshTrigger])
 
   return (
-    <div className='flex-1 flex flex-col gap-4 text-center border-2 p-4 justify-between'>
+    <div className='w-1/2 flex flex-col gap-4 text-center border-2 p-4 justify-between'>
       <h1 className='text-xl'>Watch Manager</h1>
       {!watched ? <Loading /> : 
         <div className='flex flex-col gap-4 overflow-y-auto'>

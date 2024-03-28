@@ -45,7 +45,7 @@ export default function Searchbar() {
   }, [searchTerm, searchType])
 
   return (
-    <div className='m-auto flex w-4/5 justify-center p-4 gap-2'>
+    <div className='m-auto flex w-4/5 justify-center py-4 gap-2'>
       <div className='relative flex w-full flex-col'>
         {!displaySearchResult ? [] : 
           <div id='findMe' className='fixed left-0 top-0 h-[100vh] w-[100vw]' 

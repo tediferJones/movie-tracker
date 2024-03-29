@@ -3,6 +3,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { ExistingMediaInfo, strIdxRawMedia } from '@/types';
 import Loading from '@/components/loading';
 import easyFetch from '@/lib/easyFetch';
+import SeasonDisplay from './seasonDisplay';
 
 export default function MediaInfo({ imdbId }: { imdbId: string }) {
   const [media, setMedia] = useState<ExistingMediaInfo>();
@@ -168,31 +169,13 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
           })}
       </div>
     </div>
-    <div className='border-2 p-4 text-center'>
-      DISPLAY SEASONS IF ITS A SERIES
-      <div>
-        If type is series and has multiple seasons:
-          Seasons 1 - # {'->'} Seasons {'->'} Episodes
-        <br />
-
-        If type is series and only has 1 season
-          Season 1 {'->'} Episodes
-        <br />
-
-        If type is episode
-          Season # {'->'} Episodes
-
-        <br />
-        To fetch season info, extract season info from media and fetch like so
-        {`
-easyFetch('/api/search', 'GET', { 
-queryTerm: 'i', 
-searchTerm: imdbID, 
-queryType: 'season', 
-searchType: SEASON-NUMBER, 
-})
-`}
-      </div>
-    </div>
+    
+    {!(media.season || media.totalSeasons) ? [] : 
+      <SeasonDisplay
+        imdbId={media.seriesId || media.imdbId}
+        seasons={(media.season || media.totalSeasons) as number}
+        isEpisode={!(Number(media.totalSeasons) > 1)}
+      />
+    }
   </>
 }

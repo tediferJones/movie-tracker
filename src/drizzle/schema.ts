@@ -22,7 +22,7 @@ export const media = sqliteTable('media', {
   totalSeasons: integer('totalSeasons'),
   season: integer('season'),
   episode: integer('episode'),
-  seriesId: integer('seriesId'),
+  seriesId: text('seriesId'),
   production: text('production'),
   website: text('website'),
   imdbRating: integer('imdbRating'),

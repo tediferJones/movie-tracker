@@ -11,6 +11,10 @@ import DefaultListManager from '@/components/defaultListManager';
 //    SEARCHING
 //      s=SOMETHING           Request search of term (returns multiple, use this for searchbar)
 //      y=YEAR                Additional param
+//
+// APIs for streaming info:
+//  https://www.movieofthenight.com/about/api (free tier 100 requests per day, but that's 3100 per month)
+//  https://api.watchmode.com/#pricing (free tier 1000 requests per month)
 
 // TO-DO
 //

@@ -4,6 +4,7 @@ import { ExistingMediaInfo, strIdxRawMedia } from '@/types';
 import Loading from '@/components/loading';
 import easyFetch from '@/lib/easyFetch';
 import SeasonDisplay from './seasonDisplay';
+import { Button } from './ui/button';
 
 export default function MediaInfo({ imdbId }: { imdbId: string }) {
   const [media, setMedia] = useState<ExistingMediaInfo>();
@@ -83,10 +84,10 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
   }
 
   return !media ? <Loading /> : <>
-    <div className='flex flex-wrap md:flex-nowrap gap-4'>
-      {media.poster ? <img className='m-auto' src={media.poster}/> : []}
-      <div className='flex w-auto flex-col justify-around border-2 p-4 text-lg'>
-        <h1 className='text-center text-3xl pb-4'>
+    <div className='flex flex-wrap gap-4 md:flex-nowrap'>
+      {media.poster ? <img className='m-auto showOutline' src={media.poster}/> : []}
+      <div className='showOutline flex w-auto flex-col justify-around p-4 text-lg'>
+        <h1 className='pb-4 text-center text-3xl'>
           <Link href={`https://www.imdb.com/title/${media.imdbId}`}
             className='underline'
           >
@@ -97,13 +98,13 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
           </span>
         </h1>
         <hr />
-        <div className='p-4 flex flex-wrap gap-4'>
-          <div className='flex-1 text-center m-auto'>Rated: {media.rated || 'N/A'}</div>
-          <div className='flex-1 text-center m-auto'>
+        <div className='flex flex-wrap gap-4 p-4'>
+          <div className='m-auto flex-1 text-center'>Rated: {media.rated || 'N/A'}</div>
+          <div className='m-auto flex-1 text-center'>
             Runtime: {media.runtime ? formatTime(media.runtime) : 'N/A'}
           </div>
           {!media.totalSeasons ? [] :
-            <div className='flex-1 text-center m-auto'>
+            <div className='m-auto flex-1 text-center'>
               Seasons: {media.totalSeasons}
             </div>
           }
@@ -138,8 +139,8 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
       </div>
     </div>
 
-    <div className='p-4 border-2'>
-      <div className='flex flex-wrap justify-center gap-4 text-lg pb-4'>
+    <div className='showOutline p-4'>
+      <div className='flex flex-wrap justify-center gap-4 pb-4 text-lg'>
         {['director', 'writer', 'actor'].map(position => {
           if (!media[position]) return [];
           return  <span key={position}>
@@ -148,9 +149,9 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
         })}
       </div>
       <hr />
-      <div className='py-4 px-8 grid grid-cols-3 gap-4'>
-        <h3 className='text-xl col-span-3 flex justify-between'>Details: 
-          <button className='colorPrimary text-sm'>Update</button>
+      <div className='grid grid-cols-3 gap-4 px-8 py-4'>
+        <h3 className='col-span-3 flex justify-between text-xl'>Details: 
+          <Button variant='outline'>Update</Button>
         </h3>
         {[
           'type', 'seriesId', 'released', 'dvd',
@@ -162,7 +163,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
               <div className='text-center'>
                 {fromCamelCase(key)}
               </div>
-              <div className='text-center col-span-2'>
+              <div className='col-span-2 text-center'>
                 {fixer[key] ? fixer[key](media[key]) : fromCamelCase(media[key].toString())}
               </div>
             </Fragment>

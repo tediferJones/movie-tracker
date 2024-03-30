@@ -1,4 +1,5 @@
 import DefaultListManager from '@/components/defaultListManager';
+import { Button } from '@/components/ui/button';
 
 // OLD NOTES
 // See .env file for omdb API key
@@ -55,12 +56,14 @@ import DefaultListManager from '@/components/defaultListManager';
 //   - Consider breaking lists table into a seperate tables
 //      - listnames = { username, listname, isDefault }
 //      - listItems = imdbId + FOREIGN KEY TO LISTNAMES TABLE
-//
+// - Use shadcn-ui scroll area for fancy scroll bars
+// - Get rid of last await in /api/search
 
 export default function Home() {
   return (
     <div>
       <DefaultListManager />
+      <Button variant='destructive'>Shadcn button test</Button>
     </div>
   );
 }

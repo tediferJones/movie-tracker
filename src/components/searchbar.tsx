@@ -1,4 +1,13 @@
 'use client';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+
 import { useState, useEffect } from 'react';
 import { omdbSearch, omdbSearchResult } from '@/types';
 import Link from 'next/link';
@@ -18,12 +27,8 @@ export default function Searchbar() {
   const [displaySearchResult, setDisplaySearchResult] = useState<true | false>(false)
 
   useEffect(() => {
-
-    console.log(searchTerm)
-    if (!searchTerm) {
-      setSearchResult(defaultState);
-      return
-    }
+    console.log(searchTerm);
+    if (!searchTerm) return setSearchResult(defaultState);
 
     let delaySetState: NodeJS.Timeout | undefined = setTimeout(() => {
       easyFetch<omdbSearch>('/api/search', 'GET', { 
@@ -36,12 +41,9 @@ export default function Searchbar() {
           console.log('SEARCH RESULTS', data)
           data.Response === 'True' ? setSearchResult(data) : setSearchResult(defaultState);
         })
-    }, 1000)
+    }, 1000);
 
-    return () => {
-      console.log('clean up function')
-      clearTimeout(delaySetState)
-    }
+    return () => clearTimeout(delaySetState);
   }, [searchTerm, searchType])
 
   return (
@@ -52,7 +54,7 @@ export default function Searchbar() {
             onClick={() => setDisplaySearchResult(false)}>
           </div> 
         }
-        <input className='w-full text-2xl relative p-2 bg-transparent border-2'
+        <Input className='w-full relative text-xl'
           onFocus={() => setDisplaySearchResult(true)}
           type='text'
           value={searchTerm}
@@ -60,7 +62,7 @@ export default function Searchbar() {
           placeholder='Search...'
         />
         {/* Search Results area */}
-        <div className='absolute top-12 flex w-full flex-col items-center'>
+        <div className={`absolute top-12 flex w-full flex-col items-center ${displaySearchResult ? 'showOutline overflow-hidden' : ''}`}>
           {!displaySearchResult ? [] : searchResult.Search.map((item: omdbSearchResult) => {
             return (
               <Link href={`/media/${item.imdbID}`} className='flex w-full flex-wrap bg-gray-700 p-2 rounded-none'
@@ -74,6 +76,7 @@ export default function Searchbar() {
         </div>
       </div>
       {/* Selector for media type */}
+      {/*
       <select className='cursor-pointer p-2 colorPrimary'
         value={searchType} 
         onChange={(e) => {
@@ -87,6 +90,26 @@ export default function Searchbar() {
           >{searchTerm}</option>
         })}
       </select>
+      */}
+      <Select
+        defaultValue={searchType}
+        onValueChange={(val) => {
+          setSearchResult(defaultState)
+          setSearchType(val)
+        }}
+      >
+        <SelectTrigger className='w-min'>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {['Movie', 'Series', 'Game'].map((searchTerm) => {
+            return <SelectItem
+              key={searchTerm}
+              value={searchTerm.toLowerCase()}
+            >{searchTerm}</SelectItem>
+          })}
+        </SelectContent>
+      </Select>
     </div>
   )
 }

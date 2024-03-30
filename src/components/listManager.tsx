@@ -1,3 +1,13 @@
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
 import { useEffect, useState } from 'react'
 import easyFetch from '@/lib/easyFetch'
 import Loading from '@/components/loading';
@@ -10,20 +20,22 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [allListnames, setAllListnames] = useState<string[]>();
   const { user } = useUser();
+  const illegalListname = 'illegalListname'
 
   useEffect(() => {
     easyFetch<{ listname: string }[]>('/api/lists', 'GET', { imdbId })
       .then(data => {
         console.log(user?.unsafeMetadata.defaultListname)
         setLists(data.map(record => record.listname))
-        setCurrentList(user?.unsafeMetadata.defaultListname as string | undefined)
+        // setCurrentList('list5' || user?.unsafeMetadata.defaultListname as string | undefined)
+        setCurrentList('list5')
       })
     easyFetch<{ listname: string }[]>('/api/lists', 'GET')
       .then(data => setAllListnames(data.map(record => record.listname)));
   }, [refreshTrigger])
 
   return (
-    <form className='w-1/2 flex flex-col justify-between gap-4 text-center border-2 p-4'
+    <form className='w-1/2 flex flex-col justify-between gap-4 text-center p-4 showOutline'
       onSubmit={e => {
         e.preventDefault();
         easyFetch('/api/lists', 'POST', {
@@ -49,25 +61,29 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         </div>
       }
       <div className='flex flex-col gap-4'>
-        <select className='p-2'
-          value={currentList || ''}
-          onChange={e => setCurrentList(e.currentTarget.value)}
-        >
-          <option value=''>Create new list</option>
-          {allListnames?.map(listname => <option value={listname} key={listname}>
-            {listname}
-          </option>)}
-        </select>
-        {currentList ? [] : 
-          <input className='p-2'
+        <Select value={currentList} onValueChange={(val) => setCurrentList(val)}>
+          <SelectTrigger>
+            <SelectValue placeholder='Select listname'/>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={illegalListname}>Create new list</SelectItem>
+            {allListnames?.map(listname => <SelectItem
+              key={listname}
+              value={listname}
+            >{listname}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        {currentList !== illegalListname ? [] : 
+          <Input className='p-2'
             type='text'
             name='newListname'
             placeholder='New listname'
+            pattern={`^(?!${illegalListname}$).*$`}
             required
             maxLength={32}
           />
         }
-        <button className='colorPrimary' type='submit'>Add to List</button>
+        <Button type='submit'>Add to List</Button>
       </div>
     </form>
   )

@@ -1,40 +1,60 @@
 'use client';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
-import easyFetch from '@/lib/easyFetch'
 import { useEffect, useState } from 'react'
 import Loading from '@/components/loading';
-import { useUser } from '@clerk/nextjs';
+import easyFetch from '@/lib/easyFetch'
 
 export default function DefaultListManager() {
   const [listnames, setListnames] = useState<string[]>();
   const [defaultListname, setDefaultListname] = useState<string>();
-  const { user } = useUser()
+  const [existingDefaultList, setExistingDefaultList] = useState<string>();
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   useEffect(() => {
-    easyFetch<{ listname: string }[]>('/api/lists', 'GET')
-      .then(data => setListnames(data.map(list => list.listname)));
-  }, []);
+    easyFetch<{ listname: string, defaultList: boolean }[]>('/api/lists', 'GET')
+      .then(data => { 
+        console.log('all list names', data)
+        setListnames(
+          data.map(list => {
+            if (list.defaultList) setExistingDefaultList(list.listname)
+            return list.listname
+          })
+        )
+      });
+  }, [refreshTrigger]);
 
   return (
     !listnames ? <Loading /> :
-      <form className='border-2 p-4'
+      <form className='showOutline flex flex-col gap-4 p-4'
         onSubmit={(e) => {
           e.preventDefault();
-          console.log('add new list', defaultListname)
-          user?.update({ unsafeMetadata: { defaultListname } })
+          easyFetch('/api/lists', 'PUT', { listname: defaultListname }, true)
+            .then(() => setRefreshTrigger(!refreshTrigger));
         }}
       >
-        Set default list
-        <select className='p-2'
-          name='defaultListname'
-          value={defaultListname}
-          onChange={(e) => setDefaultListname(e.currentTarget.value)}
-        >
-          {listnames.map(listname => <option key={listname}>
-            {listname}
-          </option>)}
-        </select>
-        <button className='colorPrimary'>Set default list</button>
+        <h3>Set default list</h3>
+        <div className='text-center'>Default list: {existingDefaultList || 'No default list found'}</div>
+        <Select value={defaultListname} onValueChange={setDefaultListname}>
+          <SelectTrigger>
+            <SelectValue placeholder='New default list'/>
+          </SelectTrigger>
+          <SelectContent>
+            {listnames.map(listname => (
+              <SelectItem key={listname} value={listname}>
+                {listname}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button>Set default list</Button>
       </form>
   )
 }

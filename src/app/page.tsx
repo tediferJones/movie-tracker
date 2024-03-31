@@ -58,10 +58,15 @@ import { Button } from '@/components/ui/button';
 //      - listItems = imdbId + FOREIGN KEY TO LISTNAMES TABLE
 // - Use shadcn-ui scroll area for fancy scroll bars
 // - Get rid of last await in /api/search
+// - Fix how we assign default list
+//   - Should probably go create seperate table for listContents and lists
+//   - use /api/lists to get all lists for user
+//   - use /api/lists/[imdbId] to get lists associated with a specific imdbId
+//
 
 export default function Home() {
   return (
-    <div>
+    <div className='w-4/5 m-auto'>
       <DefaultListManager />
       <Button variant='destructive'>Shadcn button test</Button>
     </div>

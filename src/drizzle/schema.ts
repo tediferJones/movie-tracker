@@ -81,6 +81,7 @@ export const lists = sqliteTable('lists', {
   username: text('username'),
   listname: text('listname'),
   imdbId: text('imdbId'),
+  defaultList: integer('defaultList', { mode: 'boolean' }).notNull(),
 }, table => ({
     pk: primaryKey({
       columns: [

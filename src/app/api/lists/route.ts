@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   if (!imdbId) {
     // If no imdbId, just return unique listnames, this will be used to set default list client side
     return NextResponse.json(
-      await db.selectDistinct({ listname: lists.listname }).from(lists).where(eq(lists.username, user.username))
+      await db.selectDistinct({ listname: lists.listname, defaultList: lists.defaultList }).from(lists).where(eq(lists.username, user.username))
     )
   }
 
@@ -58,8 +58,27 @@ export async function POST(req: Request) {
     imdbId,
     listname,
     username: user.username,
+    defaultList: false,
   })
 
+  return new NextResponse
+}
+
+export async function PUT(req: Request) {
+  const user = await currentUser();
+  if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
+
+  const { listname } = await req.json();
+  if (!listname) return NextResponse.json('Bad request', { status: 400 })
+
+  await db.update(lists).set({ defaultList: false }).where(eq(lists.username, user.username))
+  await db.update(lists).set({ defaultList: true }).where(
+    and(
+      eq(lists.username, user.username),
+      eq(lists.listname, listname),
+    )
+  )
+  
   return new NextResponse
 }
 

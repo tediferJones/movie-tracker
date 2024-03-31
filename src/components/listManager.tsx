@@ -7,31 +7,34 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { useEffect, useState } from 'react'
 import easyFetch from '@/lib/easyFetch'
 import Loading from '@/components/loading';
 import { Trash2 } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
+  const illegalListname = 'illegalListname'
   const [lists, setLists] = useState<string[]>();
-  const [currentList, setCurrentList] = useState<string>();
+  const [currentList, setCurrentList] = useState<string>(illegalListname);
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [allListnames, setAllListnames] = useState<string[]>();
-  const { user } = useUser();
-  const illegalListname = 'illegalListname'
 
   useEffect(() => {
-    easyFetch<{ listname: string }[]>('/api/lists', 'GET', { imdbId })
+    easyFetch<{ listname: string, defaultList: boolean }[]>('/api/lists', 'GET', { imdbId })
       .then(data => {
-        console.log(user?.unsafeMetadata.defaultListname)
+        // console.log(user?.unsafeMetadata.defaultListname)
+        console.log('lists for this movie', data)
         setLists(data.map(record => record.listname))
         // setCurrentList('list5' || user?.unsafeMetadata.defaultListname as string | undefined)
-        setCurrentList('list5')
+        // setCurrentList('list5')
       })
-    easyFetch<{ listname: string }[]>('/api/lists', 'GET')
-      .then(data => setAllListnames(data.map(record => record.listname)));
+    easyFetch<{ listname: string, defaultList: boolean }[]>('/api/lists', 'GET')
+      .then(data => {
+        console.log('all lists', data)
+        setAllListnames(data.map(record => record.listname))
+      });
   }, [refreshTrigger])
 
   return (
@@ -40,7 +43,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         e.preventDefault();
         easyFetch('/api/lists', 'POST', {
           imdbId,
-          listname: currentList || e.currentTarget.newListname.value
+          listname: e.currentTarget.newListname.value || currentList,
         }, true).then(() => setRefreshTrigger(!refreshTrigger));
         e.currentTarget.reset();
       }}
@@ -48,20 +51,22 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
       <h1 className='text-xl'>List Manager</h1>
       {!lists ? <Loading /> : 
         !lists.length ? 'No records found' :
-        <div className='flex flex-col gap-4 overflow-y-auto'>
-          {lists.map(listname => <span key={listname} className='flex gap-2 justify-center'>
-            {listname}
-            <Trash2 className='text-red-700 min-h-6 min-w-6'
-              onClick={() => {
-                easyFetch('/api/lists', 'DELETE', { imdbId, listname }, true)
-                  .then(() => setRefreshTrigger(!refreshTrigger))
-              }}
-            />
-          </span>)}
-        </div>
+          <ScrollArea type='auto'>
+            <div className='flex flex-col gap-4 overflow-y-auto'>
+              {lists.map(listname => <span key={listname} className='flex gap-2 justify-center'>
+                {listname}
+                <Trash2 className='text-red-700 min-h-6 min-w-6'
+                  onClick={() => {
+                    easyFetch('/api/lists', 'DELETE', { imdbId, listname }, true)
+                      .then(() => setRefreshTrigger(!refreshTrigger))
+                  }}
+                />
+              </span>)}
+            </div>
+          </ScrollArea>
       }
       <div className='flex flex-col gap-4'>
-        <Select value={currentList} onValueChange={(val) => setCurrentList(val)}>
+        <Select value={currentList} onValueChange={setCurrentList}>
           <SelectTrigger>
             <SelectValue placeholder='Select listname'/>
           </SelectTrigger>

@@ -4,8 +4,9 @@ import { text, sqliteTable, integer, primaryKey, foreignKey } from 'drizzle-orm/
 // npx drizzle-kit push:sqlite
 
 export const media = sqliteTable('media', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  imdbId: text('imdbId').notNull().unique(),
+  // id: integer('id').primaryKey({ autoIncrement: true }),
+  // imdbId: text('imdbId').notNull().unique(),
+  imdbId: text('imdbId').primaryKey(),
   title: text('title').notNull(),
   startYear: integer('startYear').notNull(),
   endYear: integer('endYear'),
@@ -36,12 +37,29 @@ export const people = sqliteTable('people', {
   name: text('name').notNull(),
   position: text('position').notNull(),
 })
+// }, table => ({
+//     pk: primaryKey({
+//       columns: [
+//         table.imdbId,
+//         table.name,
+//         table.position,
+//       ]
+//     })
+//   }))
 
 export const genres = sqliteTable('genres', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   imdbId: text('imdbId').notNull(),
   genre: text('genre').notNull(),
 })
+//   }, table => ({
+//     pk: primaryKey({
+//       columns: [
+//         table.genre,
+//         table.imdbId,
+//       ]
+//     })
+// }))
 
 export const languages = sqliteTable('languages', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -77,41 +95,45 @@ export const reviews = sqliteTable('reviews', {
     })
   }))
 
-export const lists = sqliteTable('lists', {
-  username: text('username'),
-  listname: text('listname'),
-  imdbId: text('imdbId'),
+// WORKING
+// export const lists = sqliteTable('lists', {
+//   username: text('username'),
+//   listname: text('listname'),
+//   imdbId: text('imdbId'),
+//   defaultList: integer('defaultList', { mode: 'boolean' }).notNull(),
+// }, table => ({
+//     pk: primaryKey({
+//       columns: [
+//         table.username,
+//         table.listname,
+//         table.imdbId,
+//       ]
+//     })
+//   }))
+
+export const listnames = sqliteTable('listnames', {
+  username: text('username').notNull(),
+  listname: text('listname').notNull(),
   defaultList: integer('defaultList', { mode: 'boolean' }).notNull(),
 }, table => ({
     pk: primaryKey({
       columns: [
         table.username,
         table.listname,
-        table.imdbId,
       ]
     })
   }))
 
-// export const listnames = sqliteTable('listnames', {
-//   username: text('username').notNull(),
-//   listname: text('listname').notNull(),
-// }, table => ({
-//     pk: primaryKey({ columns: [
-//       table.username,
-//       table.listname,
-//     ]})
-//   }))
-// 
-// export const lists = sqliteTable('lists', {
-//   imdbId: text('imdbId').notNull(),
-//   username: text('username'),
-//   listname: text('listname'),
-// }, table => ({
-//     // Error says its deprecated, but drizzle docs still recommends this method
-//     // If it works just let it be
-//     userReference: foreignKey(() => ({
-//       columns: [table.username, table.listname],
-//       foreignColumns: [listnames.username, listnames.listname],
-//       name: 'listId'
-//     }))
-//   }))
+export const lists = sqliteTable('lists', {
+  imdbId: text('imdbId').notNull(),
+  username: text('username'),
+  listname: text('listname'),
+}, table => ({
+    // Error says its deprecated, but drizzle docs still recommends this method
+    // If it works just let it be
+    userReference: foreignKey(() => ({
+      columns: [table.username, table.listname],
+      foreignColumns: [listnames.username, listnames.listname],
+      name: 'listId'
+    }))
+  }))

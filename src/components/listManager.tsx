@@ -30,7 +30,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         // setCurrentList('list5' || user?.unsafeMetadata.defaultListname as string | undefined)
         // setCurrentList('list5')
       })
-    easyFetch<{ listname: string, defaultList: boolean }[]>('/api/lists', 'GET')
+    easyFetch<{ listname: string, defaultList: boolean }[]>('/api/listnames', 'GET')
       .then(data => {
         console.log('all lists', data)
         setAllListnames(data.map(record => record.listname))

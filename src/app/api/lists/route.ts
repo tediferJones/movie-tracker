@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs';
 import { db } from '@/drizzle/db';
-import { lists } from '@/drizzle/schema';
+import { listnames, lists } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 
 export async function GET(req: Request) {
@@ -9,42 +9,16 @@ export async function GET(req: Request) {
   if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
 
   const imdbId = new URL(req.url).searchParams.get('imdbId')
-
-  if (!imdbId) {
-    // If no imdbId, just return unique listnames, this will be used to set default list client side
-    return NextResponse.json(
-      await db.selectDistinct({ listname: lists.listname, defaultList: lists.defaultList }).from(lists).where(eq(lists.username, user.username))
-    )
-  }
+  if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
 
   return NextResponse.json(
-    await db.select({ listname: lists.listname }).from(lists).where(
+    await db.select().from(lists).where(
       and(
         eq(lists.username, user.username),
-        eq(lists.imdbId, imdbId)
+        eq(lists.imdbId, imdbId),
       )
     )
   )
-
-  // return NextResponse.json(
-  //   imdbId ? await db.select().from(lists).where(
-  //     and(
-  //       eq(lists.username, user.username),
-  //       eq(lists.imdbId, imdbId)
-  //     )
-  //   ) : await db.selectDistinct({ listname: lists.listname }).from(lists)
-  //     .where(eq(lists.username, user.username))
-  // )
-    
-  // if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
-  // return NextResponse.json(
-  //   await db.select().from(lists).where(
-  //     and(
-  //       eq(lists.username, user.username),
-  //       eq(lists.imdbId, imdbId)
-  //     )
-  //   )
-  // )
 }
 
 export async function POST(req: Request) {
@@ -54,31 +28,26 @@ export async function POST(req: Request) {
   const { imdbId, listname } = await req.json();
   if (!imdbId || !listname) return NextResponse.json('Bad request', { status: 400 })
 
+  const listExists = await db.select().from(listnames).where(
+    and(
+      eq(listnames.username, user.username),
+      eq(listnames.listname, listname)
+    )
+  ).get();
+  if (!listExists) {
+    await db.insert(listnames).values({
+      username: user.username,
+      listname: listname,
+      defaultList: false,
+    })
+  }
+
   await db.insert(lists).values({
     imdbId,
     listname,
     username: user.username,
-    defaultList: false,
   })
 
-  return new NextResponse
-}
-
-export async function PUT(req: Request) {
-  const user = await currentUser();
-  if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
-
-  const { listname } = await req.json();
-  if (!listname) return NextResponse.json('Bad request', { status: 400 })
-
-  await db.update(lists).set({ defaultList: false }).where(eq(lists.username, user.username))
-  await db.update(lists).set({ defaultList: true }).where(
-    and(
-      eq(lists.username, user.username),
-      eq(lists.listname, listname),
-    )
-  )
-  
   return new NextResponse
 }
 
@@ -96,6 +65,21 @@ export async function DELETE(req: Request) {
       eq(lists.imdbId, imdbId),
     )
   )
+
+  const listContents = await db.select().from(lists).where(
+    and(
+      eq(lists.username, user.username),
+      eq(lists.listname, listname),
+    )
+  ).get();
+  if (!listContents) {
+    db.delete(listnames).where(
+      and(
+        eq(lists.username, user.username),
+        eq(lists.listname, listname)
+      )
+    )
+  }
 
   return new NextResponse
 }

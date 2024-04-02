@@ -32,12 +32,12 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
       <div className='flex justify-between'>
         <h1 className='text-xl my-auto'>My Review</h1>
         {!existingReview.username ? [] : 
-          <button className='bg-red-500 p-2'
+          <Button variant='destructive'
             onClick={() => {
               easyFetch('/api/reviews', 'DELETE', { imdbId })
                 .then(() => setRefreshTrigger(!refreshTrigger))
             }}
-          >Delete My Review</button>
+          >Delete My Review</Button>
         }
       </div>
 

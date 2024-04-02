@@ -2,12 +2,9 @@ import { db } from '@/drizzle/db';
 import { countries, genres, languages, listnames, lists, media, people, reviews, watched } from '@/drizzle/schema';
 import easyFetch from '@/lib/easyFetch';
 import { NextResponse } from 'next/server';
-import { strIdxRawMedia, /*strIdxMedia*/ } from '@/types';
+import { strIdxRawMedia } from '@/types';
 import formatMediaInfo from '@/lib/formatMediaInfo';
 import { eq } from 'drizzle-orm';
-// import cleanUpMediaInfo from '@/modules/cleanUpMediaInfo';
-// import easyFetch from '@/modules/easyFetch';
-// import prisma from '@/client';
 
 async function getExistingMedia(imdbId: string, mediaInfo?: typeof media.$inferSelect) {
   return {
@@ -37,6 +34,8 @@ export async function GET(req: Request) {
   if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
 
   // await db.delete(media)
+  // await db.delete(listnames)
+
   // await db.delete(genres)
   // await db.delete(countries)
   // await db.delete(languages)
@@ -45,6 +44,7 @@ export async function GET(req: Request) {
   // await db.delete(lists)
   // await db.delete(listnames)
   // await db.delete(reviews)
+  // await db.delete(media)
 
   // If result already exists in db, return related records
   const dbResult = await db.select().from(media).where(eq(media.imdbId, imdbId)).get();

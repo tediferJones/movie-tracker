@@ -16,25 +16,51 @@ import { Trash2 } from 'lucide-react';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname'
-  const [lists, setLists] = useState<string[]>();
+  const [matchingLists, setMatchingLists] = useState<string[]>();
   const [currentList, setCurrentList] = useState<string>(illegalListname);
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [allListnames, setAllListnames] = useState<string[]>();
 
   useEffect(() => {
+    // TESTING
     easyFetch<{ listname: string, defaultList: boolean }[]>('/api/lists', 'GET', { imdbId })
-      .then(data => {
-        // console.log(user?.unsafeMetadata.defaultListname)
-        console.log('lists for this movie', data)
-        setLists(data.map(record => record.listname))
-        // setCurrentList('list5' || user?.unsafeMetadata.defaultListname as string | undefined)
-        // setCurrentList('list5')
+      .then(matchingLists => {
+        easyFetch<{ listname: string, defaultList: boolean }[]>('/api/listnames', 'GET')
+          .then(allLists => {
+            const existingListnames = matchingLists.map(list => list.listname);
+            const availableListnames = allLists.filter(list => !existingListnames.includes(list.listname)).map(list => list.listname)
+            const defaultList = allLists.find(list => list.defaultList)?.listname;
+            console.log('existing', existingListnames);
+            console.log('available', availableListnames);
+            console.log('default list', defaultList)
+            setMatchingLists(existingListnames)
+            setAllListnames(availableListnames)
+            if (defaultList && availableListnames.includes(defaultList)) {
+              console.log('setting default list', defaultList)
+              setCurrentList(defaultList)
+            } else {
+              console.log('auto select next list')
+              setCurrentList(availableListnames[0] || illegalListname)
+            }
+          })
       })
-    easyFetch<{ listname: string, defaultList: boolean }[]>('/api/listnames', 'GET')
-      .then(data => {
-        console.log('all lists', data)
-        setAllListnames(data.map(record => record.listname))
-      });
+
+    // OLD WORKING
+    // easyFetch<{ listname: string, defaultList: boolean }[]>('/api/lists', 'GET', { imdbId })
+    //   .then(data => {
+    //     console.log('lists for this movie', data)
+    //     setMatchingLists(data.map(record => record.listname))
+    //   })
+    // easyFetch<{ listname: string, defaultList: boolean }[]>('/api/listnames', 'GET')
+    //   .then(data => {
+    //     console.log('all lists', data)
+    //     setAllListnames(
+    //       data.map(record => {
+    //         if (record.defaultList) setCurrentList(record.listname)
+    //         return record.listname
+    //       })
+    //     )
+    //   });
   }, [refreshTrigger])
 
   return (
@@ -43,17 +69,17 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         e.preventDefault();
         easyFetch('/api/lists', 'POST', {
           imdbId,
-          listname: e.currentTarget.newListname.value || currentList,
+          listname: e.currentTarget?.newListname?.value || currentList,
         }, true).then(() => setRefreshTrigger(!refreshTrigger));
         e.currentTarget.reset();
       }}
     >
       <h1 className='text-xl'>List Manager</h1>
-      {!lists ? <Loading /> : 
-        !lists.length ? 'No records found' :
+      {!matchingLists ? <Loading /> : 
+        !matchingLists.length ? 'No records found' :
           <ScrollArea type='auto'>
             <div className='flex flex-col gap-4 overflow-y-auto'>
-              {lists.map(listname => <span key={listname} className='flex gap-2 justify-center'>
+              {matchingLists.map(listname => <span key={listname} className='flex gap-2 justify-center'>
                 {listname}
                 <Trash2 className='text-red-700 min-h-6 min-w-6'
                   onClick={() => {

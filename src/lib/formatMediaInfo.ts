@@ -98,6 +98,7 @@ export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInf
         return newObj
       }, {} as { [key: string]: number }),
       ...formatYear(info.Year),
+      updatedAt: Date.now(),
     } as typeof media.$inferInsert,
     genres: genre.map((genre: string) => ({ imdbId, genre })),
     countries: country.map((country: string) => ({ imdbId, country })),

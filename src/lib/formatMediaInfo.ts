@@ -86,9 +86,17 @@ export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInf
     }
   }
 
+  console.log('temp formatted', formatted)
   const { genre, director, writer, actor, country, language, ratings, year, ...rest } = formatted;
   const imdbId: string = formatted.imdbId;
-  const people: { [key: string]: string[] } = { director, writer, actor };
+  // const people: { [key: string]: string[] } = { director, writer, actor };
+  const positions: { [key: string]: string[] } = { director, writer, actor };
+  const people = Object.keys(positions).reduce((arr, position) => {
+      if (!positions[position]) return arr
+      return arr.concat(positions[position].map(name => ({ imdbId, position, name })))
+    }, [] as PeopleInsert[])
+
+  console.log('temp people', people)
   return {
     mediaInfo: {
       ...rest,
@@ -100,14 +108,15 @@ export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInf
       ...formatYear(info.Year),
       updatedAt: Date.now(),
     } as typeof media.$inferInsert,
-    genres: genre.map((genre: string) => ({ imdbId, genre })),
-    countries: country.map((country: string) => ({ imdbId, country })),
-    languages: language.map((language: string) => ({ imdbId, language })),
-    people: Object.keys(people).reduce((arr, position) => {
-      if (!people[position]) return arr
-      return arr.concat(
-        people[position].map(name => ({ imdbId, position, name }))
-      )
-    }, [] as PeopleInsert[])
+    genres: genre?.map((genre: string) => ({ imdbId, genre })),
+    countries: country?.map((country: string) => ({ imdbId, country })),
+    languages: language?.map((language: string) => ({ imdbId, language })),
+    people: people.length ? people : undefined,
+    // people: Object.keys(people).length === 0 ? undefined : Object.keys(people).reduce((arr, position) => {
+    //   if (!people[position]) return arr
+    //   return arr.concat(
+    //     people[position].map(name => ({ imdbId, position, name }))
+    //   )
+    // }, [] as PeopleInsert[])
   };
 }

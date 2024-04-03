@@ -87,12 +87,14 @@ interface newDefaultList {
 // NEW TYPES
 import { countries, genres, languages, media, people } from '@/drizzle/schema';
 
-interface FormattedMediaInfo {
+interface strIdx  { [key: string]: any }
+
+interface FormattedMediaInfo extends strIdx {
   mediaInfo: typeof media.$inferInsert,
-  genres: (typeof genres.$inferInsert)[],
-  countries: (typeof countries.$inferInsert)[],
-  languages: (typeof languages.$inferInsert)[],
-  people: (typeof people.$inferInsert)[],
+  genres?: (typeof genres.$inferInsert)[],
+  countries?: (typeof countries.$inferInsert)[],
+  languages?: (typeof languages.$inferInsert)[],
+  people?: (typeof people.$inferInsert)[],
 }
 
 type MediaSelect = typeof media.$inferSelect

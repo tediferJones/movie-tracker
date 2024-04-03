@@ -9,6 +9,7 @@ import { Button } from './ui/button';
 export default function MediaInfo({ imdbId }: { imdbId: string }) {
   const [media, setMedia] = useState<ExistingMediaInfo>();
   const [seriesTitle, setSeriesTitle] = useState<string>();
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   useEffect(() => {
     easyFetch<ExistingMediaInfo>('/api/media', 'GET', { imdbId })
@@ -27,7 +28,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
             })
         }
       })
-  }, []);
+  }, [refreshTrigger]);
 
   function formatTime(mins: number) {
     const hours = Math.floor(mins / 60)
@@ -72,6 +73,11 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
       month: 'long',
       day: 'numeric',
     }),
+    updatedAt: (n: number) => new Date(n).toLocaleTimeString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }),
     genre: (arr: string[]) => getLinks(arr, 'genres'),
     country: (arr: string[]) => getLinks(arr, 'countries'),
     language: (arr: string[]) => getLinks(arr, 'languages'),
@@ -86,7 +92,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
   return !media ? <Loading /> : <>
     <div className='flex flex-wrap gap-4 md:flex-nowrap'>
       {media.poster ? <img className='m-auto showOutline' src={media.poster}/> : []}
-      <div className='showOutline flex w-auto flex-col justify-around p-4 text-lg'>
+      <div className='showOutline flex-1 flex w-auto flex-col justify-around p-4 text-lg'>
         <h1 className='pb-4 text-center text-3xl'>
           <Link href={`https://www.imdb.com/title/${media.imdbId}`}
             className='underline'
@@ -151,14 +157,17 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
       <hr />
       <div className='grid grid-cols-3 gap-4 px-8 py-4'>
         <h3 className='col-span-3 flex justify-between text-xl'>Details: 
-          <Button variant='outline'>Update</Button>
+          <Button variant='outline' onClick={() => {
+            easyFetch('/api/media', 'PUT', { imdbId }, true)
+              .then(() => setRefreshTrigger(!refreshTrigger))
+          }}>Update</Button>
         </h3>
         {[
           'type', 'seriesId', 'released', 'dvd',
           'genre', 'country', 'language', 'boxOffice',
-          'production', 'website', 'imdbVotes',
+          'production', 'website', 'imdbVotes', 'updatedAt',
         ].map(key => {
-            if (!media[key]) return [];
+            if (!media[key] || media[key]?.length === 0) return [];
             return <Fragment key={key}>
               <div className='text-center'>
                 {fromCamelCase(key)}

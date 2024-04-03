@@ -94,5 +94,5 @@ export const lists = sqliteTable('lists', {
       columns: [table.username, table.listname],
       foreignColumns: [listnames.username, listnames.listname],
       name: 'listId',
-    })
+    }).onDelete('cascade')
   }));

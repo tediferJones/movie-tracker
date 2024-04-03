@@ -21,10 +21,6 @@ import DefaultListManager from '@/components/defaultListManager';
 // - Copy basic manifest from password-manager, better to have this setup as early as possible
 // - Work on simplifying searchbar
 // - Make sure api always fetches long form of plot
-// - Can we get delete to cascade for compound foreign key in lists table
-//   - This would auto delete a listname when the list becomes empty (i.e. if all contents is removed)
-//   - Currently, we are only preventing listnames from being deleted when they have contents
-//     - Which is probably good enough for our use case
 // - Get lists working
 //   - Delete default list and listnames api routes, they shouldnt be needed any longer
 //   - Delete listnames component if it is not used
@@ -36,9 +32,6 @@ import DefaultListManager from '@/components/defaultListManager';
 // - Double check reviewManager works as intended
 // - Add formatter module to src/lib, move formatters from mediaInfo to this new file
 //   - This will be very useful later when we implement tables
-// - Add update function to mediaInfo
-//   - Requires PUT route in /api/media
-//   - [ DONE ] Also requires adding date column to media table
 // - Add ScrollArea to root of document
 //   - Problem: scroll bar doesnt resize when page size changes
 // - Start building tables for displaying media info

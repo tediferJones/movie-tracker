@@ -35,6 +35,10 @@ import DefaultListManager from '@/components/defaultListManager';
 // - Add ScrollArea to root of document
 //   - Problem: scroll bar doesnt resize when page size changes
 // - Start building tables for displaying media info
+//   - Implement column sorting for strings and numbers
+//   - If we decide to go with our own table, 
+//     - uninstall shadcn-ui table and tanstack table
+//     - Delete src/components/table folder
 
 export default function Home() {
   return (

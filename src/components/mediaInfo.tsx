@@ -3,8 +3,9 @@ import { Fragment, useEffect, useState } from 'react';
 import { ExistingMediaInfo, strIdxRawMedia } from '@/types';
 import Loading from '@/components/loading';
 import easyFetch from '@/lib/easyFetch';
-import SeasonDisplay from './seasonDisplay';
-import { Button } from './ui/button';
+import SeasonDisplay from '@/components/seasonDisplay';
+import { Button } from '@/components/ui/button';
+import { formatRuntime, fromCamelCase } from '@/lib/formatters';
 
 export default function MediaInfo({ imdbId }: { imdbId: string }) {
   const [media, setMedia] = useState<ExistingMediaInfo>();
@@ -30,24 +31,24 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
       })
   }, [refreshTrigger]);
 
-  function formatTime(mins: number) {
-    const hours = Math.floor(mins / 60)
-    return `${hours ? `${hours}h` : ''}${mins % 60}m`
-  }
+  // function formatTime(mins: number) {
+  //   const hours = Math.floor(mins / 60)
+  //   return `${hours ? `${hours}h` : ''}${mins % 60}m`
+  // }
 
   function formatSeason(n: number) {
     const str = n.toString();
     return n > 10 ? str : '0' + str 
   }
 
-  function fromCamelCase(str: string, isPlural?: boolean) {
-    if (str === 'seriesId') return 'Series'
-    return str.split('').reduce((str, char, i) => {
-      if (i === 0) return char.toUpperCase();
-      if ('A' <= char && char <= 'Z') return `${str} ${char}`;
-      return str + char;
-    }, '') + (isPlural ? 's' : '')
-  }
+  // function fromCamelCase(str: string, isPlural?: boolean) {
+  //   if (str === 'seriesId') return 'Series'
+  //   return str.split('').reduce((str, char, i) => {
+  //     if (i === 0) return char.toUpperCase();
+  //     if ('A' <= char && char <= 'Z') return `${str} ${char}`;
+  //     return str + char;
+  //   }, '') + (isPlural ? 's' : '')
+  // }
 
   function getLinks(arr: string[], urlParam: string) {
     return arr.map((person: string, i: number, arr: string[]) => {
@@ -107,7 +108,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
         <div className='flex flex-wrap gap-4 p-4'>
           <div className='m-auto flex-1 text-center'>Rated: {media.rated || 'N/A'}</div>
           <div className='m-auto flex-1 text-center'>
-            Runtime: {media.runtime ? formatTime(media.runtime) : 'N/A'}
+            Runtime: {media.runtime ? formatRuntime(media.runtime) : 'N/A'}
           </div>
           {!media.totalSeasons ? [] :
             <div className='m-auto flex-1 text-center'>

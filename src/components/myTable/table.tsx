@@ -14,13 +14,13 @@ import { ExistingMediaInfo } from '@/types';
 import TableRow from '@/components/myTable/tableRow';
 import { useState } from 'react';
 
-type SortType = 'asc' | 'desc' | '';
+type SortType = 'asc' | 'desc';
 
 export default function MyTable({ data }: { data: ExistingMediaInfo[] }) {
   const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
-  const details = ['genre', 'actor', 'writer', 'director', 'country', 'language'];
+  const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
 
-  const [sortType, setSortType] = useState<SortType>('');
+  const [sortType, setSortType] = useState<SortType>('asc');
   const [sortCol, setSortCol] = useState('');
   const [searchCol, setSearchCol] = useState('title');
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,16 +33,17 @@ export default function MyTable({ data }: { data: ExistingMediaInfo[] }) {
     return mediaInfo[searchCol].some((str: string) => str.toLowerCase().includes(searchTerm.toLowerCase()))
   }
 
-  const sortSetter: { [key in SortType]: { next: SortType, class: string } } = {
-    '': { next: 'asc', class: '' },
-    'asc': { next: 'desc', class: 'bg-secondary' },
-    'desc': { next: '', class: 'bg-neutral-800' }
+  function shallowSort(arr: ExistingMediaInfo[]): ExistingMediaInfo[] {
+    if (!sortCol) return arr;
+    return arr.reduce((sorted, mediaInfo) => {
+      return sorted.concat(mediaInfo)
+    }, [] as ExistingMediaInfo[])
   }
 
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex gap-4'>
-        <Input placeholder='Search table' 
+        <Input placeholder={`Search by ${searchCol}`} 
           onChange={e => setSearchTerm(e.target.value)}
         />
         <DropdownMenu>
@@ -60,22 +61,19 @@ export default function MyTable({ data }: { data: ExistingMediaInfo[] }) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className='showOutline overflow-hidden'>
-        <table className='w-full table-auto'>
+      <div className='showOutline overflow-x-auto'>
+        <table className='w-full'>
           <thead>
             <tr>
               {columns.map(col => (
                 <th key={`colHeader-${col}`}
-                  className={`text-muted-foreground p-2 ${sortCol === col ? sortSetter[sortType].class : ''}`}
+                  className={`text-muted-foreground p-2 ${col === '' ? '' : sortCol !== col ? '' : sortType === 'asc' ? 'bg-secondary' : 'bg-neutral-800'}`}
                 >
                   <button onClick={() => {
                     console.log(sortCol, sortType)
-                    if (col !== sortCol) {
-                      setSortCol(col)
-                      setSortType('asc')
-                    } else {
-                      setSortType(sortSetter[sortType].next)
-                    }
+                    if (col !== sortCol) return setSortCol(col)
+                    if (sortType === 'desc') setSortCol('')
+                    setSortType(sortType === 'asc' ? 'desc' : 'asc')
                   }}>{fromCamelCase(col)}</button>
                 </th>
               ))}
@@ -83,7 +81,10 @@ export default function MyTable({ data }: { data: ExistingMediaInfo[] }) {
           </thead>
           <tbody>
             {data.length === 0 ? <div>No Data</div> :
-              data.filter(mediaInfo => searchTerm ? search(mediaInfo) : true)
+              shallowSort(
+                data.filter(mediaInfo => searchTerm ? search(mediaInfo) : true)
+              )
+              // data.filter(mediaInfo => searchTerm ? search(mediaInfo) : true)
               .map(mediaInfo => <TableRow
                 mediaInfo={mediaInfo}
                 keys={columns}

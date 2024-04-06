@@ -3,22 +3,54 @@ import { currentUser } from '@clerk/nextjs';
 import { db } from '@/drizzle/db';
 import { listnames, lists } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
+import getExistingMedia from '@/lib/getExistingMedia';
 
 export async function GET(req: Request) {
   const user = await currentUser();
-  if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
+  if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 });
 
-  const imdbId = new URL(req.url).searchParams.get('imdbId')
-  if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
+  const { searchParams } = new URL(req.url);
 
-  return NextResponse.json(
-    await db.select().from(lists).where(
-      and(
-        eq(lists.username, user.username),
-        eq(lists.imdbId, imdbId),
+  const imdbId = searchParams.get('imdbId');
+  if (imdbId) {
+    return NextResponse.json(
+      await db.select().from(lists).where(
+        and(
+          eq(lists.username, user.username),
+          eq(lists.imdbId, imdbId),
+        )
       )
     )
-  )
+  }
+
+  const listname = searchParams.get('listname');
+  const username = searchParams.get('username');
+  if (listname && username) {
+    return NextResponse.json(
+      await Promise.all(
+        (await db.select().from(lists).where(
+          and(
+            eq(lists.username, username),
+            eq(lists.listname, listname),
+          )
+        )).map(async rec => await getExistingMedia(rec.imdbId))
+      )
+    )
+  }
+
+  return NextResponse.json('Bad request', { status: 400 });
+
+  // const imdbId = new URL(req.url).searchParams.get('imdbId')
+  // if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
+
+  // return NextResponse.json(
+  //   await db.select().from(lists).where(
+  //     and(
+  //       eq(lists.username, user.username),
+  //       eq(lists.imdbId, imdbId),
+  //     )
+  //   )
+  // )
 }
 
 export async function POST(req: Request) {

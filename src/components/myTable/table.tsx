@@ -26,6 +26,7 @@ export default function MyTable({ data }: { data: ExistingMediaInfo[] }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   function search(mediaInfo: ExistingMediaInfo) {
+    if (!searchTerm) return true;
     if (!mediaInfo[searchCol]) return false;
     if (typeof(mediaInfo[searchCol]) === 'string') {
       return mediaInfo[searchCol].toLowerCase().includes(searchTerm.toLowerCase()) 
@@ -33,11 +34,28 @@ export default function MyTable({ data }: { data: ExistingMediaInfo[] }) {
     return mediaInfo[searchCol].some((str: string) => str.toLowerCase().includes(searchTerm.toLowerCase()))
   }
 
+  type SortFuncs = {
+    [key in 'string' | 'number']: {
+      [key in SortType]: (a: ExistingMediaInfo, b: ExistingMediaInfo) => number
+    }
+  }
+
   function shallowSort(arr: ExistingMediaInfo[]): ExistingMediaInfo[] {
     if (!sortCol) return arr;
-    return arr.reduce((sorted, mediaInfo) => {
-      return sorted.concat(mediaInfo)
-    }, [] as ExistingMediaInfo[])
+
+    const sortFunc: SortFuncs = {
+      string: {
+        asc: (a, b) => a[sortCol]?.toLowerCase()?.localeCompare(b[sortCol]?.toLowerCase()),
+        desc: (a, b) => b[sortCol]?.toLowerCase()?.localeCompare(a[sortCol]?.toLowerCase())
+      },
+      number: {
+        asc: (a, b) => a[sortCol] - b[sortCol],
+        desc: (a, b) => b[sortCol] - a[sortCol],
+      }
+    }
+
+    const dataType = ['title', 'rated'].includes(sortCol) ? 'string' : 'number';
+    return [...arr].sort(sortFunc[dataType][sortType]);
   }
 
   return (
@@ -80,17 +98,15 @@ export default function MyTable({ data }: { data: ExistingMediaInfo[] }) {
             </tr>
           </thead>
           <tbody>
-            {data.length === 0 ? <div>No Data</div> :
-              shallowSort(
-                data.filter(mediaInfo => searchTerm ? search(mediaInfo) : true)
-              )
-              // data.filter(mediaInfo => searchTerm ? search(mediaInfo) : true)
-              .map(mediaInfo => <TableRow
-                mediaInfo={mediaInfo}
-                keys={columns}
-                details={details}
-                key={mediaInfo.imdbId}
-              />)
+            {data.length === 0 ?
+              <tr><td colSpan={100} className='text-center py-8 text-sm'>No Data Found</td></tr> :
+              shallowSort(data.filter(search)).map(mediaInfo => (
+                <TableRow
+                  mediaInfo={mediaInfo}
+                  keys={columns}
+                  details={details}
+                  key={mediaInfo.imdbId}
+                />))
             }
           </tbody>
         </table>

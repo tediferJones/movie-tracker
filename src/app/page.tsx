@@ -34,11 +34,21 @@ import DefaultListManager from '@/components/defaultListManager';
 //   - This will be very useful later when we implement tables
 // - Add ScrollArea to root of document
 //   - Problem: scroll bar doesnt resize when page size changes
-// - Start building tables for displaying media info
-//   - Implement column sorting for strings and numbers
-//   - If we decide to go with our own table, 
-//     - uninstall shadcn-ui table and tanstack table
-//     - Delete src/components/table folder
+// - uninstall shadcn-ui table and tanstack table
+// - Delete src/components/table folder
+// - Create pages for people, genres, countries, languages, and all media
+// - Create home page dashboard
+//   - Show recently watched media
+//   - Show table for default list
+//     - Add selector to display any list
+//   - Add a sidebar with links to all list pages
+// Add component to display all reviews for mediaInfo display
+// Delete /api/users
+// Rework /api/lists
+//  - We should return all list names, hopefully in the same request
+//    - Problem: we need all listnames for mediaInfo and defaultLists components
+//  - If done properly we should be able to greatly simplify the useEffect call in listManager component
+// Clean up comments in /lists/[username]/[listname]/page.tsx
 
 export default function Home() {
   return (

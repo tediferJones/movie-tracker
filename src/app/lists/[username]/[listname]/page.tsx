@@ -14,11 +14,14 @@ export default function UserList({ params }: { params: { username: string, listn
   const [listContents, setListContents] = useState<ExistingMediaInfo[]>();
 
   useEffect(() => {
-    easyFetch<string[]>(`/api/users/${username}/lists/${listname}`, 'GET')
-      .then(listData => {
-        Promise.all(listData.map(async imdbId => easyFetch<ExistingMediaInfo>(`/api/media`, 'GET', { imdbId })))
-          .then(allMediaInfo => setListContents(allMediaInfo))
-      });
+    easyFetch<ExistingMediaInfo[]>('/api/lists', 'GET', { username, listname })
+      .then(data => setListContents(data))
+
+    // easyFetch<string[]>(`/api/users/${username}/lists/${listname}`, 'GET')
+    //   .then(listData => {
+    //     Promise.all(listData.map(async imdbId => easyFetch<ExistingMediaInfo>(`/api/media`, 'GET', { imdbId })))
+    //       .then(allMediaInfo => setListContents(allMediaInfo))
+    //   });
     // (async () => {
     //   const listData = await easyFetch<string[]>(`/api/users/${username}/lists/${listname}`, 'GET')
     //   const mediaInfo = await Promise.all(listData.map(

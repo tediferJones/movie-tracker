@@ -36,7 +36,12 @@ import DefaultListManager from '@/components/defaultListManager';
 //   - Problem: scroll bar doesnt resize when page size changes
 // - uninstall shadcn-ui table and tanstack table
 // - Delete src/components/table folder
-// - Create pages for people, genres, countries, languages, and all media
+// - Create pages for 
+//    people,
+//    [ DONE ] genres,
+//    [ DONE ] countries,
+//    [ DONE ] languages,
+//    [ DONE ] all media
 // - Create home page dashboard
 //   - Show recently watched media
 //   - Show table for default list
@@ -49,6 +54,10 @@ import DefaultListManager from '@/components/defaultListManager';
 //    - Problem: we need all listnames for mediaInfo and defaultLists components
 //  - If done properly we should be able to greatly simplify the useEffect call in listManager component
 // Clean up comments in /lists/[username]/[listname]/page.tsx
+// Consider extracting basicApi route to its own component
+// Consider adding mediaType column to table
+// Create user page (should be similar to home page dashboard)
+//   - Show all info related to this user like their lists, reviews, and watch records
 
 export default function Home() {
   return (

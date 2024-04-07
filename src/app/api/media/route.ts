@@ -48,7 +48,16 @@ const tableLinker: { [key: string]: any } = {
 
 export async function GET(req: Request) {
   const imdbId = new URL(req.url).searchParams.get('imdbId');
-  if (!imdbId) return NextResponse.json('Bad request', { status: 400 });
+
+  // If no imdbId is specified, return all media
+  if (!imdbId) {
+    return NextResponse.json(
+      await Promise.all(
+        (await db.select().from(media).all())
+          .map(async media => await getExistingMedia(media.imdbId, media))
+      )
+    )
+  }
 
   // await db.delete(media)
   // await db.delete(listnames)

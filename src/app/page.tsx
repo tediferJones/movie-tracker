@@ -1,4 +1,5 @@
 import DefaultListManager from '@/components/defaultListManager';
+import Link from 'next/link';
 
 // OLD NOTES
 // See .env file for omdb API key
@@ -34,14 +35,8 @@ import DefaultListManager from '@/components/defaultListManager';
 //   - This will be very useful later when we implement tables
 // - Add ScrollArea to root of document
 //   - Problem: scroll bar doesnt resize when page size changes
-// - uninstall shadcn-ui table and tanstack table
 // - Delete src/components/table folder
-// - Create pages for 
-//    people,
-//    [ DONE ] genres,
-//    [ DONE ] countries,
-//    [ DONE ] languages,
-//    [ DONE ] all media
+//   - uninstall shadcn-ui table and tanstack table
 // - Create home page dashboard
 //   - Show recently watched media
 //   - Show table for default list
@@ -58,11 +53,20 @@ import DefaultListManager from '@/components/defaultListManager';
 // Consider adding mediaType column to table
 // Create user page (should be similar to home page dashboard)
 //   - Show all info related to this user like their lists, reviews, and watch records
+// Add breadcrumbs, mainly useful for pages like genres and specific genre
 
 export default function Home() {
   return (
     <div className='w-4/5 m-auto'>
       <DefaultListManager />
+      <div className='flex flex-col gap-4'>
+        {/* Move these links into hamburger style dropdown menu and move to header */}
+        <Link href='/media'>media</Link>
+        <Link href='/genres'>genres</Link>
+        <Link href='/languages'>languages</Link>
+        <Link href='/countries'>countries</Link>
+        <Link href='/people'>people</Link>
+      </div>
     </div>
   );
 }

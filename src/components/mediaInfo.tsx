@@ -1,11 +1,13 @@
+import { Button } from '@/components/ui/button';
+
 import Link from 'next/link';
 import { Fragment, useEffect, useState } from 'react';
 import { ExistingMediaInfo, strIdxRawMedia } from '@/types';
 import Loading from '@/components/loading';
-import easyFetch from '@/lib/easyFetch';
 import SeasonDisplay from '@/components/seasonDisplay';
-import { Button } from '@/components/ui/button';
+import GetBreadcrumbs from '@/components/getBreadcrumbs';
 import { formatRuntime, fromCamelCase } from '@/lib/formatters';
+import easyFetch from '@/lib/easyFetch';
 
 export default function MediaInfo({ imdbId }: { imdbId: string }) {
   const [media, setMedia] = useState<ExistingMediaInfo>();
@@ -91,6 +93,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
   }
 
   return !media ? <Loading /> : <>
+    <GetBreadcrumbs links={{home: '/', media: '/media', [media.title]: `/media/${media.imdbId}`}}/>
     <div className='flex flex-wrap gap-4 md:flex-nowrap'>
       {media.poster ? <img className='m-auto showOutline' src={media.poster}/> : []}
       <div className='showOutline flex-1 flex w-auto flex-col justify-around p-4 text-lg'>

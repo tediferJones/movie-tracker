@@ -1,5 +1,6 @@
 'use client';
 
+import GetBreadcrumbs from '@/components/getBreadcrumbs';
 import Loading from '@/components/loading';
 import MyTable from '@/components/myTable/table';
 import easyFetch from '@/lib/easyFetch';
@@ -14,8 +15,10 @@ export default function Media() {
       .then(data => setMedia(data))
   }, [])
 
-  return !media ? <Loading /> :
-    <div className='w-4/5 m-auto mb-8'>
-      <MyTable data={media} />
+  return (
+    <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
+      <GetBreadcrumbs links={{ home: '/', media: '/media' }} />
+      {!media ? <Loading /> : <MyTable data={media} />}
     </div>
+  )
 }

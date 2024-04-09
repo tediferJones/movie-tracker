@@ -1,5 +1,4 @@
 import DefaultListManager from '@/components/defaultListManager';
-import Link from 'next/link';
 
 // OLD NOTES
 // See .env file for omdb API key
@@ -42,7 +41,6 @@ import Link from 'next/link';
 //   - Show table for default list
 //     - Add selector to display any list
 //   - Add a sidebar with links to all list pages
-// Add component to display all reviews for mediaInfo display
 // Delete /api/users
 // Rework /api/lists
 //  - We should return all list names, hopefully in the same request
@@ -53,20 +51,11 @@ import Link from 'next/link';
 // Consider adding mediaType column to table
 // Create user page (should be similar to home page dashboard)
 //   - Show all info related to this user like their lists, reviews, and watch records
-// Add breadcrumbs, mainly useful for pages like genres and specific genre
 
 export default function Home() {
   return (
     <div className='w-4/5 m-auto'>
       <DefaultListManager />
-      <div className='flex flex-col gap-4'>
-        {/* Move these links into hamburger style dropdown menu and move to header */}
-        <Link href='/media'>media</Link>
-        <Link href='/genres'>genres</Link>
-        <Link href='/languages'>languages</Link>
-        <Link href='/countries'>countries</Link>
-        <Link href='/people'>people</Link>
-      </div>
     </div>
   );
 }

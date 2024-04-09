@@ -11,12 +11,20 @@ export async function GET(req: Request) {
   const imdbId = new URL(req.url).searchParams.get('imdbId')
   if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
 
-  return NextResponse.json(
-    await db.select().from(reviews).where(and(
-      eq(reviews.username, user.username),
-      eq(reviews.imdbId, imdbId),
-    )).get() || null
-  )
+  const allReviews = await db.select().from(reviews).where(eq(reviews.imdbId, imdbId));
+  const myReviewIndex = allReviews.findIndex(rec => rec.username === user.username);
+  return NextResponse.json({
+    myReview: allReviews[myReviewIndex],
+    allReviews: myReviewIndex < 0 ? allReviews :
+      allReviews.slice(0, myReviewIndex).concat(allReviews.slice(myReviewIndex + 1))
+  })
+
+  // return NextResponse.json(
+  //   await db.select().from(reviews).where(and(
+  //     eq(reviews.username, user.username),
+  //     eq(reviews.imdbId, imdbId),
+  //   )).get() || null
+  // )
 }
 
 export async function POST(req: Request) {

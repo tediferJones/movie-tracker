@@ -1,12 +1,19 @@
 'use client';
 
-import Loading from "@/components/loading";
-import MyTable from "@/components/myTable/table";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import easyFetch from "@/lib/easyFetch";
-import { fromCamelCase } from "@/lib/formatters";
-import { ExistingMediaInfo } from "@/types";
-import { useEffect, useState } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from '@/components/ui/accordion';
+
+import GetBreadcrumbs from '@/components/getBreadcrumbs';
+import Loading from '@/components/loading';
+import MyTable from '@/components/myTable/table';
+import easyFetch from '@/lib/easyFetch';
+import { fromCamelCase } from '@/lib/formatters';
+import { ExistingMediaInfo } from '@/types';
+import { useEffect, useState } from 'react';
 
 type PersonMedia = { [key: string]: ExistingMediaInfo[] };
 
@@ -19,9 +26,11 @@ export default function Person({ params }: { params: { name: string } }) {
       .then(data => setPeopleMedia(data))
   }, [])
 
-  return !peopleMedia ? <Loading /> :
+  return (
     <div className='w-4/5 m-auto mb-8'>
+      <GetBreadcrumbs links={{home: '/', people: '/people', [name]: `/people/${name}`}}/>
       <div className='text-center text-2xl border-b py-4'>{name}</div>
+      {!peopleMedia ? <Loading /> :
       <Accordion type='single' collapsible>
         {['actor', 'director', 'writer'].map(position => {
           return (
@@ -35,6 +44,7 @@ export default function Person({ params }: { params: { name: string } }) {
             </AccordionItem>
           )
         })}
-      </Accordion>
+      </Accordion>}
     </div>
+  )
 }

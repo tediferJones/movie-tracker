@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 import easyFetch from '@/lib/easyFetch'
 import Loading from '@/components/loading';
 import { Trash2 } from 'lucide-react';
+import { ListsRes } from '@/types';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname'
@@ -22,45 +23,22 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const [allListnames, setAllListnames] = useState<string[]>();
 
   useEffect(() => {
-    // TESTING
-    easyFetch<{ listname: string, defaultList: boolean }[]>('/api/lists', 'GET', { imdbId })
-      .then(matchingLists => {
-        easyFetch<{ listname: string, defaultList: boolean }[]>('/api/listnames', 'GET')
-          .then(allLists => {
-            const existingListnames = matchingLists.map(list => list.listname);
-            const availableListnames = allLists.filter(list => !existingListnames.includes(list.listname)).map(list => list.listname)
-            const defaultList = allLists.find(list => list.defaultList)?.listname;
-            console.log('existing', existingListnames);
-            console.log('available', availableListnames);
-            console.log('default list', defaultList)
-            setMatchingLists(existingListnames)
-            setAllListnames(availableListnames)
-            if (defaultList && availableListnames.includes(defaultList)) {
-              console.log('setting default list', defaultList)
-              setCurrentList(defaultList)
-            } else {
-              console.log('auto select next list')
-              setCurrentList(availableListnames[0] || illegalListname)
-            }
-          })
+    easyFetch<ListsRes>('/api/lists', 'GET', { imdbId })
+      .then(data => {
+        console.log('lists res', data)
+        const { allListnames, containsImdbId, defaultList } = data
+        const availableLists = !containsImdbId || containsImdbId.length === 0 ? allListnames :
+          allListnames?.filter(listname => !containsImdbId.includes(listname))
+        setMatchingLists(containsImdbId)
+        setAllListnames(availableLists)
+        if (defaultList && availableLists?.includes(defaultList)) {
+          setCurrentList(defaultList)
+        }
+        setCurrentList(
+          defaultList && availableLists?.includes(defaultList) ? defaultList
+            : availableLists?.length ? availableLists[0] : illegalListname
+        )
       })
-
-    // OLD WORKING
-    // easyFetch<{ listname: string, defaultList: boolean }[]>('/api/lists', 'GET', { imdbId })
-    //   .then(data => {
-    //     console.log('lists for this movie', data)
-    //     setMatchingLists(data.map(record => record.listname))
-    //   })
-    // easyFetch<{ listname: string, defaultList: boolean }[]>('/api/listnames', 'GET')
-    //   .then(data => {
-    //     console.log('all lists', data)
-    //     setAllListnames(
-    //       data.map(record => {
-    //         if (record.defaultList) setCurrentList(record.listname)
-    //         return record.listname
-    //       })
-    //     )
-    //   });
   }, [refreshTrigger])
 
   return (
@@ -81,12 +59,14 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
             <div className='flex flex-col gap-4 overflow-y-auto'>
               {matchingLists.map(listname => <span key={listname} className='flex gap-2 justify-center'>
                 {listname}
-                <Trash2 className='text-red-700 min-h-6 min-w-6'
+                <button type='button'
                   onClick={() => {
                     easyFetch('/api/lists', 'DELETE', { imdbId, listname }, true)
                       .then(() => setRefreshTrigger(!refreshTrigger))
                   }}
-                />
+                >
+                  <Trash2 className='text-red-700 min-h-6 min-w-6' />
+                </button>
               </span>)}
             </div>
           </ScrollArea>

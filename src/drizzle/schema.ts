@@ -67,8 +67,8 @@ export const watched = sqliteTable('watched', {
 });
 
 export const reviews = sqliteTable('reviews', {
-  username: text('username'),
-  imdbId: text('imdbId').references(() => media.imdbId, { onDelete: 'cascade' }),
+  username: text('username').notNull(),
+  imdbId: text('imdbId').notNull().references(() => media.imdbId, { onDelete: 'cascade' }),
   watchAgain: integer('watchAgain', { mode: 'boolean' }),
   rating: integer('rating'),
   review: text('review'),

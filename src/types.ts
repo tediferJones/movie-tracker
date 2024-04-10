@@ -108,6 +108,13 @@ interface ExistingMediaInfo extends MediaSelect {
   writer: string[]
 }
 
+interface ListsRes {
+  allListnames?: string[],
+  containsImdbId?: string[],
+  allMediaInfo?: ExistingMediaInfo[],
+  defaultList?: string
+}
+
 export type { 
   ratingObj,
   strIdxRawMedia,
@@ -120,4 +127,5 @@ export type {
   newDefaultList,
   FormattedMediaInfo,
   ExistingMediaInfo,
+  ListsRes,
 }

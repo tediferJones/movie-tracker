@@ -1,4 +1,5 @@
 'use client';
+
 import {
   Select,
   SelectContent,
@@ -11,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react'
 import Loading from '@/components/loading';
 import easyFetch from '@/lib/easyFetch'
-// import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ListsRes } from '@/types';
 
 export default function DefaultListManager() {
   const [listnames, setListnames] = useState<string[]>();
@@ -20,31 +21,13 @@ export default function DefaultListManager() {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   useEffect(() => {
-    easyFetch<{ listname: string, defaultList: boolean }[]>('/api/listnames', 'GET')
-      .then(data => { 
-        console.log('all list names', data)
-        setListnames(
-          data.map(list => {
-            if (list.defaultList) setExistingDefaultList(list.listname)
-            return list.listname
-          })
-        )
-      });
+    easyFetch<ListsRes>('/api/lists', 'GET')
+      .then(data => {
+        console.log(data)
+        setListnames(data.allListnames)
+        setExistingDefaultList(data.defaultList)
+      })
   }, [refreshTrigger]);
-
-  // return !listnames ? <Loading /> :
-  //   <div className='showOutline'>
-  //     <h1 className='p-4'>List Ranker</h1>
-  //     <div className='showOutline'>{listnames.map((listname, i) => (
-  //       <div key={listname} className='flex p-4 gap-4'>
-  //         <span className='w-full'>{listname} {i}</span>
-  //         <ChevronUp onClick={() => {
-  //           // setListnames()
-  //         }}/>
-  //         <ChevronDown />
-  //       </div>
-  //     ))}</div>
-  //   </div>
 
   return (
     !listnames ? <Loading /> :

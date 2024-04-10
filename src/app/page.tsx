@@ -34,23 +34,23 @@ import DefaultListManager from '@/components/defaultListManager';
 //   - This will be very useful later when we implement tables
 // - Add ScrollArea to root of document
 //   - Problem: scroll bar doesnt resize when page size changes
-// - Delete src/components/table folder
-//   - uninstall shadcn-ui table and tanstack table
+// - Clean up types file, remove types from old version
+// - Consider extracting basicApi route to its own component
+// - Consider adding mediaType column to table
+// - Create mobile view for table
 // - Create home page dashboard
 //   - Show recently watched media
 //   - Show table for default list
 //     - Add selector to display any list
 //   - Add a sidebar with links to all list pages
-// Delete /api/users
-// Rework /api/lists
-//  - We should return all list names, hopefully in the same request
-//    - Problem: we need all listnames for mediaInfo and defaultLists components
-//  - If done properly we should be able to greatly simplify the useEffect call in listManager component
-// Clean up comments in /lists/[username]/[listname]/page.tsx
-// Consider extracting basicApi route to its own component
-// Consider adding mediaType column to table
-// Create user page (should be similar to home page dashboard)
+// - Create user page (should be similar to home page dashboard)
 //   - Show all info related to this user like their lists, reviews, and watch records
+// - Figure out how we're going to approach default lists
+//   - Do we want to have a ranking system?  So that we auto select highest ranked available list
+//   - Or do we stick with the easy method of having a single default list
+//   - Regardless, /api/lists needs to somehow return what the default list is
+// - Clean up comments in /api/lists
+// - Delete app/lists/[username]/[listname]/page.tsx if we think its not going to be used
 
 export default function Home() {
   return (

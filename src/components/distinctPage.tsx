@@ -34,12 +34,12 @@ export default function DistinctPage({ route }: { route: string }) {
             {distinct
               .filter(rec => rec[tableToCol[route]].toLowerCase().includes(searchTerm))
               .map((obj, i) => {
-              return <Link 
-                href={`/${route}/${obj[tableToCol[route]]}`}
-                key={obj[tableToCol[route]]}
-                className={`px-8 py-4 hover:underline hover:bg-secondary ${i < distinct.length - 1 ? 'border-b' : ''}`}
-              >{obj[tableToCol[route]]} ({ obj.count })</Link>
-            })}
+                return <Link 
+                  href={`/${route}/${obj[tableToCol[route]]}`}
+                  key={obj[tableToCol[route]]}
+                  className={`px-8 py-4 hover:underline hover:bg-secondary ${i < distinct.length - 1 ? 'border-b' : ''}`}
+                >{obj[tableToCol[route]]} {obj.count ? `(${ obj.count })` : ''}</Link>
+              })}
           </div>
         </>
       }

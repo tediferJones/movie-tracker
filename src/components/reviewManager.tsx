@@ -5,18 +5,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 
 import { useEffect, useState } from 'react';
-import easyFetch from '@/lib/easyFetch';
-import { reviews } from '@/drizzle/schema';
+import ReviewsDisplay from '@/components/reviewsDisplay';
 import Loading from '@/components/loading';
-
-type ReviewRecord = typeof reviews.$inferSelect;
+import easyFetch from '@/lib/easyFetch';
+import { ReviewsRes } from '@/types';
 
 export default function ReviewManager({ imdbId }: { imdbId: string }) {
-  const [existingReview, setExistingReview] = useState<ReviewRecord>();
+  const [existingReview, setExistingReview] = useState<ReviewsRes>();
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
   const [lockRating, setLockRating] = useState<boolean>(false);
   const [isHovering, setIsHovering] = useState<boolean>(false);
-  const [allReviews, setAllReviews] = useState<ReviewRecord[]>([]);
+  const [allReviews, setAllReviews] = useState<ReviewsRes[]>([]);
 
   const defaultReview = {
     username: null,
@@ -27,20 +26,12 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   }
 
   useEffect(() => {
-    easyFetch<{ myReview: ReviewRecord, allReviews: ReviewRecord[] }>('/api/reviews', 'GET', { imdbId })
+    easyFetch<{ myReview: ReviewsRes, allReviews: ReviewsRes[] }>('/api/reviews', 'GET', { imdbId })
       .then(data => {
         console.log('reviews', data)
         setAllReviews(data.allReviews)
         setExistingReview(data.myReview || defaultReview)
-        // setExistingReview(data ? data : {
-        //   username: null,
-        //   review: null,
-        //   rating: null,
-        //   watchAgain: null,
-        //   imdbId,
-        // })
-      }
-      )
+      })
   }, [refreshTrigger])
 
   return !existingReview ? <Loading /> :
@@ -135,20 +126,6 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
             .then(() => setRefreshTrigger(!refreshTrigger))
         }}>{existingReview.username ? 'Update' : 'Submit'} Review</Button>
       </div>
-      <div className='showOutline px-4 flex flex-col'>
-        {allReviews.length === 0 ? 'No Existing Reviews' : 
-          allReviews.map((review, i) => {
-            // return JSON.stringify(review)
-            return <div className={`flex flex-col gap-4 p-4 ${i < allReviews.length - 1 ? 'border-b' : ''}`} key={`review-${i}`}>
-              <div className='flex justify-between'>
-                <div>{review.username}</div>
-                <div>{review.watchAgain === null ? '' : `Would ${review.watchAgain ? '' : 'NOT'} watch again`}</div>
-                <div>{review.rating === null ? 'No Rating': review.rating / 20} / 5</div>
-              </div>
-              <div className='text-center'>{review.review}</div>
-            </div>
-          })
-        }
-      </div>
+      <ReviewsDisplay reviews={allReviews} />
     </>
 }

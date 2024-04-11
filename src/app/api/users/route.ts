@@ -9,12 +9,31 @@ async function getTitle(imdbId: string) {
 
 export async function GET(req: Request) {
   const username = new URL(req.url).searchParams.get('username')
-  if (!username) return NextResponse.json('Bad request', { status: 400 })
+
+  // if (!username) return NextResponse.json('Bad request', { status: 400 })
+  if (!username) {
+    // This is pretty egregious, but it works
+    // We should probably create a users table with a single column of username
+    return NextResponse.json(
+      [
+        await db.selectDistinct({ username: listnames.username }).from(listnames),
+        await db.selectDistinct({ username: reviews.username }).from(reviews),
+        await db.selectDistinct({ username: watched.username }).from(watched),
+      ]
+        .flat()
+        .map(rec => rec.username)
+        .reduce((newSet, username) => {
+          return newSet.includes(username) ? newSet : newSet.concat(username)
+        }, [] as string[])
+        .map(username => ({ username }))
+    )
+  }
+
   return NextResponse.json({
     listnames: (
       (await db.select().from(listnames).where(eq(listnames.username, username)))
         .map(rec => rec.listname)
-    ),
+    ).sort(),
     watched: (
       await Promise.all(
         (await db.select().from(watched).where(eq(watched.username, username)))
@@ -24,7 +43,7 @@ export async function GET(req: Request) {
             title: await getTitle(rec.imdbId),
           }))
       )
-    ).sort((a, b) => a.date - b.date),
+    ).sort((a, b) => b.date - a.date),
     reviews: (
       await Promise.all(
         (await db.select().from(reviews).where(eq(reviews.username, username)))

@@ -12,11 +12,11 @@ import { Input } from '@/components/ui/input';
 import { fromCamelCase } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 import TableRow from '@/components/myTable/tableRow';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 type SortType = 'asc' | 'desc';
 
-export default function MyTable({ data }: { data: ExistingMediaInfo[] }) {
+export default function MyTable({ data, children }: { data: ExistingMediaInfo[], children?: ReactNode }) {
   const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
   const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
 
@@ -61,6 +61,7 @@ export default function MyTable({ data }: { data: ExistingMediaInfo[] }) {
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex gap-4'>
+        {children}
         <Input placeholder={`Search by ${searchCol}`} 
           onChange={e => setSearchTerm(e.target.value)}
         />
@@ -69,7 +70,7 @@ export default function MyTable({ data }: { data: ExistingMediaInfo[] }) {
             <Button variant='outline'>{fromCamelCase(searchCol)}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className='w-56 max-h-[60vh] overflow-auto'>
-            <DropdownMenuLabel>Panel Position</DropdownMenuLabel>
+            <DropdownMenuLabel>Search column</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup value={searchCol} onValueChange={setSearchCol}>
               {['title', 'rated'].concat(details).filter(str => str).map(key => {

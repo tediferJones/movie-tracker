@@ -37,6 +37,8 @@ import DefaultListManager from '@/components/defaultListManager';
 // - Clean up types file, remove types from old version
 // - Consider extracting basicApi route to its own component
 // - Consider adding mediaType column to table
+// - Consider re-designing how we handle default lists
+//   - It might be nice if lists could be ranked, instead of just having a single default list
 // - Create mobile view for table
 // - Create home page dashboard
 //   - Show recently watched media
@@ -45,12 +47,13 @@ import DefaultListManager from '@/components/defaultListManager';
 //   - Add a sidebar with links to all list pages
 // - Create user page (should be similar to home page dashboard)
 //   - Show all info related to this user like their lists, reviews, and watch records
-// - Figure out how we're going to approach default lists
-//   - Do we want to have a ranking system?  So that we auto select highest ranked available list
-//   - Or do we stick with the easy method of having a single default list
-//   - Regardless, /api/lists needs to somehow return what the default list is
-// - Clean up comments in /api/lists
-// - Delete app/lists/[username]/[listname]/page.tsx if we think its not going to be used
+// - Clean up comments in 
+//   - /api/lists
+//   - /components/mediaInfo
+// - Add delete button to defaultListManager component
+//   - This should delete the entire list, in both tables listnames and lists
+// - Fix display for user page when there are no lists and/or watch records
+//   - See /users/fakeUsername2 for an example
 
 export default function Home() {
   return (

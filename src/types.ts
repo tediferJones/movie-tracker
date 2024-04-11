@@ -85,7 +85,7 @@ interface newDefaultList {
 // }
 
 // NEW TYPES
-import { countries, genres, languages, media, people } from '@/drizzle/schema';
+import { countries, genres, languages, media, people, reviews } from '@/drizzle/schema';
 
 interface strIdx  { [key: string]: any }
 
@@ -115,6 +115,17 @@ interface ListsRes {
   defaultList?: string
 }
 
+type ReviewSelect = typeof reviews.$inferSelect
+interface ReviewsRes extends ReviewSelect {
+  title?: string,
+}
+
+interface UserRes {
+  listnames: string[],
+  watched: { date: number, imdbId: string, title: string, }[],
+  reviews: ReviewsRes[],
+}
+
 export type { 
   ratingObj,
   strIdxRawMedia,
@@ -128,4 +139,6 @@ export type {
   FormattedMediaInfo,
   ExistingMediaInfo,
   ListsRes,
+  ReviewsRes,
+  UserRes,
 }

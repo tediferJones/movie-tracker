@@ -3,4 +3,5 @@ export const tableToCol : { [key: string]: string } = {
   countries: 'country',
   languages: 'language',
   people: 'name',
+  users: 'username',
 }

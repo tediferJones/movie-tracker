@@ -34,7 +34,7 @@ export default function DefaultListManager() {
       <form className='showOutline flex flex-col gap-4 p-4'
         onSubmit={(e) => {
           e.preventDefault();
-          easyFetch('/api/listnames', 'PUT', { listname: defaultListname }, true)
+          easyFetch('/api/lists', 'PUT', { listname: defaultListname }, true)
             .then(() => setRefreshTrigger(!refreshTrigger));
         }}
       >

@@ -49,29 +49,31 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
           }
         </div>
 
-        <div className='flex sm:flex-row flex-col gap-4'>
-          <div className='m-auto ml-0'>Watch Again?</div>
-          <Button variant='secondary'
-            className={`w-1/4 ${existingReview.watchAgain === true ? 'bg-green-600 hover:bg-green-500' : ''}`}
-            onClick={() => setExistingReview({
-              ...existingReview,
-              watchAgain: [null, false].includes(existingReview.watchAgain) ? true : null,
-            })}
-          >Watch Again</Button>
-          <Button variant='secondary'
-            className={`w-1/4 ${existingReview.watchAgain === false ? 'bg-red-600 hover:bg-red-500' : ''}`}
-            onClick={() => setExistingReview({
-              ...existingReview,
-              watchAgain: [null, true].includes(existingReview.watchAgain) ? false : null,
-            })}
-          >Not Worth It</Button>
+        <div className='flex sm:flex-row flex-col items-center gap-4'>
+          <div className='flex-1'>Watch Again?</div>
+          <div className='flex-1 flex flex-wrap gap-4'>
+            <Button variant='secondary'
+              className={`flex-1 ${existingReview.watchAgain === true ? 'bg-green-600 hover:bg-green-500' : ''}`}
+              onClick={() => setExistingReview({
+                ...existingReview,
+                watchAgain: [null, false].includes(existingReview.watchAgain) ? true : null,
+              })}
+            >Watch Again</Button>
+            <Button variant='secondary'
+              className={`flex-1 ${existingReview.watchAgain === false ? 'bg-red-600 hover:bg-red-500' : ''}`}
+              onClick={() => setExistingReview({
+                ...existingReview,
+                watchAgain: [null, true].includes(existingReview.watchAgain) ? false : null,
+              })}
+            >Not Worth It</Button>
+          </div>
         </div>
 
-        <div className='flex flex-wrap justify-between'>
+        <div className='flex flex-wrap justify-between gap-4'>
           <label className='my-auto'
             htmlFor='myRating'
           >Rating: </label>
-          <Input className='mx-4 p-2 showOutline w-min'
+          <Input className='p-2 showOutline w-min'
             name='myRating'
             id='myRating'
             value={((existingReview.rating || 0) / 20).toFixed(2)} 

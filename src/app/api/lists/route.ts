@@ -144,7 +144,18 @@ export async function DELETE(req: Request) {
   if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
 
   const { imdbId, listname } = await req.json();
-  if (!imdbId || !listname) return NextResponse.json('Bad request', { status: 400 })
+  if (!listname) return NextResponse.json('Bad request', { status: 400 })
+
+  if (!imdbId) {
+    // Table is setup so that this should automatically cascade the delete in lists table
+    await db.delete(listnames).where(
+      and(
+        eq(listnames.username, user.username),
+        eq(listnames.listname, listname),
+      )
+    );
+    return new NextResponse;
+  }
 
   await db.delete(lists).where(
     and(

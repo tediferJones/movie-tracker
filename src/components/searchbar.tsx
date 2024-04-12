@@ -50,7 +50,7 @@ export default function Searchbar() {
     <div className='m-auto flex w-4/5 justify-center py-4 gap-2'>
       <div className='relative flex w-full flex-col'>
         {!displaySearchResult ? [] : 
-          <div id='findMe' className='fixed left-0 top-0 h-[100vh] w-[100vw]' 
+          <div className='fixed left-0 top-0 h-[100vh] w-[100vw]' 
             onClick={() => setDisplaySearchResult(false)}>
           </div> 
         }
@@ -62,7 +62,7 @@ export default function Searchbar() {
           placeholder='Search...'
         />
         {/* Search Results area */}
-        <div className={`absolute top-12 flex w-full flex-col items-center ${displaySearchResult ? 'showOutline overflow-hidden' : ''}`}>
+        <div className={`absolute top-12 flex w-full flex-col items-center z-10 ${displaySearchResult && searchTerm ? 'showOutline overflow-hidden' : ''}`}>
           {!displaySearchResult ? [] : searchResult.Search.map((item: omdbSearchResult) => {
             return (
               <Link href={`/media/${item.imdbID}`} className='flex w-full flex-wrap bg-gray-700 p-2 rounded-none'

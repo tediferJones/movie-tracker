@@ -29,7 +29,7 @@ export default async function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              {['media', 'people', 'genres', 'countries', 'languages', 'users'].map((category, i, arr) => {
+              {['media', 'users', 'people', 'genres', 'countries', 'languages'].map((category, i, arr) => {
                 return (
                   <Fragment key={category}>
                     <DropdownMenuItem asChild>

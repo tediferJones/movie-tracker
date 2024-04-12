@@ -42,7 +42,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   }, [refreshTrigger])
 
   return (
-    <form className='w-1/2 flex flex-col justify-between gap-4 text-center p-4 showOutline'
+    <form className='flex flex-col justify-between gap-4 text-center p-4 showOutline sm:flex-1 sm:w-auto w-full max-h-[60vh]'
       onSubmit={e => {
         e.preventDefault();
         easyFetch('/api/lists', 'POST', {

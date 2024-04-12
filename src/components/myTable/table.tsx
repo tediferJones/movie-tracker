@@ -15,6 +15,11 @@ import TableRow from '@/components/myTable/tableRow';
 import { ReactNode, useState } from 'react';
 
 type SortType = 'asc' | 'desc';
+type SortFuncs = {
+  [key in 'string' | 'number']: {
+    [key in SortType]: (a: ExistingMediaInfo, b: ExistingMediaInfo) => number
+  }
+}
 
 export default function MyTable({ data, children }: { data: ExistingMediaInfo[], children?: ReactNode }) {
   const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
@@ -32,12 +37,6 @@ export default function MyTable({ data, children }: { data: ExistingMediaInfo[],
       return mediaInfo[searchCol].toLowerCase().includes(searchTerm.toLowerCase()) 
     }
     return mediaInfo[searchCol].some((str: string) => str.toLowerCase().includes(searchTerm.toLowerCase()))
-  }
-
-  type SortFuncs = {
-    [key in 'string' | 'number']: {
-      [key in SortType]: (a: ExistingMediaInfo, b: ExistingMediaInfo) => number
-    }
   }
 
   function shallowSort(arr: ExistingMediaInfo[]): ExistingMediaInfo[] {

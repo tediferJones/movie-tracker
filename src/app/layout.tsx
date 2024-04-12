@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { ThemeProvider } from '@/components/theme-provider';
 import { ClerkProvider } from '@clerk/nextjs';
+import ThemeProvider from '@/components/theme-provider';
 import Header from '@/components/header';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import '@/app/globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -18,8 +19,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <html lang='en' suppressHydrationWarning>
         <body className={inter.className}>
           <ThemeProvider attribute='class'>
-            <Header />
-            {children}
+            <ScrollArea type='auto' className='h-screen'>
+              <Header />
+              {children}
+            </ScrollArea>
           </ThemeProvider>
         </body>
       </html>

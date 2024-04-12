@@ -1,4 +1,6 @@
 import DefaultListManager from '@/components/defaultListManager';
+import UserPage from '@/components/userPage';
+import { currentUser } from '@clerk/nextjs/server';
 
 // OLD NOTES
 // See .env file for omdb API key
@@ -21,44 +23,31 @@ import DefaultListManager from '@/components/defaultListManager';
 // - Copy basic manifest from password-manager, better to have this setup as early as possible
 // - Work on simplifying searchbar
 // - Make sure api always fetches long form of plot
-// - Get lists working
-//   - Delete default list and listnames api routes, they shouldnt be needed any longer
-//   - Delete listnames component if it is not used
-// - Create UserLists component
-//  - List all existing lists with links to each list's page
-//  - Also allow user to set their default list here
-//    - Store default list value in clerk public user info
 // - Add input validation for client and server
-// - Double check reviewManager works as intended
-// - Add formatter module to src/lib, move formatters from mediaInfo to this new file
-//   - This will be very useful later when we implement tables
-// - Add ScrollArea to root of document
-//   - Problem: scroll bar doesnt resize when page size changes
 // - Clean up types file, remove types from old version
 // - Consider extracting basicApi route to its own component
 // - Consider adding mediaType column to table
+// - Create mobile view for table
 // - Consider re-designing how we handle default lists
 //   - It might be nice if lists could be ranked, instead of just having a single default list
-// - Create mobile view for table
-// - Create home page dashboard
-//   - Show recently watched media
-//   - Show table for default list
-//     - Add selector to display any list
-//   - Add a sidebar with links to all list pages
-// - Create user page (should be similar to home page dashboard)
-//   - Show all info related to this user like their lists, reviews, and watch records
 // - Clean up comments in 
 //   - /api/lists
 //   - /components/mediaInfo
-// - Add delete button to defaultListManager component
-//   - This should delete the entire list, in both tables listnames and lists
-// - Fix display for user page when there are no lists and/or watch records
-//   - See /users/fakeUsername2 for an example
+// - Add footer for omdb attribution
+// - Clean up extranious comments and console.log statements
+// - Work through lighthouse issues on larger pages
+//   - i.e. user page, media page and media table page
+// - Move trashcan icon in listManager to far right side
+//   - This should mimic watchManager and defaultListManager
 
-export default function Home() {
+export default async function Home() {
+  const user = await currentUser();
   return (
-    <div className='w-4/5 m-auto'>
-      <DefaultListManager />
-    </div>
+    !user?.username ? <div>Error you're not logged in</div> :
+      <div className='w-4/5 m-auto flex flex-col gap-4 mb-8'>
+        <UserPage username={user.username}>
+          <DefaultListManager />
+        </UserPage>
+      </div>
   );
 }

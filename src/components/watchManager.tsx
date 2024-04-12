@@ -19,7 +19,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
   }, [refreshTrigger])
 
   return (
-    <div className='flex w-1/2 flex-col justify-between gap-4 p-4 text-center showOutline'>
+    <div className='flex flex-col justify-between gap-4 p-4 text-center showOutline sm:flex-1 sm:w-auto w-full max-h-[60vh]'>
       <h1 className='text-xl'>Watch Manager</h1>
       {!watched ? <Loading /> : 
         <ScrollArea type='auto'>

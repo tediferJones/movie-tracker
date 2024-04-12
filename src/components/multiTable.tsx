@@ -27,9 +27,9 @@ export default function MultiTable({ listnames, username }: { listnames: string[
   }, [currentList])
 
   return !listData ? <Loading /> :
-    <div className='showOutline p-4 pr-2'>
+    <div className='showOutline p-2'>
       <ScrollArea type='auto'>
-        <div className='max-h-[90vh] mr-4'>
+        <div className='max-h-[90vh] m-2 pr-2'>
           <MyTable data={listData}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

@@ -35,45 +35,48 @@ export default function DefaultListManager() {
   }, [refreshTrigger]);
 
   return (
-    !listnames ? <Loading /> :
-      <form className='showOutline flex flex-col justify-between gap-4 p-4 sm:flex-1 w-full sm:w-auto max-h-[60vh]'
-        onSubmit={(e) => {
-          e.preventDefault();
-          easyFetch('/api/lists', 'PUT', { listname: defaultListname }, true)
-            .then(() => setRefreshTrigger(!refreshTrigger));
-        }}
-      >
-        <div className='text-center text-xl'>Default: {existingDefaultList || 'No default list found'}</div>
-        <ScrollArea type='auto' className='max-h-fit'>
-          <div className='flex flex-col gap-4'>
-            {listnames.map(listname => <span key={listname} className='flex gap-2 justify-center px-4'>
-              <Link className='w-full text-center hover:underline'
-                href={`/users/${username}/${listname}`}
-              >{listname}</Link>
-              <button type='button'
-                onClick={() => {
-                  easyFetch('/api/lists', 'DELETE', { listname }, true)
-                    .then(() => setRefreshTrigger(!refreshTrigger))
-                }}
-              >
-                <Trash2 className='text-red-700 min-h-6 min-w-6' />
-              </button>
-            </span>)}
-          </div>
-        </ScrollArea>
-        <Select value={defaultListname} onValueChange={setDefaultListname}>
-          <SelectTrigger>
-            <SelectValue placeholder='New default list'/>
-          </SelectTrigger>
-          <SelectContent>
-            {listnames.map(listname => (
-              <SelectItem key={listname} value={listname}>
-                {listname}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button>Set default list</Button>
-      </form>
+    <form className='showOutline flex flex-col justify-between gap-4 p-4 sm:flex-1 w-full sm:w-auto max-h-[60vh]'
+      onSubmit={(e) => {
+        e.preventDefault();
+        easyFetch('/api/lists', 'PUT', { listname: defaultListname }, true)
+          .then(() => setRefreshTrigger(!refreshTrigger));
+      }}
+    >
+      {!listnames ? <Loading /> :
+        <>
+          <div className='text-center text-xl'>Default: {existingDefaultList || 'No default list found'}</div>
+          <ScrollArea type='auto' className='max-h-fit'>
+            <div className='flex flex-col gap-4'>
+              {listnames.map(listname => <span key={listname} className='flex gap-2 justify-center px-4'>
+                <Link className='w-full text-center hover:underline'
+                  href={`/users/${username}/${listname}`}
+                >{listname}</Link>
+                <button type='button'
+                  onClick={() => {
+                    easyFetch('/api/lists', 'DELETE', { listname }, true)
+                      .then(() => setRefreshTrigger(!refreshTrigger))
+                  }}
+                >
+                  <Trash2 className='text-red-700 min-h-6 min-w-6' />
+                </button>
+              </span>)}
+            </div>
+          </ScrollArea>
+          <Select value={defaultListname} onValueChange={setDefaultListname}>
+            <SelectTrigger>
+              <SelectValue placeholder='New default list'/>
+            </SelectTrigger>
+            <SelectContent>
+              {listnames.map(listname => (
+                <SelectItem key={listname} value={listname}>
+                  {listname}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button>Set default list</Button>
+        </>
+      }
+    </form>
   )
 }

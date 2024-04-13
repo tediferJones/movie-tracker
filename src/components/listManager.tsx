@@ -14,9 +14,12 @@ import easyFetch from '@/lib/easyFetch'
 import Loading from '@/components/loading';
 import { Trash2 } from 'lucide-react';
 import { ListsRes } from '@/types';
+import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname'
+  const username = useUser().user?.username;
   const [matchingLists, setMatchingLists] = useState<string[]>();
   const [currentList, setCurrentList] = useState<string>(illegalListname);
   const [refreshTrigger, setRefreshTrigger] = useState(false);
@@ -57,8 +60,10 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         !matchingLists.length ? 'No records found' :
           <ScrollArea type='auto'>
             <div className='flex flex-col gap-4 overflow-y-auto'>
-              {matchingLists.map(listname => <span key={listname} className='flex gap-2 justify-center'>
-                {listname}
+              {matchingLists.map(listname => <span key={listname} className='flex gap-2 justify-center px-4'>
+                <Link className='w-full text-center hover:underline'
+                  href={`/users/${username}/${listname}`}
+                >{listname}</Link>
                 <button type='button'
                   onClick={() => {
                     easyFetch('/api/lists', 'DELETE', { imdbId, listname }, true)

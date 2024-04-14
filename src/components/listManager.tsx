@@ -16,19 +16,19 @@ import { Trash2 } from 'lucide-react';
 import { ListsRes } from '@/types';
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
+import { inputValidation } from '@/lib/inputValidation';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname'
   const username = useUser().user?.username;
   const [matchingLists, setMatchingLists] = useState<string[]>();
   const [currentList, setCurrentList] = useState<string>(illegalListname);
-  const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [allListnames, setAllListnames] = useState<string[]>();
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   useEffect(() => {
     easyFetch<ListsRes>('/api/lists', 'GET', { imdbId })
       .then(data => {
-        console.log('lists res', data)
         const { allListnames, containsImdbId, defaultList } = data
         const availableLists = !containsImdbId || containsImdbId.length === 0 ? allListnames :
           allListnames?.filter(listname => !containsImdbId.includes(listname))
@@ -95,8 +95,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
             name='newListname'
             placeholder='New listname'
             pattern={`^(?!${illegalListname}$).*$`}
-            required
-            maxLength={32}
+            {...inputValidation.listname}
           />
         }
         <Button type='submit'>Add to List</Button>

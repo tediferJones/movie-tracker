@@ -3,6 +3,7 @@ import { currentUser } from '@clerk/nextjs';
 import { db } from '@/drizzle/db';
 import { reviews } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
+import { isValid } from '@/lib/inputValidation';
 
 export async function GET(req: Request) {
   const user = await currentUser();
@@ -18,13 +19,6 @@ export async function GET(req: Request) {
     allReviews: myReviewIndex < 0 ? allReviews :
       allReviews.slice(0, myReviewIndex).concat(allReviews.slice(myReviewIndex + 1))
   })
-
-  // return NextResponse.json(
-  //   await db.select().from(reviews).where(and(
-  //     eq(reviews.username, user.username),
-  //     eq(reviews.imdbId, imdbId),
-  //   )).get() || null
-  // )
 }
 
 export async function POST(req: Request) {
@@ -32,8 +26,11 @@ export async function POST(req: Request) {
   if (!user?.username) return NextResponse.json('Unauthorized', { status: 401 })
 
   const { imdbId, review, rating, watchAgain } = await req.json();
-  console.log(imdbId, review, rating, watchAgain)
   if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
+
+  if (review && !isValid({ review }) || rating && !isValid({ rating })) {
+    return NextResponse.json('inputs are not valid', { status: 422 })
+  }
 
   await db.insert(reviews).values({
     username: user.username,
@@ -52,6 +49,10 @@ export async function PUT(req: Request) {
 
   const { imdbId, review, rating, watchAgain } = await req.json();
   if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
+
+  if (review && !isValid({ review }) || rating && !isValid({ rating })) {
+    return NextResponse.json('inputs are not valid', { status: 422 })
+  }
 
   await db.update(reviews).set({ review, rating, watchAgain }).where(
     and(

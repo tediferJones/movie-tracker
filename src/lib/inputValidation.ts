@@ -10,11 +10,7 @@ export const inputValidation: InputValidation = {
 }
 
 const validationTests: { [key: string]: (val: string | number, constraint: any) => boolean } = {
-  // required: (val) => !!val || val === 0,
-  maxLength: (val, constraint) => {
-    console.log(val, !!val)
-    return !!val && val.toString().length <= constraint
-  },
+  maxLength: (val, constraint) => !!val && val.toString().length <= constraint,
   min: (val, constraint) => val >= constraint,
   max: (val, constraint) => val <= constraint,
 }
@@ -32,7 +28,6 @@ export function isValid(inputObj: { [key: string]: any }) {
     return constraints
       .filter(constraint => constraint !== 'required')
       .every(constraintType => {
-        console.log(input, constraintType)
         return validationTests[constraintType](
           inputObj[input],
           inputValidation[input][constraintType],
@@ -40,13 +35,3 @@ export function isValid(inputObj: { [key: string]: any }) {
       })
   })
 }
-
-console.log('TESTING')
-console.log(
-  isValid({
-    // listname: ';lkajsdf;lkajsdl;fkajsd;flkjasdflkajsdlfkjasdlfkja;sdlkfjas;ldkfja;slkdfj;asldkfj;asldkfja;sldkfj;alskdjf',
-    listname: 'hello',
-    review: null,
-    rating: 0,
-  })
-)

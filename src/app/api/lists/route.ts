@@ -4,6 +4,7 @@ import { db } from '@/drizzle/db';
 import { listnames, lists } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 import getExistingMedia from '@/lib/getExistingMedia';
+import { isValid } from '@/lib/inputValidation';
 
 export async function GET(req: Request) {
   const user = await currentUser();
@@ -13,6 +14,10 @@ export async function GET(req: Request) {
   const username = searchParams.get('username');
   const imdbId = searchParams.get('imdbId');
   const listname = searchParams.get('listname');
+  
+  if (listname && !isValid({ listname })) {
+    return NextResponse.json('inputs are not valid', { status: 422 })
+  }
 
   // We need to be able to do a few things:
   //  - Return all list names
@@ -48,48 +53,7 @@ export async function GET(req: Request) {
       ).get()
     )?.listname,
   })
-
-  // const imdbId = searchParams.get('imdbId');
-  // if (imdbId) {
-  //   return NextResponse.json(
-  //     await db.select().from(lists).where(
-  //       and(
-  //         eq(lists.username, user.username),
-  //         eq(lists.imdbId, imdbId),
-  //       )
-  //     )
-  //   )
-  // }
-
-  // const listname = searchParams.get('listname');
-  // const username = searchParams.get('username');
-  // if (listname && username) {
-  //   return NextResponse.json(
-  //     await Promise.all(
-  //       (await db.select().from(lists).where(
-  //         and(
-  //           eq(lists.username, username),
-  //           eq(lists.listname, listname),
-  //         )
-  //       )).map(async rec => await getExistingMedia(rec.imdbId))
-  //     )
-  //   )
-  // }
-
-  // return NextResponse.json('Bad request', { status: 400 });
 }
-
-// const imdbId = new URL(req.url).searchParams.get('imdbId')
-// if (!imdbId) return NextResponse.json('Bad request', { status: 400 })
-
-// return NextResponse.json(
-//   await db.select().from(lists).where(
-//     and(
-//       eq(lists.username, user.username),
-//       eq(lists.imdbId, imdbId),
-//     )
-//   )
-// )
 
 export async function POST(req: Request) {
   const user = await currentUser();
@@ -97,6 +61,9 @@ export async function POST(req: Request) {
 
   const { imdbId, listname } = await req.json();
   if (!imdbId || !listname) return NextResponse.json('Bad request', { status: 400 })
+
+  const valid = isValid({ listname })
+  if (!valid) return NextResponse.json('inputs are not valid', { status: 422 })
 
   const listExists = await db.select().from(listnames).where(
     and(
@@ -128,6 +95,9 @@ export async function PUT(req: Request) {
   const { listname } = await req.json();
   if (!listname) return NextResponse.json('Bad request', { status: 400 })
 
+  const valid = isValid({ listname })
+  if (!valid) return NextResponse.json('inputs are not valid', { status: 422 })
+
   await db.update(listnames).set({ defaultList: false }).where(eq(listnames.username, user.username))
   await db.update(listnames).set({ defaultList: true }).where(
     and(
@@ -145,6 +115,9 @@ export async function DELETE(req: Request) {
 
   const { imdbId, listname } = await req.json();
   if (!listname) return NextResponse.json('Bad request', { status: 400 })
+
+  const valid = isValid({ listname })
+  if (!valid) return NextResponse.json('inputs are not valid', { status: 422 })
 
   if (!imdbId) {
     // Table is setup so that this should automatically cascade the delete in lists table

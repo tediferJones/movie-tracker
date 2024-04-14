@@ -9,6 +9,7 @@ import ReviewsDisplay from '@/components/reviewsDisplay';
 import Loading from '@/components/loading';
 import easyFetch from '@/lib/easyFetch';
 import { ReviewsRes } from '@/types';
+import { inputValidation } from '@/lib/inputValidation';
 
 export default function ReviewManager({ imdbId }: { imdbId: string }) {
   const [existingReview, setExistingReview] = useState<ReviewsRes>();
@@ -121,7 +122,8 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
           })}
           rows={4}
           placeholder='Write Your Review Here'
-        ></Textarea>
+          {...inputValidation.review}
+        />
 
         <Button onClick={() => {
           easyFetch('/api/reviews', existingReview.username ? 'PUT' : 'POST', existingReview, true)

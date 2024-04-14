@@ -17,7 +17,7 @@ export default function GetBreadcrumbs({ links }: { links: { [key: string]: stri
   ]
 
   return (
-    <Breadcrumb>
+    <Breadcrumb className='px-2'>
       <BreadcrumbList>
         {keys.map((key, i) => {
           return (

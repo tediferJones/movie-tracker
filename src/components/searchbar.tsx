@@ -37,18 +37,21 @@ export default function Searchbar() {
         searchType, 
         queryTerm: 's', 
         queryType: 'type',
-      }).then(data => {
-          console.log('SEARCH RESULTS', data)
-          data.Response === 'True' ? setSearchResult(data) : setSearchResult(defaultState);
-        })
+      }).then(data => 
+          setSearchResult(data.Response === 'True' ? data : defaultState)
+        )
     }, 1000);
 
     return () => clearTimeout(delaySetState);
   }, [searchTerm, searchType])
 
+  let test: NodeJS.Timeout;
   return (
     <div className='m-auto flex w-4/5 justify-center py-4 gap-2'>
-      <div className='relative flex w-full flex-col'>
+      <div className='relative flex w-full flex-col'
+        onBlur={() => test = setTimeout(() => setDisplaySearchResult(false), 100)}
+        onFocus={() => clearTimeout(test)}
+      >
         {!displaySearchResult ? [] : 
           <div className='fixed left-0 top-0 h-[100vh] w-[100vw]' 
             onClick={() => setDisplaySearchResult(false)}>
@@ -63,9 +66,10 @@ export default function Searchbar() {
         />
         {/* Search Results area */}
         <div className={`absolute top-12 flex w-full flex-col items-center z-10 ${displaySearchResult && searchTerm ? 'showOutline overflow-hidden' : ''}`}>
-          {!displaySearchResult ? [] : searchResult.Search.map((item: omdbSearchResult) => {
+          {!displaySearchResult ? [] : searchResult.Search.map((item: omdbSearchResult, i) => {
             return (
-              <Link href={`/media/${item.imdbID}`} className='flex w-full flex-wrap bg-gray-700 p-2 rounded-none'
+              <Link className={`flex w-full flex-wrap bg-secondary p-2 rounded-none ${i > 0 ? 'border-t border-primary' : ''}`}
+                href={`/media/${item.imdbID}`}
                 key={item.imdbID}
                 onClick={(e) => e.ctrlKey ? undefined : setDisplaySearchResult(false)}
               > <p className='m-auto flex-[2]'>{item.Title}</p>
@@ -76,21 +80,6 @@ export default function Searchbar() {
         </div>
       </div>
       {/* Selector for media type */}
-      {/*
-      <select className='cursor-pointer p-2 colorPrimary'
-        value={searchType} 
-        onChange={(e) => {
-          setSearchResult(defaultState)
-          setSearchType(e.target.value)
-        }}
-      > {['Movie', 'Series', 'Game'].map((searchTerm) => {
-          return <option
-            key={searchTerm}
-            value={searchTerm.toLowerCase()}
-          >{searchTerm}</option>
-        })}
-      </select>
-      */}
       <Select
         defaultValue={searchType}
         onValueChange={(val) => {

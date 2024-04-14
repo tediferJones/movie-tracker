@@ -20,31 +20,24 @@ import { currentUser } from '@clerk/nextjs/server';
 
 // TO-DO
 //
-// - Copy basic manifest from password-manager, better to have this setup as early as possible
 // - Work on simplifying searchbar
 // - Make sure api always fetches long form of plot
-// - Clean up types file, remove types from old version
 // - Consider extracting basicApi route to its own component
-// - Consider adding mediaType column to table
-// - Create mobile view for table
 // - Consider re-designing how we handle default lists
 //   - It might be nice if lists could be ranked, instead of just having a single default list
+// - Clean up types file, remove types from old version
+// - Delete src/old-components
 // - Clean up extraneous comments and console.log statements
 //   - Clean up comments in 
 //     - /api/lists
 //     - /components/mediaInfo
+//     - /api/listnames (delete the whole file)
+//     - src/app/globals.css
 // - Work through lighthouse issues on larger pages
 //   - i.e. user page, media page and media table page
-// - Add a theme for shadcn-ui, probably the default blue theme
-// - Add input validation for client and server
-//   - Where do we accept user inputs that are sent to the server?
-//     - listname
-//     - review
-//     - rating
-//   - What api routes need validation?
-//     /api/lists PUT and POST
-//     /api/reviews PUT and POST
-// Delete src/old-components
+// - Copy basic manifest from password-manager, better to have this setup as early as possible
+// - Consider adding mediaType column to table
+// - Create mobile view for table
 
 export default async function Home() {
   const user = await currentUser();

@@ -53,7 +53,7 @@ export default function SeasonDisplay({
 
   function getAccordion(seasonInfo: SeasonResponse) {
     return <AccordionItem value={`season-${seasonInfo.Season}`} key={`season-${seasonInfo.Season}`}>
-      <AccordionTrigger className='px-4'>Season {seasonInfo.Season}</AccordionTrigger>
+      <AccordionTrigger className='px-4'>Season {seasonInfo.Season} ({seasonInfo.Episodes.length})</AccordionTrigger>
       <AccordionContent className='pb-0'>
         {seasonInfo.Episodes.map(episode => {
           return <Fragment key={episode.imdbID}>

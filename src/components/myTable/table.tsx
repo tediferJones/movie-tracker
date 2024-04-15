@@ -7,12 +7,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { fromCamelCase } from '@/lib/formatters';
-import { ExistingMediaInfo } from '@/types';
-import TableRow from '@/components/myTable/tableRow';
+
 import { ReactNode, useState } from 'react';
+import Link from 'next/link';
+import TableRow from '@/components/myTable/tableRow';
+import GetLinks from '@/components/getLinks';
+import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
+import { ExistingMediaInfo } from '@/types';
 
 type SortType = 'asc' | 'desc';
 type SortFuncs = {
@@ -57,6 +66,10 @@ export default function MyTable({ data, children }: { data: ExistingMediaInfo[],
     return [...arr].sort(sortFunc[dataType][sortType]);
   }
 
+  function formatCell(key: string, val: any) {
+    return val ? 'N/A' : getKeyFormatter[key] ? getKeyFormatter[key](val) : val
+  }
+
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex gap-4'>
@@ -79,7 +92,7 @@ export default function MyTable({ data, children }: { data: ExistingMediaInfo[],
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className='showOutline overflow-x-auto'>
+      <div className='showOutline overflow-x-auto hidden sm:table'>
         <table className='w-full'>
           <thead>
             <tr>
@@ -111,6 +124,71 @@ export default function MyTable({ data, children }: { data: ExistingMediaInfo[],
           </tbody>
         </table>
       </div>
+
+      {/* Mobile View */}
+      <div className='p-2 sm:hidden showOutline flex gap-2'>
+        <span className='flex justify-center items-center text-center border-r pr-2'>Sort By</span>
+        <div className='flex flex-wrap justify-center gap-2'>
+          {columns.filter(col => col).map(col => {
+            return (
+              <button className={`flex-1 rounded-md text-muted-foreground p-2 ${col === '' ? '' : sortCol !== col ? '' : sortType === 'asc' ? 'bg-secondary' : 'bg-neutral-800'}`}
+                key={col}
+                onClick={() => {
+                  console.log(sortCol, sortType)
+                  if (col !== sortCol) return setSortCol(col)
+                  if (sortType === 'desc') setSortCol('')
+                  setSortType(sortType === 'asc' ? 'desc' : 'asc')
+                }}>{fromCamelCase(col)}</button>
+            )
+          })}
+        </div>
+      </div>
+      <Accordion type='multiple' className='block sm:hidden'>
+        {shallowSort(data.filter(search)).map(mediaInfo => {
+          return (
+            <AccordionItem value={mediaInfo.imdbId} key={mediaInfo.imdbId}>
+              <AccordionTrigger className='hover:no-underline px-2 flex gap-2'>
+                <div className='flex flex-col gap-2 w-full'>
+                  <Link className='w-fit m-auto' href={`/media/${mediaInfo.imdbId}`}>
+                    {mediaInfo.title}
+                  </Link>
+                  <div className='flex gap-4 justify-between'>
+                    {['rated', 'startYear', 'runtime'].map(key => (
+                      <div className='flex-1 text-center'
+                        key={`${mediaInfo.imdbId}-${key}`}
+                      >
+                        {!mediaInfo[key] ? 'N/A' :
+                          getKeyFormatter[key] ? getKeyFormatter[key](mediaInfo[key]) : mediaInfo[key]
+                        }
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className='flex flex-col gap-2'>
+                <div className='flex justify-between px-2'>
+                  {['imdbRating', 'tomatoRating', 'metaRating'].map(key => (
+                    <div className='flex flex-wrap gap-1 justify-center items-center'
+                      key={`${mediaInfo.imdbId}-${key}`}
+                    >
+                      <span>{fromCamelCase(key)}:</span>
+                      <span>{getKeyFormatter[key](mediaInfo[key])}</span>
+                    </div>
+                  ))}
+                </div>
+                {details.map(key => (
+                  <div className='grid grid-cols-4' key={`${mediaInfo.imdbId}-${key}`}>
+                    <span className='col-span-1 text-center m-auto'>{fromCamelCase(key)}:</span>
+                    <div className='col-span-3 text-center'>
+                      <GetLinks type={key} arr={mediaInfo[key]}/>
+                    </div>
+                  </div>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          )
+        })}
+      </Accordion>
     </div>
   )
 }

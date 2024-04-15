@@ -5,7 +5,7 @@ import MyTable from '@/components/myTable/table';
 import GetBreadcrumbs from '@/components/getBreadcrumbs';
 import easyFetch from '@/lib/easyFetch';
 import { fromCamelCase } from '@/lib/formatters';
-import { tableToCol } from '@/lib/tableToCol';
+import { tableToCol } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 import { useEffect, useState } from 'react';
 

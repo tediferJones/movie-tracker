@@ -8,6 +8,7 @@ import SeasonDisplay from '@/components/seasonDisplay';
 import GetBreadcrumbs from '@/components/getBreadcrumbs';
 import { formatRuntime, fromCamelCase } from '@/lib/formatters';
 import easyFetch from '@/lib/easyFetch';
+import GetLinks from './getLinks';
 
 export default function MediaInfo({ imdbId }: { imdbId: string }) {
   const [media, setMedia] = useState<ExistingMediaInfo>();
@@ -33,37 +34,12 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
       })
   }, [refreshTrigger]);
 
-  // function formatTime(mins: number) {
-  //   const hours = Math.floor(mins / 60)
-  //   return `${hours ? `${hours}h` : ''}${mins % 60}m`
-  // }
-
   function formatSeason(n: number) {
     const str = n.toString();
     return n > 10 ? str : '0' + str 
   }
 
-  // function fromCamelCase(str: string, isPlural?: boolean) {
-  //   if (str === 'seriesId') return 'Series'
-  //   return str.split('').reduce((str, char, i) => {
-  //     if (i === 0) return char.toUpperCase();
-  //     if ('A' <= char && char <= 'Z') return `${str} ${char}`;
-  //     return str + char;
-  //   }, '') + (isPlural ? 's' : '')
-  // }
-
-  function getLinks(arr: string[], urlParam: string) {
-    return arr.map((person: string, i: number, arr: string[]) => {
-      return <Fragment key={`${urlParam}-${person}`}>
-        <Link href={`/${urlParam}/${person}`}
-          className='underline'
-        >{person}</Link>
-        {i + 1 < arr.length ? ', ' : ''}
-      </Fragment>
-    })
-  }
-
-  const fixer: { [key: string]: Function } = {
+  const formatKey: { [key: string]: Function } = {
     released: (n: number) => new Date(n).toLocaleDateString(undefined, {
       weekday: 'long',
       year: 'numeric',
@@ -81,9 +57,9 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
       month: 'long',
       day: 'numeric',
     }),
-    genre: (arr: string[]) => getLinks(arr, 'genres'),
-    country: (arr: string[]) => getLinks(arr, 'countries'),
-    language: (arr: string[]) => getLinks(arr, 'languages'),
+    genre: (arr: string[]) => <GetLinks type='genre' arr={arr} />,
+    country: (arr: string[]) => <GetLinks  type='country' arr={arr} />,
+    language: (arr: string[]) => <GetLinks  type='language' arr={arr} />,
     boxOffice: (n: number) => `$ ${n.toLocaleString()}`,
     imdbVotes: (n: number) => n.toLocaleString(),
     seriesId: (imdbId: string) => <Link
@@ -94,16 +70,16 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
 
   return !media ? <Loading /> : <>
     <GetBreadcrumbs links={{home: '/', media: '/media', [media.title]: `/media/${media.imdbId}`}}/>
-    <div className='flex flex-wrap gap-4 md:flex-nowrap'>
+    <div className='flex flex-wrap gap-4'>
       {media.poster ? <img className='m-auto showOutline' src={media.poster}/> : []}
       <div className='showOutline flex-1 flex w-auto flex-col justify-around p-4 text-lg'>
-        <h1 className='pb-4 text-center text-3xl'>
+        <h1 className='pb-4 text-center text-3xl flex flex-wrap justify-center gap-4'>
           <Link href={`https://www.imdb.com/title/${media.imdbId}`}
             className='underline'
           >
             {media.title} 
           </Link>
-          <span className='px-4'>
+          <span>
             ({media.startYear + (media.endYear ? ` - ${media.endYear}` : '')})
           </span>
         </h1>
@@ -153,8 +129,9 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
       <div className='flex flex-wrap justify-center gap-4 pb-4 text-lg'>
         {['director', 'writer', 'actor'].map(position => {
           if (!media[position]) return [];
-          return  <span key={position}>
-            {fromCamelCase(position, media[position].length !== 1)}: {getLinks(media[position], 'people')}
+          return  <span key={position} className='flex flex-wrap justify-center gap-1'>
+            <span>{fromCamelCase(position, media[position].length !== 1)}:</span>
+            <GetLinks type='people' arr={media[position]}/>
           </span>
         })}
       </div>
@@ -173,11 +150,11 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
         ].map(key => {
             if (!media[key] || media[key]?.length === 0) return [];
             return <Fragment key={key}>
-              <div className='text-center'>
+              <div className='text-center m-auto'>
                 {fromCamelCase(key)}
               </div>
-              <div className='col-span-2 text-center'>
-                {fixer[key] ? fixer[key](media[key]) : fromCamelCase(media[key].toString())}
+              <div className='col-span-2 text-center m-auto'>
+                {formatKey[key] ? formatKey[key](media[key]) : fromCamelCase(media[key].toString())}
               </div>
             </Fragment>
           })}

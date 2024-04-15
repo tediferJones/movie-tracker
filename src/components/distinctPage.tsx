@@ -7,7 +7,7 @@ import Loading from '@/components/loading';
 import GetBreadcrumbs from '@/components/getBreadcrumbs';
 import easyFetch from '@/lib/easyFetch'
 import { fromCamelCase } from '@/lib/formatters';
-import { tableToCol } from '@/lib/tableToCol';
+import { tableToCol } from '@/lib/formatters';
 import Link from 'next/link';
 
 export default function DistinctPage({ route }: { route: string }) {

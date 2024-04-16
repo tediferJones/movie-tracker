@@ -8,12 +8,12 @@ import {
 import { Button } from '@/components/ui/button';
 
 import { UserButton, currentUser } from '@clerk/nextjs';
-import ToggleTheme from '@/components/toggleTheme';
-import Searchbar from '@/components/searchbar';
-import { Menu } from 'lucide-react';
 import Link from 'next/link';
-import { fromCamelCase } from '@/lib/formatters';
+import { Menu } from 'lucide-react';
 import { Fragment } from 'react';
+import Searchbar from '@/components/subcomponents/searchbar';
+import ToggleTheme from '@/components/subcomponents/toggleTheme';
+import { fromCamelCase } from '@/lib/formatters';
 
 export default async function Header() {
   const user = await currentUser();

@@ -8,15 +8,15 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
+import { useUser } from '@clerk/nextjs';
+import Link from 'next/link';
+import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react'
-import Loading from '@/components/loading';
+import Loading from '@/components/subcomponents/loading';
 import easyFetch from '@/lib/easyFetch'
 import { ListsRes } from '@/types';
-import { ScrollArea } from './ui/scroll-area';
-import { Trash2 } from 'lucide-react';
-import Link from 'next/link';
-import { useUser } from '@clerk/nextjs';
 
 export default function DefaultListManager() {
   const [listnames, setListnames] = useState<string[]>();

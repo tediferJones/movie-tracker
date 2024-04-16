@@ -1,11 +1,11 @@
-// OLD TYPES
-interface ratingObj {
+interface StrIdx { [key: string]: any }
+
+interface RatingObj {
   Source: string,
   Value: string,
 }
 
-interface strIdxRawMedia {
-  [key: string]: any,
+interface StrIdxRawMedia extends StrIdx {
   Title: string,
   imdbID: string,
   Type: string,
@@ -13,7 +13,7 @@ interface strIdxRawMedia {
   Director: string,
   Writer: string,
   Actors: string,
-  Ratings: ratingObj[],
+  Ratings: RatingObj[],
   Metascore: string,
   imdbRating: string,
   Released: string,
@@ -36,7 +36,7 @@ interface strIdxRawMedia {
   Website: string,
 }
 
-interface omdbSearchResult {
+interface OmdbSearchResult {
   Poster: string,
   Title: string,
   Type: string,
@@ -44,52 +44,15 @@ interface omdbSearchResult {
   imdbID: string,
 }
 
-interface omdbSearch {
+interface OmdbSearch {
   Response: string,
-  Search: omdbSearchResult[],
+  Search: OmdbSearchResult[],
   totalResults: string,
 }
 
-interface episode {
-  Episode: string,
-  Released: string,
-  Title: string,
-  imdbID: string,
-  imdbRating: string,
-}
-
-interface episodeList {
-  Episodes: episode[],
-  Response: 'True' | 'False';
-  Season: string,
-  Title: string,
-  totalSeasons: string,
-}
-
-interface userLists {
-  defaultListname: string | null,
-  lists: {
-    [key: string]: string[]
-  }
-}
-
-interface newDefaultList {
-  defaultListname: string | null,
-  listnames: string[],
-  newDefaultListname: string,
-}
-
-// interface strIdxMedia extends media {
-//   // [key: string]: string[] | string | number | null,
-//   [key: string]: any,
-// }
-
-// NEW TYPES
 import { countries, genres, languages, media, people, reviews } from '@/drizzle/schema';
 
-interface strIdx  { [key: string]: any }
-
-interface FormattedMediaInfo extends strIdx {
+interface FormattedMediaInfo extends StrIdx {
   mediaInfo: typeof media.$inferInsert,
   genres?: (typeof genres.$inferInsert)[],
   countries?: (typeof countries.$inferInsert)[],
@@ -126,19 +89,32 @@ interface UserRes {
   reviews: ReviewsRes[],
 }
 
+interface Episode {
+  Episode: string,
+  Released: string,
+  Title: string,
+  imdbID: string,
+  imdbRating: string,
+}
+
+interface SeasonResponse {
+  Episodes: Episode[],
+  Response: 'True' | 'False';
+  Season: string,
+  Title: string,
+  totalSeasons: string,
+}
+
 export type { 
-  ratingObj,
-  strIdxRawMedia,
-  // strIdxMedia,
-  omdbSearchResult,
-  omdbSearch,
-  episode,
-  episodeList,
-  userLists,
-  newDefaultList,
+  RatingObj,
+  StrIdxRawMedia,
+  OmdbSearchResult,
+  OmdbSearch,
   FormattedMediaInfo,
   ExistingMediaInfo,
   ListsRes,
   ReviewsRes,
   UserRes,
+  Episode,
+  SeasonResponse,
 }

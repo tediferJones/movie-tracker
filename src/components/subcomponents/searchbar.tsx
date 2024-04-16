@@ -1,4 +1,5 @@
 'use client';
+
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -9,13 +10,13 @@ import {
 } from '@/components/ui/select';
 
 import { useState, useEffect } from 'react';
-import { omdbSearch, omdbSearchResult } from '@/types';
 import Link from 'next/link';
 import easyFetch from '@/lib/easyFetch';
+import { OmdbSearch } from '@/types';
 
 export default function Searchbar() {
   // Try to get rid of this, we only need to keep track of search
-  const defaultState: omdbSearch = {
+  const defaultState: OmdbSearch = {
     Search: [],
     Response: 'False',
     totalResults: '0',
@@ -31,7 +32,7 @@ export default function Searchbar() {
     if (!searchTerm) return setSearchResult(defaultState);
 
     let delaySetState: NodeJS.Timeout | undefined = setTimeout(() => {
-      easyFetch<omdbSearch>('/api/search', 'GET', { 
+      easyFetch<OmdbSearch>('/api/search', 'GET', { 
         // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
         searchTerm: searchTerm.trim(), 
         searchType, 
@@ -66,7 +67,7 @@ export default function Searchbar() {
         />
         {/* Search Results area */}
         <div className={`absolute top-12 flex w-full flex-col items-center z-10 ${displaySearchResult && searchTerm ? 'showOutline overflow-hidden' : ''}`}>
-          {!displaySearchResult ? [] : searchResult.Search.map((item: omdbSearchResult, i) => {
+          {!displaySearchResult ? [] : searchResult.Search.map((item, i) => {
             return (
               <Link className={`flex w-full flex-wrap bg-secondary p-2 rounded-none ${i > 0 ? 'border-t border-primary' : ''}`}
                 href={`/media/${item.imdbID}`}

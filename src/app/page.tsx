@@ -1,5 +1,6 @@
-import DefaultListManager from '@/components/defaultListManager';
-import UserPage from '@/components/userPage';
+import DefaultListManager from '@/components/subcomponents/defaultListManager';
+import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
+import UserPage from '@/components/pages/userPage';
 import { currentUser } from '@clerk/nextjs/server';
 
 // OLD NOTES
@@ -29,26 +30,18 @@ import { currentUser } from '@clerk/nextjs/server';
 
 // TO-DO
 //
-// - Clean up types file, remove types from old version
-// - Delete src/old-components
 // - Clean up extraneous comments and console.log statements
-//   - Clean up comments in 
-//     - /api/lists
-//     - /components/mediaInfo
-//     - /api/listnames (delete the whole file)
-//     - src/app/globals.css
+//   - Delete server side console.logs too
 // - Work through lighthouse issues on larger pages
 //   - i.e. user page, media page and media table page
 // - Copy basic manifest from password-manager, better to have this setup as early as possible
-// - Organize components folder, consider making subcomponents directory
-// - Delete titles from pages like distinctPage,
-//   - Breadcrumbs tell us the same information anyways
-//   - see /countries/[country] for example
+//   - Find a favicon, make sure we get the proper formats for the manifest too
 
 export default async function Home() {
   const user = await currentUser();
   return !user?.username ? <div>Error you're not logged in</div> :
     <div className='w-4/5 m-auto flex flex-col gap-4 mb-8'>
+      <GetBreadcrumbs links={{ home: '/', users: '/users', [user.username]: `/users/${user.username}` }}/>
       <UserPage username={user.username}>
         <DefaultListManager />
       </UserPage>

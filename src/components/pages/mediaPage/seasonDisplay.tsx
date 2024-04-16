@@ -7,24 +7,9 @@ import {
 
 import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
-import Loading from '@/components/loading';
+import Loading from '@/components/subcomponents/loading';
 import easyFetch from '@/lib/easyFetch';
-
-interface Episode {
-  Episode: string,
-  Released: string,
-  Title: string,
-  imdbID: string,
-  imdbRating: string,
-}
-
-interface SeasonResponse {
-  Episodes: Episode[],
-  Response: 'True' | 'False';
-  Season: string,
-  Title: string,
-  totalSeasons: string,
-}
+import { SeasonResponse } from '@/types';
 
 export default function SeasonDisplay({
   imdbId,

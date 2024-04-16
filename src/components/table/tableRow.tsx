@@ -1,10 +1,10 @@
 import { ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import GetLinks from '@/components/subcomponents/getLinks';
 import { Button } from '@/components/ui/button';
-import { fromCamelCase, getKeyFormatter, keyToLink } from '@/lib/formatters';
+import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
-import GetLinks from '../getLinks';
 
 export default function TableRow({
   mediaInfo,
@@ -17,18 +17,6 @@ export default function TableRow({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   
-  // function getLinks(key: string) {
-  //   if (!mediaInfo[key] || mediaInfo[key].length === 0) return 'N/A'
-  //   return mediaInfo[key].map((val: string, i: number, arr: string[]) => (
-  //     <span key={`${key}-${val}`}>
-  //       {i === 0 ? '' : i < arr.length - 1 ? ', ' : <span className='px-1'>and</span>}
-  //       <Link href={`/${keyToLink[key]}/${val}`}
-  //         className='hover:underline'
-  //       >{val}</Link>
-  //     </span>
-  //   ))
-  // }
-
   const dropDownTrigger = (
     <Button size='icon' variant='ghost' onClick={() => setIsOpen(!isOpen)}>
       <ChevronLeft className={`transition-all ${isOpen ? '-rotate-90' : 'rotate-0'}`}/>

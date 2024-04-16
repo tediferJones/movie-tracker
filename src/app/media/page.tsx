@@ -1,8 +1,8 @@
 'use client';
 
-import GetBreadcrumbs from '@/components/getBreadcrumbs';
-import Loading from '@/components/loading';
-import MyTable from '@/components/myTable/table';
+import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
+import Loading from '@/components/subcomponents/loading';
+import MyTable from '@/components/table/myTable';
 import easyFetch from '@/lib/easyFetch';
 import { ExistingMediaInfo } from '@/types';
 import { useEffect, useState } from 'react';

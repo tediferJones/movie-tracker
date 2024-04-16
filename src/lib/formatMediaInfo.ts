@@ -1,5 +1,5 @@
 import { media, people } from '@/drizzle/schema';
-import { FormattedMediaInfo, ratingObj, strIdxRawMedia } from '@/types';
+import { FormattedMediaInfo, RatingObj, StrIdxRawMedia } from '@/types';
 type PeopleInsert = typeof people.$inferInsert;
 
 function toCamelCase(pascalStr: string) {
@@ -25,7 +25,7 @@ function toDate(str: string) {
   return new Date(str).getTime()
 }
 
-export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInfo {
+export default function formatMediaInfo(info: StrIdxRawMedia): FormattedMediaInfo {
   const formatterV2: { [key: string]: (str: string) => any } = {
     // It would probably be beneficial to use a map instead of an obj
     // This way we can format like so:
@@ -49,12 +49,6 @@ export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInf
     language: val => toArray(val),
     country: val => toArray(val),
   }
-
-  // const formatterV3 = new Map<string[], any>([
-  //   [['year', 'runtime', 'imdbVotes', 'boxOffice'], toNumber],
-  //   [['released', 'dvd'], toDate],
-  //   [['genre', 'director', 'writer', 'actors', 'language', 'country'], toArray],
-  // ])
 
   const getRating: { [key: string]: { key: string, rating: (str: string) => number } } = {
     'Internet Movie Database': {
@@ -89,7 +83,6 @@ export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInf
   console.log('temp formatted', formatted)
   const { genre, director, writer, actor, country, language, ratings, year, ...rest } = formatted;
   const imdbId: string = formatted.imdbId;
-  // const people: { [key: string]: string[] } = { director, writer, actor };
   const positions: { [key: string]: string[] } = { director, writer, actor };
   const people = Object.keys(positions).reduce((arr, position) => {
       if (!positions[position]) return arr
@@ -100,7 +93,7 @@ export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInf
   return {
     mediaInfo: {
       ...rest,
-      ...(ratings as ratingObj[]).reduce((newObj, key) => {
+      ...(ratings as RatingObj[]).reduce((newObj, key) => {
         const ratingFixer = getRating[key.Source]
         newObj[ratingFixer.key] = ratingFixer.rating(key.Value)
         return newObj
@@ -112,11 +105,5 @@ export default function formatMediaInfo(info: strIdxRawMedia): FormattedMediaInf
     countries: country?.map((country: string) => ({ imdbId, country })),
     languages: language?.map((language: string) => ({ imdbId, language })),
     people: people.length ? people : undefined,
-    // people: Object.keys(people).length === 0 ? undefined : Object.keys(people).reduce((arr, position) => {
-    //   if (!people[position]) return arr
-    //   return arr.concat(
-    //     people[position].map(name => ({ imdbId, position, name }))
-    //   )
-    // }, [] as PeopleInsert[])
   };
 }

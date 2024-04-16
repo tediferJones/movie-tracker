@@ -1,11 +1,11 @@
 'use client';
 
-import GetBreadcrumbs from '@/components/getBreadcrumbs';
-import Loading from '@/components/loading';
-import MyTable from '@/components/myTable/table';
+import { useEffect, useState } from 'react';
+import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
+import Loading from '@/components/subcomponents/loading';
+import MyTable from '@/components/table/myTable';
 import easyFetch from '@/lib/easyFetch';
 import { ExistingMediaInfo, ListsRes } from '@/types';
-import { useEffect, useState } from 'react';
 
 export default function UserList({ params }: { params: { username: string, listname: string } }) {
   const { username, listname } = params;

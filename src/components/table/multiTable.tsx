@@ -8,13 +8,13 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { useEffect, useState } from 'react';
-import MyTable from '@/components/myTable/table';
-import Loading from '@/components/loading';
+import Loading from '@/components/subcomponents/loading';
+import MyTable from '@/components/table/myTable';
 import easyFetch from '@/lib/easyFetch';
 import { ExistingMediaInfo, ListsRes } from '@/types';
-import { ScrollArea } from './ui/scroll-area';
 
 export default function MultiTable({ listnames, username }: { listnames: string[], username?: string }) {
   const [currentList, setCurrentList] = useState(listnames[0]);

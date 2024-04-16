@@ -5,11 +5,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 
 import { useEffect, useState } from 'react';
-import ReviewsDisplay from '@/components/reviewsDisplay';
-import Loading from '@/components/loading';
+import Loading from '@/components/subcomponents/loading';
+import ReviewsDisplay from '@/components/subcomponents/reviewsDisplay';
+import { inputValidation } from '@/lib/inputValidation';
 import easyFetch from '@/lib/easyFetch';
 import { ReviewsRes } from '@/types';
-import { inputValidation } from '@/lib/inputValidation';
 
 export default function ReviewManager({ imdbId }: { imdbId: string }) {
   const [existingReview, setExistingReview] = useState<ReviewsRes>();

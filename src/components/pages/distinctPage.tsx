@@ -2,13 +2,12 @@
 
 import { Input } from '@/components/ui/input';
 
-import { useEffect, useState } from 'react';
-import Loading from '@/components/loading';
-import GetBreadcrumbs from '@/components/getBreadcrumbs';
-import easyFetch from '@/lib/easyFetch'
-import { fromCamelCase } from '@/lib/formatters';
-import { tableToCol } from '@/lib/formatters';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
+import Loading from '@/components/subcomponents/loading';
+import easyFetch from '@/lib/easyFetch'
+import { tableToCol } from '@/lib/formatters';
 
 export default function DistinctPage({ route }: { route: string }) {
   const [distinct, setDistinct] = useState<any[]>();
@@ -20,13 +19,11 @@ export default function DistinctPage({ route }: { route: string }) {
   }, []);
 
   return (
-    <div className='w-4/5 m-auto'>
+    <div className='w-4/5 m-auto flex flex-col gap-4'>
       <GetBreadcrumbs links={{'home': '/', [route]: `/${route}`}}/>
-      <h1 className='text-2xl pb-4 text-center'>{fromCamelCase(route)}</h1>
       {!distinct ? <Loading /> :
         <>
-          <Input className='mb-4'
-            placeholder={`Search ${route}`}
+          <Input placeholder={`Search ${route}`}
             value={searchTerm}
             onChange={e => setSearchTerm(e.currentTarget.value)}
           />

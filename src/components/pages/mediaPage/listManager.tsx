@@ -9,14 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { useEffect, useState } from 'react'
-import easyFetch from '@/lib/easyFetch'
-import Loading from '@/components/loading';
-import { Trash2 } from 'lucide-react';
-import { ListsRes } from '@/types';
 import Link from 'next/link';
+import { Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react'
 import { useUser } from '@clerk/nextjs';
+import Loading from '@/components/subcomponents/loading';
 import { inputValidation } from '@/lib/inputValidation';
+import easyFetch from '@/lib/easyFetch'
+import { ListsRes } from '@/types';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname'

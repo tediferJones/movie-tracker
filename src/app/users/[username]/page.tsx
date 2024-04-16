@@ -1,7 +1,7 @@
 'use client';
 
-import GetBreadcrumbs from '@/components/getBreadcrumbs';
-import UserPage from '@/components/userPage';
+import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
+import UserPage from '@/components/pages/userPage';
 
 export default function User({ params }: { params: { username: string } }) {
   const username = decodeURIComponent(params.username);

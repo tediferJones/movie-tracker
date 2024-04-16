@@ -18,8 +18,8 @@ import { Input } from '@/components/ui/input';
 
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
-import TableRow from '@/components/myTable/tableRow';
-import GetLinks from '@/components/getLinks';
+import GetLinks from '@/components/subcomponents/getLinks';
+import TableRow from '@/components/table/tableRow';
 import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 

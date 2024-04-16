@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { watched } from '@/drizzle/schema'
-import { useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react';
-import Loading from '@/components/loading';
+import { useEffect, useState } from 'react'
+import { watched } from '@/drizzle/schema'
+import Loading from '@/components/subcomponents/loading';
 import easyFetch from '@/lib/easyFetch'
 
 type WatchRecord = typeof watched.$inferSelect;

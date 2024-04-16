@@ -1,13 +1,12 @@
 'use client';
 
-import Loading from '@/components/loading';
-import MyTable from '@/components/myTable/table';
-import GetBreadcrumbs from '@/components/getBreadcrumbs';
+import { useEffect, useState } from 'react';
+import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
+import Loading from '@/components/subcomponents/loading';
+import MyTable from '@/components/table/myTable';
 import easyFetch from '@/lib/easyFetch';
-import { fromCamelCase } from '@/lib/formatters';
 import { tableToCol } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
-import { useEffect, useState } from 'react';
 
 export default function TablePage({ route, propName }: { route: string, propName: any } ) {
   const [media, setMedia] = useState<ExistingMediaInfo[]>();
@@ -19,11 +18,8 @@ export default function TablePage({ route, propName }: { route: string, propName
   }, [])
 
   return (
-    <div className='w-4/5 m-auto mb-8'>
+    <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
       <GetBreadcrumbs links={{ home: '/', [route]: `/${route}`, [propName]: `/${route}/${propName}`}}/>
-      <div className='text-center text-2xl pb-4'>
-        {fromCamelCase(tableToCol[route])}: {fromCamelCase(propName)}
-      </div>
       {!media ? <Loading /> : <MyTable data={media}/>}
     </div>
   )

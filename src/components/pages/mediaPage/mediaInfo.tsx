@@ -2,13 +2,13 @@ import { Button } from '@/components/ui/button';
 
 import Link from 'next/link';
 import { Fragment, useEffect, useState } from 'react';
-import { ExistingMediaInfo, strIdxRawMedia } from '@/types';
-import Loading from '@/components/loading';
-import SeasonDisplay from '@/components/seasonDisplay';
-import GetBreadcrumbs from '@/components/getBreadcrumbs';
+import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
+import GetLinks from '@/components/subcomponents/getLinks';
+import Loading from '@/components/subcomponents/loading';
+import SeasonDisplay from '@/components/pages/mediaPage/seasonDisplay';
 import { formatRuntime, fromCamelCase } from '@/lib/formatters';
 import easyFetch from '@/lib/easyFetch';
-import GetLinks from './getLinks';
+import { ExistingMediaInfo, StrIdxRawMedia } from '@/types';
 
 export default function MediaInfo({ imdbId }: { imdbId: string }) {
   const [media, setMedia] = useState<ExistingMediaInfo>();
@@ -18,10 +18,9 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
   useEffect(() => {
     easyFetch<ExistingMediaInfo>('/api/media', 'GET', { imdbId })
       .then(data => {
-        console.log(data)
         setMedia(data)
         if (data.seriesId) {
-          easyFetch<strIdxRawMedia>('/api/search', 'GET', { 
+          easyFetch<StrIdxRawMedia>('/api/search', 'GET', { 
             searchTerm: data.seriesId, 
             searchType: 'series', 
             queryTerm: 'i', 

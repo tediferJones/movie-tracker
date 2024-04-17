@@ -18,6 +18,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <ClerkProvider>
       <html lang='en' suppressHydrationWarning>
+        <head>
+          <meta name='theme-color' media='(prefers-color-scheme: light)' content='white' />
+          <meta name='theme-color' media='(prefers-color-scheme: dark)' content='black' />
+        </head>
         <body className={inter.className}>
           <ThemeProvider attribute='class'>
             <ScrollArea type='auto' className='h-screen'>

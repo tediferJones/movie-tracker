@@ -70,7 +70,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
   return !media ? <Loading /> : <>
     <GetBreadcrumbs links={{home: '/', media: '/media', [media.title]: `/media/${media.imdbId}`}}/>
     <div className='flex flex-wrap gap-4'>
-      {media.poster ? <img className='m-auto showOutline' src={media.poster}/> : []}
+      {media.poster ? <img className='m-auto showOutline' alt={`Poster for ${media.title}`} src={media.poster}/> : []}
       <div className='showOutline flex-1 flex w-auto flex-col justify-around p-4 text-lg'>
         <h1 className='pb-4 text-center text-3xl flex flex-wrap justify-center gap-4'>
           <Link href={`https://www.imdb.com/title/${media.imdbId}`}

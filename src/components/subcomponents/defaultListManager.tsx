@@ -57,6 +57,7 @@ export default function DefaultListManager() {
                       .then(() => setRefreshTrigger(!refreshTrigger))
                   }}
                 >
+                  <span className='sr-only'>Delete {listname}</span>
                   <Trash2 className='text-red-700 min-h-6 min-w-6' />
                 </button>
               </span>)}

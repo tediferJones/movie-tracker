@@ -34,8 +34,10 @@ import { currentUser } from '@clerk/nextjs/server';
 //   - Delete server side console.logs too
 // - Work through lighthouse issues on larger pages
 //   - i.e. user page, media page and media table page
-// - Copy basic manifest from password-manager, better to have this setup as early as possible
+// - [ DONE ] Copy basic manifest from password-manager, better to have this setup as early as possible
 //   - Find a favicon, make sure we get the proper formats for the manifest too
+//   - use https://realfavicongenerator.net to get all neccessary favicon sizes
+// - Make trashcan icon in watchManager a button, and add accessible name
 
 export default async function Home() {
   const user = await currentUser();

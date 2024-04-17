@@ -25,6 +25,7 @@ export default async function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant='outline' size='icon'>
+                <span className='sr-only'>Menu Page</span>
                 <Menu />
               </Button>
             </DropdownMenuTrigger>

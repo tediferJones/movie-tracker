@@ -35,10 +35,11 @@ import { currentUser } from '@clerk/nextjs/server';
 // - Work through lighthouse issues on larger pages
 //   - i.e. user page, media page and media table page, people/[person] page
 // - [ DONE ] Copy basic manifest from password-manager, better to have this setup as early as possible
-//   - Find a favicon, make sure we get the proper formats for the manifest too
-//   - use https://realfavicongenerator.net to get all neccessary favicon sizes
-// - Make trashcan icon in watchManager a button, and add accessible name
+//   - [ DONE ] Find a favicon, make sure we get the proper formats for the manifest too
+//   - [ DONE ] use https://realfavicongenerator.net to get all neccessary favicon sizes
+// - [ DONE ] Make trashcan icon in watchManager a button, and add accessible name
 // - Fix goofy padding at bottom of accordion content in people/[person] page
+//   - Looks like it's supposed to be that way
 // - Delete comments from manifest.ts
 
 export default async function Home() {

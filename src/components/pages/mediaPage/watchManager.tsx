@@ -26,22 +26,27 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
           <div className='flex flex-col gap-4 overflow-y-auto'>
             {!watched.length ? 'No records found' : watched.map(record => {
               const date = new Date(record.date)
-              return <span key={record.date} className='flex items-center justify-center'>
-                <span className='w-full'>
-                  {date.toLocaleDateString(undefined, {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })} at {date.toLocaleTimeString()}
+              return (
+                <span key={record.date} className='flex items-center justify-center px-4'>
+                  <span className='w-full'>
+                    {date.toLocaleDateString(undefined, {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })} at {date.toLocaleTimeString()}
+                  </span>
+                  <button type='button'
+                    onClick={() => {
+                      easyFetch('/api/watched', 'DELETE', { id: record.id }, true)
+                        .then(() => setRefreshTrigger(!refreshTrigger))
+                    }}
+                  >
+                    <span className='sr-only'>Delete watch record</span>
+                    <Trash2 className='min-h-6 min-w-6 text-red-700' />
+                  </button>
                 </span>
-                <Trash2 className='min-h-6 min-w-6 text-red-700 mr-4'
-                  onClick={() => {
-                    easyFetch('/api/watched', 'DELETE', { id: record.id }, true)
-                      .then(() => setRefreshTrigger(!refreshTrigger))
-                  }}
-                />
-              </span>
+              )
             })}
           </div>
         </ScrollArea>

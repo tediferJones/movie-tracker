@@ -28,7 +28,6 @@ export default function DefaultListManager() {
   useEffect(() => {
     easyFetch<ListsRes>('/api/lists', 'GET')
       .then(data => {
-        console.log('defaultListManager', data)
         setListnames(data.allListnames)
         setExistingDefaultList(data.defaultList)
       })

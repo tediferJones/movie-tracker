@@ -29,7 +29,6 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   useEffect(() => {
     easyFetch<{ myReview: ReviewsRes, allReviews: ReviewsRes[] }>('/api/reviews', 'GET', { imdbId })
       .then(data => {
-        console.log('reviews', data)
         setAllReviews(data.allReviews)
         setExistingReview(data.myReview || defaultReview)
       })

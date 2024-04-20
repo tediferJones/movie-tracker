@@ -80,7 +80,6 @@ export default function formatMediaInfo(info: StrIdxRawMedia): FormattedMediaInf
     }
   }
 
-  console.log('temp formatted', formatted)
   const { genre, director, writer, actor, country, language, ratings, year, ...rest } = formatted;
   const imdbId: string = formatted.imdbId;
   const positions: { [key: string]: string[] } = { director, writer, actor };
@@ -89,7 +88,6 @@ export default function formatMediaInfo(info: StrIdxRawMedia): FormattedMediaInf
       return arr.concat(positions[position].map(name => ({ imdbId, position, name })))
     }, [] as PeopleInsert[])
 
-  console.log('temp people', people)
   return {
     mediaInfo: {
       ...rest,

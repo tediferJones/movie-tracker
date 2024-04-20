@@ -101,7 +101,6 @@ export default function MyTable({ data, children }: { data: ExistingMediaInfo[],
                   className={`text-muted-foreground p-2 ${col === '' ? '' : sortCol !== col ? '' : sortType === 'asc' ? 'bg-secondary' : 'bg-neutral-800'}`}
                 >
                   <button onClick={() => {
-                    console.log(sortCol, sortType)
                     if (col !== sortCol) return setSortCol(col)
                     if (sortType === 'desc') setSortCol('')
                     setSortType(sortType === 'asc' ? 'desc' : 'asc')
@@ -134,7 +133,6 @@ export default function MyTable({ data, children }: { data: ExistingMediaInfo[],
               <button className={`flex-1 rounded-md text-muted-foreground p-2 ${col === '' ? '' : sortCol !== col ? '' : sortType === 'asc' ? 'bg-secondary' : 'bg-neutral-800'}`}
                 key={col}
                 onClick={() => {
-                  console.log(sortCol, sortType)
                   if (col !== sortCol) return setSortCol(col)
                   if (sortType === 'desc') setSortCol('')
                   setSortType(sortType === 'asc' ? 'desc' : 'asc')

@@ -25,10 +25,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
             searchType: 'series', 
             queryTerm: 'i', 
             queryType: 'type',
-          }).then(data => {
-              console.log('SEARCH RESULTS', data)
-              if (data.Response) setSeriesTitle(data.Title)
-            })
+          }).then(data => setSeriesTitle(data.Title))
         }
       })
   }, [refreshTrigger]);
@@ -59,7 +56,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
     genre: (arr: string[]) => <GetLinks type='genre' arr={arr} />,
     country: (arr: string[]) => <GetLinks  type='country' arr={arr} />,
     language: (arr: string[]) => <GetLinks  type='language' arr={arr} />,
-    boxOffice: (n: number) => `$ ${n.toLocaleString()}`,
+    boxOffice: (n: number) => `$${n.toLocaleString()}`,
     imdbVotes: (n: number) => n.toLocaleString(),
     seriesId: (imdbId: string) => <Link
       href={`/media/${imdbId}`}

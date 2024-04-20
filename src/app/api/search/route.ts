@@ -9,12 +9,12 @@ export async function GET(req: Request) {
   const queryType = searchParams.get('queryType') || '';
   const searchTerm = searchParams.get('searchTerm');
   const searchType = searchParams.get('searchType');
-  console.log(
-    `\n QUERY TERM: ${queryTerm} 
-    \n SEARCH TERM: ${searchTerm} 
-    \n QUERY TYPE: ${queryType} 
-    \n SEARCH TYPE: ${searchType} 
-    \n`)
+  // console.log(
+  //   `\n QUERY TERM: ${queryTerm} 
+  //   \n SEARCH TERM: ${searchTerm} 
+  //   \n QUERY TYPE: ${queryType} 
+  //   \n SEARCH TYPE: ${searchType} 
+  //   \n`)
   const omdbResult = await easyFetch('https://www.omdbapi.com/', 'GET', { 
     apikey: process.env.OMDBAPI_KEY, 
     // This type is ignored for Season/Episode queries, so no need to override it

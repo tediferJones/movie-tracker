@@ -28,7 +28,6 @@ export default function Searchbar() {
   const [displaySearchResult, setDisplaySearchResult] = useState<true | false>(false)
 
   useEffect(() => {
-    console.log(searchTerm);
     if (!searchTerm) return setSearchResult(defaultState);
 
     let delaySetState: NodeJS.Timeout | undefined = setTimeout(() => {

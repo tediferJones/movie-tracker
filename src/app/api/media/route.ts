@@ -43,9 +43,7 @@ export async function GET(req: Request) {
     i: imdbId,
   });
   if (omdbResult.Response !== 'True') return NextResponse.json('Not found', { status: 404 });
-  console.log('orignal', omdbResult)
   const formattedMedia = formatMediaInfo(omdbResult);
-  console.log('formatted', formattedMedia)
 
   try {
     await db.insert(media).values(formattedMedia.mediaInfo);
@@ -56,11 +54,9 @@ export async function GET(req: Request) {
         }
       })
     );
-  } catch (err) {
-    console.log('An error occured while inserting media info', err);
+  } finally {
+    return NextResponse.json(await getExistingMedia(imdbId));
   }
-
-  return NextResponse.json(await getExistingMedia(imdbId));
 }
 
 export async function PUT(req: Request) {

@@ -30,17 +30,10 @@ import { currentUser } from '@clerk/nextjs/server';
 
 // TO-DO
 //
-// - Clean up extraneous comments and console.log statements
-//   - Delete server side console.logs too
 // - Work through lighthouse issues on larger pages
 //   - i.e. user page, media page and media table page, people/[person] page
-// - [ DONE ] Copy basic manifest from password-manager, better to have this setup as early as possible
-//   - [ DONE ] Find a favicon, make sure we get the proper formats for the manifest too
-//   - [ DONE ] use https://realfavicongenerator.net to get all neccessary favicon sizes
-// - [ DONE ] Make trashcan icon in watchManager a button, and add accessible name
-// - Fix goofy padding at bottom of accordion content in people/[person] page
-//   - Looks like it's supposed to be that way
-// - Delete comments from manifest.ts
+// - Update README
+// - Clean up extraneous comments and console.log statements
 
 export default async function Home() {
   const user = await currentUser();

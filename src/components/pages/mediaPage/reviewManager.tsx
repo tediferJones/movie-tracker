@@ -104,7 +104,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
               <div className='absolute w-full h-full flex justify-center items-center'
               >Click to {lockRating ? 'Set' : 'Edit'}</div>
             }
-            <div className='h-full bg-yellow-500' // bg-orange-400
+            <div className='h-full bg-yellow-500'
               style={{
                 width: `${existingReview.rating || 0}%`, 
                 pointerEvents: 'none'

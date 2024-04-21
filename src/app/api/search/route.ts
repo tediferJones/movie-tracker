@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import easyFetch from '@/lib/easyFetch';
 
 export async function GET(req: Request) {
-  // this route needs to be more dynamic, we need to be able to query for ...i=[imdbID]&Season=X
   const { searchParams } = new URL(req.url);
   // passing empty strings to omdbAPI could be problematic
   const queryTerm = searchParams.get('queryTerm') || '';

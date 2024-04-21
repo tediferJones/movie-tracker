@@ -10,10 +10,10 @@ async function getTitle(imdbId: string) {
 export async function GET(req: Request) {
   const username = new URL(req.url).searchParams.get('username')
 
-  // if (!username) return NextResponse.json('Bad request', { status: 400 })
   if (!username) {
     // This is pretty egregious, but it works
-    // We should probably create a users table with a single column of username
+    // We should probably create a users table with a single unique column called username
+    // This table should then be referenced as a foreign key in tables like watched, lists, and reviews
     return NextResponse.json(
       [
         await db.selectDistinct({ username: listnames.username }).from(listnames),

@@ -33,7 +33,6 @@ import { currentUser } from '@clerk/nextjs/server';
 // - Work through lighthouse issues on larger pages
 //   - i.e. user page, media page and media table page, people/[person] page
 // - Update README
-// - Clean up extraneous comments and console.log statements
 
 export default async function Home() {
   const user = await currentUser();

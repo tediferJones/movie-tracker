@@ -1,7 +1,7 @@
 # movie-tracker
 
-### Keep track of all your favorite movies and tv shows
-- Use watch records to keep track of when and how many times a user has watched something
+### Keep track of all your favorite movies and TV shows
+- Use watch records to keep track of when and how many times you have watched something
 - Use lists to currate and organize your media
   - Lists can then be viewed in a table that allows you to sort and filter based on certain criteria
 - Reviews can provide a short description, user rating, and weather that user thinks the movie is worth watching again

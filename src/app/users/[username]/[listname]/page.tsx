@@ -8,7 +8,8 @@ import easyFetch from '@/lib/easyFetch';
 import { ExistingMediaInfo, ListsRes } from '@/types';
 
 export default function UserList({ params }: { params: { username: string, listname: string } }) {
-  const { username, listname } = params;
+  const username = decodeURIComponent(params.username);
+  const listname = decodeURIComponent(params.listname);
 
   const [listContents, setListContents] = useState<ExistingMediaInfo[]>();
 

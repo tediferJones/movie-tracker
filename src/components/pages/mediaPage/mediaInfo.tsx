@@ -127,7 +127,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
           if (!media[position]) return [];
           return  <span key={position} className='flex flex-wrap justify-center gap-1'>
             <span>{fromCamelCase(position, media[position].length !== 1)}:</span>
-            <GetLinks type='people' arr={media[position]}/>
+            <GetLinks type={position} arr={media[position]}/>
           </span>
         })}
       </div>

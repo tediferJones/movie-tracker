@@ -46,35 +46,39 @@ export default function DefaultListManager() {
           <div className='text-center text-xl'>Default: {existingDefaultList || 'No default list found'}</div>
           <ScrollArea type='auto' className='max-h-fit'>
             <div className='flex flex-col gap-4'>
-              {listnames.map(listname => <span key={listname} className='flex gap-2 justify-center px-4'>
-                <Link className='w-full text-center hover:underline'
-                  href={`/users/${username}/${listname}`}
-                >{listname}</Link>
-                <button type='button'
-                  onClick={() => {
-                    easyFetch('/api/lists', 'DELETE', { listname }, true)
-                      .then(() => setRefreshTrigger(!refreshTrigger))
-                  }}
-                >
-                  <span className='sr-only'>Delete {listname}</span>
-                  <Trash2 className='text-red-700 min-h-6 min-w-6' />
-                </button>
-              </span>)}
+              {listnames.map(listname => (
+                <span key={listname} className='flex gap-2 justify-center px-4'>
+                  <Link className='w-full text-center hover:underline'
+                    href={`/users/${username}/${listname}`}
+                  >{listname}</Link>
+                  <button type='button'
+                    onClick={() => {
+                      easyFetch('/api/lists', 'DELETE', { listname }, true)
+                        .then(() => setRefreshTrigger(!refreshTrigger))
+                    }}
+                  >
+                    <span className='sr-only'>Delete {listname}</span>
+                    <Trash2 className='text-red-700 min-h-6 min-w-6' />
+                  </button>
+                </span>
+              ))}
             </div>
           </ScrollArea>
-          <Select value={defaultListname} onValueChange={setDefaultListname}>
-            <SelectTrigger>
-              <SelectValue placeholder='New default list'/>
-            </SelectTrigger>
-            <SelectContent>
-              {listnames.map(listname => (
-                <SelectItem key={listname} value={listname}>
-                  {listname}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button>Set default list</Button>
+          <div className='flex flex-col gap-4'>
+            <Select value={defaultListname} onValueChange={setDefaultListname}>
+              <SelectTrigger>
+                <SelectValue placeholder='New default list'/>
+              </SelectTrigger>
+              <SelectContent>
+                {listnames.map(listname => (
+                  <SelectItem key={listname} value={listname}>
+                    {listname}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button>Set default list</Button>
+          </div>
         </>
       }
     </form>

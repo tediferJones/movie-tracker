@@ -42,7 +42,7 @@ export async function GET(req: Request) {
     apikey: process.env.OMDBAPI_KEY,
     i: imdbId,
   });
-  if (omdbResult.Response !== 'True') return NextResponse.json('Not found', { status: 404 });
+  if (omdbResult?.Response !== 'True') return NextResponse.json('Not found', { status: 404 });
   const formattedMedia = formatMediaInfo(omdbResult);
 
   try {
@@ -70,7 +70,7 @@ export async function PUT(req: Request) {
     apikey: process.env.OMDBAPI_KEY,
     i: imdbId,
   });
-  if (omdbResult.Response !== 'True') return NextResponse.json('Not found', { status: 404 });
+  if (omdbResult?.Response !== 'True') return NextResponse.json('Not found', { status: 404 });
   const formattedMedia = formatMediaInfo(omdbResult);
 
   await db.update(media).set(formattedMedia.mediaInfo).where(eq(media.imdbId, imdbId));

@@ -34,9 +34,11 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
           allListnames?.filter(listname => !containsImdbId.includes(listname))
         setMatchingLists(containsImdbId)
         setAllListnames(availableLists)
-        if (defaultList && availableLists?.includes(defaultList)) {
-          setCurrentList(defaultList)
-        }
+        console.log('default list will be set to:',
+          defaultList && availableLists?.includes(defaultList) ? defaultList
+            : availableLists?.length ? availableLists[0] : illegalListname,
+          'data:', data
+        )
         setCurrentList(
           defaultList && availableLists?.includes(defaultList) ? defaultList
             : availableLists?.length ? availableLists[0] : illegalListname

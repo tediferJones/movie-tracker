@@ -12,20 +12,16 @@ import {
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import easyFetch from '@/lib/easyFetch';
-import { OmdbSearch } from '@/types';
+import { OmdbSearch, OmdbSearchResult } from '@/types';
 
 export default function Searchbar() {
-  // Try to get rid of this, we only need to keep track of search
-  const defaultState: OmdbSearch = {
-    Search: [],
-    Response: 'False',
-    totalResults: '0',
-  }
+  const defaultState: OmdbSearchResult[] = [];
+  let autoCloseTimer: NodeJS.Timeout;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('movie');
   const [searchResult, setSearchResult] = useState(defaultState);
-  const [displaySearchResult, setDisplaySearchResult] = useState<true | false>(false)
+  const [displaySearchResult, setDisplaySearchResult] = useState<boolean>(false)
 
   useEffect(() => {
     if (!searchTerm) return setSearchResult(defaultState);
@@ -38,19 +34,18 @@ export default function Searchbar() {
         queryTerm: 's', 
         queryType: 'type',
       }).then(data => 
-          setSearchResult(data.Response === 'True' ? data : defaultState)
+          setSearchResult(data.Response === 'True' ? data.Search : defaultState)
         )
-    }, 1000);
+    }, 250);
 
     return () => clearTimeout(delaySetState);
   }, [searchTerm, searchType])
 
-  let test: NodeJS.Timeout;
   return (
     <div className='m-auto flex w-4/5 justify-center py-4 gap-2'>
       <div className='relative flex w-full flex-col'
-        onBlur={() => test = setTimeout(() => setDisplaySearchResult(false), 100)}
-        onFocus={() => clearTimeout(test)}
+        onBlur={() => autoCloseTimer = setTimeout(() => setDisplaySearchResult(false), 100)}
+        onFocus={() => clearTimeout(autoCloseTimer)}
       >
         {!displaySearchResult ? [] : 
           <div className='fixed left-0 top-0 h-[100vh] w-[100vw]' 
@@ -65,8 +60,9 @@ export default function Searchbar() {
           placeholder='Search...'
         />
         {/* Search Results area */}
-        <div className={`absolute top-12 flex w-full flex-col items-center z-10 ${displaySearchResult && searchTerm ? 'showOutline overflow-hidden' : ''}`}>
-          {!displaySearchResult ? [] : searchResult.Search.map((item, i) => {
+        <div className={`absolute top-12 flex w-full flex-col items-center z-10 ${displaySearchResult && searchTerm ? 'showOutline overflow-hidden block' : 'hidden'}`}>
+          {searchResult.length === 0 ? <div className='bg-secondary w-full p-2 text-center'>No Results</div> :
+            searchResult.map((item, i) => {
             return (
               <Link className={`flex w-full flex-wrap bg-secondary p-2 rounded-none ${i > 0 ? 'border-t border-primary' : ''}`}
                 href={`/media/${item.imdbID}`}

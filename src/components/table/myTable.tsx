@@ -31,6 +31,7 @@ type SortFuncs = {
 }
 
 export default function MyTable({ data, children }: { data: ExistingMediaInfo[], children?: ReactNode }) {
+  data = data.map((rec, i, arr) => arr[arr.length - 1 - i])
   const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
   const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
 

@@ -87,6 +87,7 @@ interface UserRes {
   listnames: string[],
   watched: { date: number, imdbId: string, title: string, }[],
   reviews: ReviewsRes[],
+  defaultList?: string,
 }
 
 interface Episode {

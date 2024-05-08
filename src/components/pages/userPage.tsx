@@ -21,7 +21,7 @@ export default function UserPage({ username, children }: { username: string, chi
   return !user ? <Loading /> :
     <div className='flex flex-col gap-4'>
       <div className='flex flex-wrap gap-4'>
-        <div className='showOutline p-4 sm:flex-1 w-full sm:w-auto flex flex-col gap-4 max-h-[40vh]'>
+        <div className='showOutline p-4 sm:flex-1 w-full sm:w-auto flex flex-col gap-4 max-h-[60vh]'>
           <h3 className='text-center text-xl'>Recently watched ({user.watched.length})</h3>
           <div className='h-full flex flex-col justify-center overflow-hidden'>
             <ScrollArea type='auto'>
@@ -46,7 +46,7 @@ export default function UserPage({ username, children }: { username: string, chi
         </div>
 
         {children ? children : 
-          <div className='showOutline p-4 sm:flex-1 w-full sm:w-auto flex flex-col gap-4 max-h-[40vh]'>
+          <div className='showOutline p-4 sm:flex-1 w-full sm:w-auto flex flex-col gap-4 max-h-[60vh]'>
             <h3 className='text-center text-xl'>Lists ({user.listnames.length})</h3>
             <div className='flex flex-col justify-center flex-1'>
               <ScrollArea type='auto'>
@@ -66,7 +66,10 @@ export default function UserPage({ username, children }: { username: string, chi
         }
       </div>
       {user.listnames.length === 0 ? [] :
-        <MultiTable listnames={user.listnames} username={username} />
+        <MultiTable username={username}
+          listnames={user.listnames}
+          defaultListname={user.defaultList}
+        />
       }
       <h3 className='text-xl px-4'>All Reviews</h3>
       <ReviewsDisplay reviews={user.reviews} />

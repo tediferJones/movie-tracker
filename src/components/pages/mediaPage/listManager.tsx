@@ -34,15 +34,19 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
           allListnames?.filter(listname => !containsImdbId.includes(listname))
         setMatchingLists(containsImdbId)
         setAllListnames(availableLists)
+
         console.log('default list will be set to:',
           defaultList && availableLists?.includes(defaultList) ? defaultList
             : availableLists?.length ? availableLists[0] : illegalListname,
           'data:', data
-        )
+        )/* TESTING */
+
         setCurrentList(
           defaultList && availableLists?.includes(defaultList) ? defaultList
             : availableLists?.length ? availableLists[0] : illegalListname
         )
+
+        setTimeout(() => console.log(currentList), 5000)/* TESTING */
       })
   }, [refreshTrigger])
 
@@ -79,17 +83,21 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
             </div>
           </ScrollArea>
       }
-      <div className='flex flex-col gap-4'>
-        <Select value={currentList} onValueChange={setCurrentList}>
+      <div className='flex flex-col gap-4' key={currentList}/* TESTING */>
+        <Select value={currentList} onValueChange={setCurrentList}
+          defaultValue={currentList}/* TESTING */
+          required/* TESTING */
+        >
           <SelectTrigger>
             <SelectValue placeholder='Select listname'/>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={illegalListname}>Create new list</SelectItem>
-            {allListnames?.map(listname => <SelectItem
-              key={listname}
-              value={listname}
-            >{listname}</SelectItem>)}
+            {allListnames?.map(listname => (
+              <SelectItem key={listname} value={listname}>
+                {listname}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         {currentList !== illegalListname ? [] : 

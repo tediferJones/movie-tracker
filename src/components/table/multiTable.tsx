@@ -16,8 +16,16 @@ import MyTable from '@/components/table/myTable';
 import easyFetch from '@/lib/easyFetch';
 import { ExistingMediaInfo, ListsRes } from '@/types';
 
-export default function MultiTable({ listnames, username }: { listnames: string[], username?: string }) {
-  const [currentList, setCurrentList] = useState(listnames[0]);
+export default function MultiTable({
+  listnames,
+  username,
+  defaultListname
+}: {
+  listnames: string[],
+  username?: string,
+  defaultListname?: string
+}) {
+  const [currentList, setCurrentList] = useState(defaultListname || listnames[0]);
   const [listData, setListData] = useState<ExistingMediaInfo[]>();
 
   useEffect(() => {

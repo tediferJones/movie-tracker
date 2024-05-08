@@ -1,6 +1,6 @@
 import { db } from '@/drizzle/db';
 import { listnames, media, reviews, watched } from '@/drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 async function getTitle(imdbId: string) {
@@ -49,6 +49,12 @@ export async function GET(req: Request) {
         (await db.select().from(reviews).where(eq(reviews.username, username)))
           .map(async rec => ({ ...rec, title: await getTitle(rec.imdbId) }))
       )
-    )
+    ),
+    defaultList: (await db.select().from(listnames).where(
+      and(
+        eq(listnames.username, username),
+        eq(listnames.defaultList, true)
+      )
+    ).get())?.listname
   })
 }

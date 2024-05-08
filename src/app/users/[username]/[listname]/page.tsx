@@ -15,7 +15,7 @@ export default function UserList({ params }: { params: { username: string, listn
 
   useEffect(() => {
     easyFetch<ListsRes>('/api/lists', 'GET', { username, listname })
-      .then(data => setListContents(data.allMediaInfo || []))
+      .then(data => setListContents(data?.allMediaInfo || []))
   }, []);
 
   return (

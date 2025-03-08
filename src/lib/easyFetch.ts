@@ -16,6 +16,7 @@ export default function easyFetch<T>(
     body: body && !useUrlParams ? JSON.stringify(body) : undefined,
   }).then(res => skipJSON ? res : res.json())
     .catch((err) => {
-      if(retryCount < 5) easyFetch(route, method, body, skipJSON, retryCount + 1)
+      throw Error('failed to fetch')
+      // if(retryCount < 5) return easyFetch(route, method, body, skipJSON, retryCount + 1)
     });
 }

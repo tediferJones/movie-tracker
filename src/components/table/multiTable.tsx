@@ -29,8 +29,10 @@ export default function MultiTable({
   const [listData, setListData] = useState<ExistingMediaInfo[]>();
 
   useEffect(() => {
+    // easyFetch<ListsRes>('/api/lists', 'GET', { listname: currentList, username: username })
+    //   .then(data => setListData(data.allMediaInfo || []))
     easyFetch<ListsRes>('/api/lists', 'GET', { listname: currentList, username: username })
-      .then(data => setListData(data.allMediaInfo || []))
+      .then(data => setListData(data?.allMediaInfo || []))
   }, [currentList])
 
   return !listData ? <Loading /> :

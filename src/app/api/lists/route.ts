@@ -19,10 +19,24 @@ export async function GET(req: Request) {
     return NextResponse.json('inputs are not valid', { status: 422 })
   }
 
+  // use .limit(num).offset(num) for paging
+  // where limit = pageSize and offset = startCount
+  // return NextResponse.json({
+  //   allMediaInfo: !listname ? undefined : await Promise.all(
+  //     (await db.select({ imdbId: lists.imdbId }).from(lists).where(
+  //       and(
+  //         eq(lists.username, username || user.username),
+  //         eq(lists.listname, listname),
+  //       )
+  //     ).limit(25)).map(async rec => getExistingMedia(rec.imdbId))
+  //   ),
+  // })
+
   // We need to be able to do a few things:
   //  - Return all list names
   //  - If imdbId is given, return all list names that contain imdbId
   //  - If listname is given, get all media info for listname and either specified user or self
+  // WORKING
   return NextResponse.json({
     allListnames: (
       await db.select({ listname: listnames.listname }).from(listnames)

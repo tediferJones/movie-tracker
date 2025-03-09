@@ -32,6 +32,37 @@ export async function GET(req: Request) {
   //   ),
   // })
 
+  // we need to replace getExistingMedia call with one big query,
+  // if we have 300 imdbIds, that will turn into 1000+ db queries
+  // NEW QUERY: await db.select().from(myTable).where(inArray(myTable.id, ids));
+  //
+  // if (!listname) throw Error('no listname')
+  // let listResult = []
+  // try {
+  //   const dbResult = await db.select({ imdbId: lists.imdbId }).from(lists).where(
+  //     and(
+  //       eq(lists.username, username || user.username),
+  //       eq(lists.listname, listname)
+  //     )
+  //   )
+  //   return NextResponse.json(dbResult.map(rec => rec.imdbId))
+  //   // console.log('got db result', dbResult.length)
+  //   // for (let i = 0; i < dbResult.length; i++) {
+  //   //   console.log(i)
+  //   //   listResult.push(await getExistingMedia(dbResult[i].imdbId))
+  //   // }
+  //   // THIS IS WHERE THE PROBLEM IS, WE NEED TO DO THIS MORE EFFICIENTLY
+  //   // do something like this for each table, then aggregate data by id
+  //   // const records = await db.select().from(myTable).where(inArray(myTable.id, ids));
+
+  //   // listResult = await Promise.all(dbResult.map(async rec => getExistingMedia(rec.imdbId)))
+  //   console.log('processed db result')
+  // } catch {
+  //   console.log('db req failed')
+  //   return NextResponse.json('db req failed', { status: 500 })
+  // }
+  // return NextResponse.json({ allMediaInfo: listResult })
+
   // We need to be able to do a few things:
   //  - Return all list names
   //  - If imdbId is given, return all list names that contain imdbId

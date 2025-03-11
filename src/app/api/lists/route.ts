@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs';
 import { db } from '@/drizzle/db';
 import { countries, genres, languages, listnames, lists, media, people } from '@/drizzle/schema';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 // import getExistingMedia from '@/lib/getExistingMedia';
 import { isValid } from '@/lib/inputValidation';
 
@@ -28,8 +28,28 @@ export async function GET(req: Request) {
   // }
   // table.$inferSelect
 
-// FetchError: request to https://<DATABASE_URL>/v2/pipeline failed, reason: socket hang up at ClientRequest.<anonymous>
-  
+  // TESTING JOINS
+  // const joinTest = await db.select({ imdbId: lists.imdbId }).from(lists).where(
+  // const joinTest = await db.select({
+  //   ...media,
+  //   names: sql`GROUP_CONCAT(${people.name}, ', ')`.as('names'),
+  // }).from(lists).where(
+  //   and(
+  //     eq(lists.username, 'tedifer_jones'),
+  //     eq(lists.listname, 'Anime')
+  //   )
+  // )
+  //   // .leftJoin(media, eq(lists.imdbId, media.imdbId))
+  // .leftJoin(media, eq(lists.imdbId, media.imdbId))
+  // .leftJoin(people, eq(lists.imdbId, people.imdbId))
+  // .groupBy(lists.imdbId)
+
+  // await db.select({ ...lists }).from(lists)
+
+  // .rightJoin(people, eq(lists.imdbId, people.imdbId))
+  // .groupBy(media.imdbId, lists.imdbId)
+  // console.log('JOIN TEST', joinTest)
+
   // if (!listname) throw Error('no listname')
   let betterResult
   if (listname) {

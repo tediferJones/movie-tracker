@@ -1,5 +1,6 @@
 import { db } from '@/drizzle/db';
 import { listnames, media, reviews, watched } from '@/drizzle/schema';
+import { clerkClient } from '@clerk/nextjs/server';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
@@ -11,6 +12,10 @@ export async function GET(req: Request) {
   const username = new URL(req.url).searchParams.get('username')
 
   if (!username) {
+    // simplified version
+    const allUsernames = (await clerkClient.users.getUserList()).map(user => user.username)
+    console.log('getting usernames', allUsernames.sort())
+
     // This is pretty egregious, but it works
     // We should probably create a users table with a single unique column called username
     // This table should then be referenced as a foreign key in tables like watched, lists, and reviews

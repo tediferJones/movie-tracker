@@ -10,15 +10,24 @@ export async function GET(req: Request, { params }: { params: Params }) {
   // get all watched records for a given user
   // if urlParams has imdbId, only return records related to that imdbId
   const { username } = params;
-  const imdbId = new URLSearchParams(req.url).get('imdbId');
-
-  const whereCondition = imdbId ? and(
-    eq(watched.username, username),
-    eq(watched.imdbId, imdbId),
-  ) : eq(watched.username, username);
+  const { searchParams } = new URL(req.url);
 
   try {
-    return NextResponse.json(await db.select().from(watched).where(whereCondition));
+    if (searchParams.has('imdbId')) {
+      const imdbId = searchParams.get('imdbId')!;
+      return NextResponse.json(
+        await db.select().from(watched).where(
+          and(
+            eq(watched.username, username),
+            eq(watched.imdbId, imdbId),
+          )
+        )
+      );
+    } else {
+      return NextResponse.json(
+        db.select().from(watched).where(eq(watched.username, username))
+      );
+    }
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });
   }
@@ -27,17 +36,18 @@ export async function GET(req: Request, { params }: { params: Params }) {
 export async function POST(req: Request, { params }: { params: Params }) {
   // add watched record for user and imdbId
   const { username } = params;
-  const imdbId = new URLSearchParams(req.url).get('imdbId');
+  const { searchParams } = new URL(req.url);
 
   const user = await currentUser()
   if (!user?.username || user.username !== username) {
     return NextResponse.json('Unauthorized', { status: 401 });
   }
 
-  if (!imdbId) {
+  if (!searchParams.has('imdbId')) {
     return NextResponse.json('Bad request, no imdbId', { status: 400 });
   }
 
+  const imdbId = searchParams.get('imdbId')!;
   const imdbIdExists = db.select().from(media).where(eq(media.imdbId, imdbId)).get();
   if (!imdbIdExists) {
     return NextResponse.json('ImdbId not found', { status: 404 });
@@ -52,20 +62,27 @@ export async function POST(req: Request, { params }: { params: Params }) {
 }
 
 export async function DELETE(req: Request, { params }: { params: Params }) {
+  // Delete watch record for a given user and id
   const { username } = params;
-  const id = new URLSearchParams(req.url).get('id');
+  const { searchParams } = new URL(req.url);
 
   const user = await currentUser()
   if (!user?.username || user.username !== username) {
     return NextResponse.json('Unauthorized', { status: 401 });
   }
 
-  if (!id) {
+  if (!searchParams.has('id')) {
     return NextResponse.json('Bad request, no id', { status: 400 });
   }
 
+  const id = searchParams.get('id')!
   try {
-    await db.delete(watched).where(eq(watched.id, Number(id)));
+    await db.delete(watched).where(
+      and(
+        eq(watched.username, username),
+        eq(watched.id, Number(id)),
+      )
+    );
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

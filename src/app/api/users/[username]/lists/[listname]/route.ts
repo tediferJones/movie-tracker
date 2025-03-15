@@ -1,5 +1,5 @@
 import { db } from '@/drizzle/db';
-import { listnames, lists } from '@/drizzle/schema';
+import { listnames, lists, media } from '@/drizzle/schema';
 import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 import { isValid } from '@/lib/inputValidation';
 import { currentUser } from '@clerk/nextjs';
@@ -7,23 +7,6 @@ import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 type Params = { username: string, listname: string }
-
-// IGNORE THIS, refer to src/app/api/users/[username]/lists/route.ts
-// /api/users/[username]/lists
-//  - GET: Get all listnames and default listname
-//
-// /api/users/[username]/lists/[listname]
-//  - GET: Get contents of listname
-//  - POST: Create new list
-//  - PUT: Update listname?
-//  - DELETE: Delete list
-//
-// /api/users/[username]/lists/[listname]/defaultList
-//  - POST: Set listname as defaultList
-// /api/users/[username]/lists/[listname]/contents (imdbId in req body)
-//  - POST: add item to list
-//  - DELETE: delete item from list
-//  - PUT: Bump to top of list?
 
 export async function GET(req: Request, { params }: { params: Params }) {
   // Get full media data for every item in list
@@ -50,13 +33,18 @@ export async function GET(req: Request, { params }: { params: Params }) {
 }
 
 export async function POST(req: Request, { params }: { params: Params }) {
-  // create new list
-  const { username, listname } = params
+  // create new list with listname
+  // if req has imdbId param, also add imdbId to listname
+  const { username, listname } = params;
+  const { searchParams } = new URL(req.url)
 
   const user = await currentUser();
   if (!user?.username || user.username !== username) {
-    return NextResponse.json('Unauthorized', { status: 401 })
+    return NextResponse.json('Unauthorized', { status: 401 });
   }
+
+  const valid = isValid({ listname });
+  if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
 
   try {
     const alreadyExists = await db.select().from(listnames).where(
@@ -64,36 +52,59 @@ export async function POST(req: Request, { params }: { params: Params }) {
         eq(listnames.username, username),
         eq(listnames.listname, listname),
       )
-    ).get()
-    if (alreadyExists) {
-      return NextResponse.json('Listname already exists', { status: 409 })
+    ).get();
+
+    // if list already exists, just do nothing
+    if (!alreadyExists) {
+      await db.insert(listnames).values({ username, listname, defaultList: false });
     }
 
-    await db.insert(listnames).values({ username, listname, defaultList: false })
-  } catch {
-    return NextResponse.json('Failed to process request, database error', { status: 500 })
-  }
+    if (searchParams.has('imdbId')) {
+      const imdbId = searchParams.get('imdbId')!;
 
-  return new NextResponse
+      const imdbIdExists = await db.select().from(media).where(
+        eq(media.imdbId, imdbId)
+      ).get()
+      if (!imdbIdExists) {
+        return NextResponse.json('ImdbId does not exist in media table', { status: 400 })
+      }
+
+      const alreadyInList = await db.select().from(lists).where(
+        and(
+          eq(lists.username, username),
+          eq(lists.listname, listname),
+          eq(lists.imdbId, imdbId),
+        )
+      ).get();
+      if (!alreadyInList) {
+        await db.insert(lists).values({ username, listname, imdbId });
+      }
+    }
+
+    return new NextResponse();
+  } catch {
+    return NextResponse.json('Failed to process request, database error', { status: 500 });
+  }
 }
 
 // use PUT /users/[username]/lists/[listname]/default to set default lists
+// we still need to figure out how we want to bump list items, and set default list
 export async function PUT(req: Request, { params }: { params: Params }) {
-  // update listname
-  const { username, listname } = params
-  const newListname = await req.json()
+  // change listname
+  const { username, listname } = params;
+  const newListname = await req.json();
   
   if (!newListname) {
-    return NextResponse.json('Bad Request', { status: 400 })
+    return NextResponse.json('Bad Request', { status: 400 });
   }
 
   const user = await currentUser();
   if (!user?.username || user.username !== username) {
-    return NextResponse.json('Unauthorized', { status: 401 })
+    return NextResponse.json('Unauthorized', { status: 401 });
   }
 
-  const valid = isValid({ listname })
-  if (!valid) return NextResponse.json('inputs are not valid', { status: 422 })
+  const valid = isValid({ listname });
+  if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
 
   try {
     await db.update(listnames).set({ listname: newListname }).where(
@@ -101,46 +112,58 @@ export async function PUT(req: Request, { params }: { params: Params }) {
         eq(listnames.username, username),
         eq(listnames.listname, listname),
       )
-    )
+    );
 
     await db.update(lists).set({ listname: newListname }).where(
       and(
         eq(lists.username, username),
         eq(lists.listname, listname),
       )
-    )
+    );
   } catch {
-    return NextResponse.json('Failed to process request, database error', { status: 500 })
+    return NextResponse.json('Failed to process request, database error', { status: 500 });
   }
 
-  return new NextResponse
+  return new NextResponse();
 }
 
 export async function DELETE(req: Request, { params }: { params: Params }) {
   // delete entire list
-  const { username, listname } = params
+  // if req has imdbId param, only delete imdbId from list
+  const { username, listname } = params;
+  const { searchParams } = new URL(req.url)
 
   const user = await currentUser();
   if (!user?.username || user.username !== username) {
-    return NextResponse.json('Unauthorized', { status: 401 })
+    return NextResponse.json('Unauthorized', { status: 401 });
   }
 
   try {
-    await db.delete(listnames).where(
-      and(
-        eq(listnames.username, username),
-        eq(listnames.listname, listname),
+    if (searchParams.has('imdbId')) {
+      const imdbId = searchParams.get('imdbId')!
+      await db.delete(lists).where(
+        and(
+          eq(lists.username, username),
+          eq(lists.listname, listname),
+          eq(lists.imdbId, imdbId)
+        )
       )
-    )
-    await db.delete(lists).where(
-      and(
-        eq(lists.username, username),
-        eq(lists.listname, listname),
-      )
-    )
+    } else {
+      await db.delete(listnames).where(
+        and(
+          eq(listnames.username, username),
+          eq(listnames.listname, listname),
+        )
+      );
+      await db.delete(lists).where(
+        and(
+          eq(lists.username, username),
+          eq(lists.listname, listname),
+        )
+      );
+    }
+    return new NextResponse
   } catch {
-    return NextResponse.json('Failed to process request, database error', { status: 500 })
+    return NextResponse.json('Failed to process request, database error', { status: 500 });
   }
-
-  return new NextResponse
 }

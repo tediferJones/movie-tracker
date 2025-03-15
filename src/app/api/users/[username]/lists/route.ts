@@ -24,10 +24,11 @@ export async function GET(req: Request, { params }: { params: Params }) {
   // return all listnames and default listname
   // if url has imdbId param, return listnames for lists that contain imdbId
   const { username } = params;
-  const imdbId = new URLSearchParams(req.url).get('imdbId')
+  const { searchParams } = new URL(req.url)
 
   try {
-    if (imdbId) {
+    if (searchParams.has('imdbId')) {
+      const imdbId = searchParams.get('imdbId')!
       const listnames = await db.select({ listname: lists.listname }).from(lists).where(
         and(
           eq(lists.imdbId, imdbId),

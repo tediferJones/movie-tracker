@@ -5,12 +5,27 @@ import { isValid } from '@/lib/inputValidation';
 import { currentUser } from '@clerk/nextjs';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+// import cache from '@/lib/cache';
 
 type Params = { username: string, listname: string }
 
 export async function GET(req: Request, { params }: { params: Params }) {
   // Get full media data for every item in list
   const { username, listname } = params;
+  
+  // const cacheStr = `${username},${listname}`
+  // let imdbIds: string[]
+  // if (cache[cacheStr]) {
+  //   imdbIds = cache[cacheStr].data
+  // } else {
+  //   const listRecords = await db.select().from(lists).where(
+  //     and(
+  //       eq(lists.username, username),
+  //       eq(lists.listname, listname),
+  //     )
+  //   )
+  //   imdbIds = listRecords.map(rec => rec.imdbId)
+  // }
 
   const listRecords = await db.select().from(lists).where(
     and(
@@ -18,7 +33,6 @@ export async function GET(req: Request, { params }: { params: Params }) {
       eq(lists.listname, listname),
     )
   )
-
   const imdbIds = listRecords.map(rec => rec.imdbId)
 
   if (!imdbIds.length) return NextResponse.json({

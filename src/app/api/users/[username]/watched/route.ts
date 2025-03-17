@@ -3,6 +3,7 @@ import { media, watched } from '@/drizzle/schema';
 import { currentUser } from '@clerk/nextjs';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import cache from '@/lib/cache';
 
 type Params = { username: string }
 
@@ -14,19 +15,27 @@ export async function GET(req: Request, { params }: { params: Params }) {
 
   try {
     if (searchParams.has('imdbId')) {
+      console.log('get watched from imdbId')
       const imdbId = searchParams.get('imdbId')!;
-      return NextResponse.json(
-        await db.select().from(watched).where(
-          and(
-            eq(watched.username, username),
-            eq(watched.imdbId, imdbId),
+      const cacheStr = `${username},${imdbId},watched`
+      if (!cache.get(cacheStr)) {
+        console.log(cacheStr, 'not in cache')
+        cache.set(cacheStr,
+          await db.select().from(watched).where(
+            and(
+              eq(watched.username, username),
+              eq(watched.imdbId, imdbId),
+            )
           )
         )
-      );
+      }
+      return NextResponse.json(cache.get(cacheStr));
     } else {
-      return NextResponse.json(
-        db.select().from(watched).where(eq(watched.username, username))
-      );
+      const cacheStr = `${username},watched`
+      if (!cache.get(cacheStr)) {
+        cache.set(cacheStr, db.select().from(watched).where(eq(watched.username, username)))
+      }
+      return NextResponse.json(cache.get(cacheStr));
     }
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

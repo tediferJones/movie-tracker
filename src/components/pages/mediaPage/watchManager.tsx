@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { watched } from '@/drizzle/schema'
 import Loading from '@/components/subcomponents/loading';
 import easyFetch from '@/lib/easyFetch'
+import { useUser } from '@clerk/nextjs';
 
 type WatchRecord = typeof watched.$inferSelect;
 
@@ -13,10 +14,18 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
   const [watched, setWatched] = useState<WatchRecord[]>()
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
+  // useEffect(() => {
+  //   easyFetch<WatchRecord[]>('/api/watched', 'GET', { imdbId })
+  //     .then(data => setWatched(data));
+  // }, [refreshTrigger])
+
+  const { user } = useUser();
   useEffect(() => {
-    easyFetch<WatchRecord[]>('/api/watched', 'GET', { imdbId })
+    if (!user?.username) return
+    console.log('got user info', user.username)
+    easyFetch<WatchRecord[]>(`/api/users/${user.username}/watched`, 'GET', { imdbId })
       .then(data => setWatched(data));
-  }, [refreshTrigger])
+  }, [refreshTrigger, user?.username])
 
   return (
     <div className='flex flex-col justify-between gap-4 p-4 text-center showOutline sm:flex-1 sm:w-auto w-full max-h-[60vh]'>
@@ -52,7 +61,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
         </ScrollArea>
       }
       <Button onClick={() => {
-        easyFetch('/api/watched', 'POST', { imdbId }, true)
+        easyFetch(`/api/users/${user?.username}/watched`, 'POST', { imdbId }, true)
           .then(() => setRefreshTrigger(!refreshTrigger))
       }}>New Record</Button>
     </div>

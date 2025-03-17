@@ -20,10 +20,10 @@ export async function getManyExistingMedia(imdbIds: string[]) {
   // const languageInfo = await db.select().from(languages).where(inArray(languages.imdbId, imdbIds))
   // const peopleInfo = await db.select().from(people).where(inArray(people.imdbId, imdbIds))
 
-  const cachedImdbIds = new Set(Object.keys(cache))
+  const cachedImdbIds = new Set(cache.keys())
   const notCachedImdbIds = imdbIds.filter(imdbId => !cachedImdbIds.has(imdbId))
   console.log(`fetching ${notCachedImdbIds.length}/${imdbIds.length}`)
-  console.log('checking if cache is shared', cache['shareCheck'])
+  console.log('checking if cache is shared', cache.get('shareCheck'))
   // const processedData: Record<string, any> = {}
   const processedData = {} as ProcessedData
   if (notCachedImdbIds.length) {
@@ -61,7 +61,7 @@ export async function getManyExistingMedia(imdbIds: string[]) {
   }
 
   return imdbIds.map(imdbId => {
-    if (!cache[imdbId]) {
+    if (!cache.get(imdbId)) {
       const mergedData = {
         ...processedData.mediaObj[imdbId],
         genre: processedData.genreObj[imdbId] || [],
@@ -69,9 +69,9 @@ export async function getManyExistingMedia(imdbIds: string[]) {
         language: processedData.languageObj[imdbId] || [],
         ...processedData.peopleObj[imdbId],
       }
-      cache[imdbId] = { data: mergedData, date: Date.now() }
+      cache.set(imdbId, mergedData)
     }
-    return cache[imdbId].data
+    return cache.get(imdbId)
   })
 
   // return imdbIds.map(imdbId => {

@@ -33,8 +33,8 @@ class Cache {
   }
 }
 
-// const maxTime = 1000 * 60 * 15; // 15 minutes
-const maxTime = 1000 * 60; // For testing purposes
+const maxTime = 1000 * 60 * 15; // 15 minutes
+// const maxTime = 1000 * 60; // For testing purposes
 const cache = new Cache(maxTime)
 
 export default cache;

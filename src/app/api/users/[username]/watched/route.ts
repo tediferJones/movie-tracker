@@ -15,11 +15,9 @@ export async function GET(req: Request, { params }: { params: Params }) {
 
   try {
     if (searchParams.has('imdbId')) {
-      console.log('get watched from imdbId')
       const imdbId = searchParams.get('imdbId')!;
       const cacheStr = `${username},${imdbId},watched`
       if (!cache.get(cacheStr)) {
-        console.log(cacheStr, 'not in cache')
         cache.set(cacheStr,
           await db.select().from(watched).where(
             and(
@@ -64,6 +62,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
 
   try {
     await db.insert(watched).values({ username, imdbId, date: Date.now() });
+    cache.delete(`${username},${imdbId},watched`)
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });
@@ -84,7 +83,12 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
     return NextResponse.json('Bad request, no id', { status: 400 });
   }
 
+  if (!searchParams.has('imdbId')) {
+    return NextResponse.json('Bad request, no imdbId', { status: 400 });
+  }
+
   const id = searchParams.get('id')!
+  const imdbId = searchParams.get('imdbId')!
   try {
     await db.delete(watched).where(
       and(
@@ -92,6 +96,7 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
         eq(watched.id, Number(id)),
       )
     );
+    cache.delete(`${username},${imdbId},watched`)
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

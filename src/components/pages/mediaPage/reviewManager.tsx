@@ -8,31 +8,52 @@ import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
 import ReviewsDisplay from '@/components/subcomponents/reviewsDisplay';
 import { inputValidation } from '@/lib/inputValidation';
-import easyFetch from '@/lib/easyFetch';
-import { ReviewsRes } from '@/types';
+import { useUser } from '@clerk/nextjs';
+import { reviews } from '@/drizzle/schema';
+import easyFetchV3 from '@/lib/easyFetchV3';
+import ConfirmModal from '@/components/subcomponents/confirmModal';
+
+type ExistingReview = typeof reviews.$inferSelect
+type EmptyReview = {
+  review: string | null,
+  rating: number | null,
+  watchAgain: boolean | null,
+  username: undefined,
+}
 
 export default function ReviewManager({ imdbId }: { imdbId: string }) {
-  const [existingReview, setExistingReview] = useState<ReviewsRes>();
+  const [existingReview, setExistingReview] = useState<ExistingReview | EmptyReview>();
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
   const [lockRating, setLockRating] = useState<boolean>(false);
   const [isHovering, setIsHovering] = useState<boolean>(false);
-  const [allReviews, setAllReviews] = useState<ReviewsRes[]>([]);
+  const [allReviews, setAllReviews] = useState<ExistingReview[]>([]);
+  const [buttonText, setButtonText] = useState('Waiting...');
+  const [modalVisibile, setModalVisible] = useState(false);
 
   const defaultReview = {
-    username: null,
     review: null,
     rating: null,
     watchAgain: null,
-    imdbId,
+    username: undefined
   }
 
+  const { user } = useUser();
   useEffect(() => {
-    easyFetch<{ myReview: ReviewsRes, allReviews: ReviewsRes[] }>('/api/reviews', 'GET', { imdbId })
-      .then(data => {
-        setAllReviews(data.allReviews)
-        setExistingReview(data.myReview || defaultReview)
-      })
-  }, [refreshTrigger])
+    if (user?.username) {
+      easyFetchV3<ExistingReview | undefined>({
+        route: `/api/users/${user.username}/reviews`,
+        method: 'GET',
+        params: { imdbId },
+      }).then(data => {
+          setExistingReview(data || defaultReview);
+          setButtonText(data ? 'Update Review' : 'Submit Review');
+        });
+    }
+    easyFetchV3<ExistingReview[]>({
+      route: `/api/media/${imdbId}/reviews`,
+      method: 'GET',
+    }).then(data => setAllReviews(data));
+  }, [refreshTrigger, user?.username]);
 
   return !existingReview ? <Loading /> :
     <>
@@ -41,10 +62,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
           <h1 className='text-xl my-auto'>My Review</h1>
           {!existingReview.username ? [] : 
             <Button variant='destructive'
-              onClick={() => {
-                easyFetch('/api/reviews', 'DELETE', { imdbId })
-                  .then(() => setRefreshTrigger(!refreshTrigger))
-              }}
+              onClick={() => setModalVisible(true)}
             >Delete My Review</Button>
           }
         </div>
@@ -95,8 +113,8 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
             }} 
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => {
-              setLockRating(false)
-              setIsHovering(false)
+              setLockRating(false);
+              setIsHovering(false);
             }}
             onClick={() => setLockRating(!lockRating)}
           >
@@ -125,10 +143,35 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
         />
 
         <Button onClick={() => {
-          easyFetch('/api/reviews', existingReview.username ? 'PUT' : 'POST', existingReview, true)
-            .then(() => setRefreshTrigger(!refreshTrigger))
-        }}>{existingReview.username ? 'Update' : 'Submit'} Review</Button>
+          if (user?.username) {
+            setButtonText(existingReview.username ? 'Updating Review...' : 'Adding Review...');
+            easyFetchV3({
+              route: `/api/users/${user.username}/reviews`,
+              method: existingReview.username ? 'PUT' : 'POST',
+              params: { imdbId },
+              body: existingReview,
+              skipJSON: true,
+            }).then(() => setRefreshTrigger(!refreshTrigger));
+          }
+        }}>{buttonText}</Button>
       </div>
+      <ConfirmModal
+        visible={modalVisibile}
+        setVisible={setModalVisible}
+        action={() => {
+          if (user?.username) {
+            setButtonText('Deleting Review...');
+            easyFetchV3({
+              route: `/api/users/${user.username}/reviews`,
+              method: 'DELETE',
+              params: { imdbId },
+              skipJSON: true,
+            }).then(() => setRefreshTrigger(!refreshTrigger));
+          }
+        }}
+      >
+        <p>Are you sure you want to delete this review?</p>
+      </ConfirmModal>
       <ReviewsDisplay reviews={allReviews} />
     </>
 }

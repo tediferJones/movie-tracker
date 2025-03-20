@@ -2,23 +2,9 @@ import { db } from '@/drizzle/db';
 import { listnames, lists } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import cache from '@/lib/cache';
 
 type Params = { username: string }
-
-// /api/users/[username]/lists
-// GET: get all listnames and default list
-// POST/PUT: change default listname
-//
-// /api/users/[username]/lists/[listname]
-// [ DONE ] GET: get list contents and all associated media data
-// [ DONE ] POST: create new list with listname
-// [ DONE ] PUT: change listname (new listname in URL or body)
-// [ DONE ] DELETE: remove list (remove from listnames table and make sure all list data for listname is removed from lists table)
-//
-// /api/users/[username]/lists/[listname]/[imdbId]
-// [ DONE ] POST: add imdbId to list
-// PUT: bump imdbId in list
-// [ DONE ] DELETE: remove imdbId from list
 
 export async function GET(req: Request, { params }: { params: Params }) {
   // return all listnames and default listname
@@ -29,21 +15,29 @@ export async function GET(req: Request, { params }: { params: Params }) {
   try {
     if (searchParams.has('imdbId')) {
       const imdbId = searchParams.get('imdbId')!
-      const listnames = await db.select({ listname: lists.listname }).from(lists).where(
-        and(
-          eq(lists.imdbId, imdbId),
-          eq(lists.username, username),
+      const cacheStr = `${username},${imdbId},lists`
+      if (!cache.get(cacheStr)) {
+        const listnames = await db.select({ listname: lists.listname }).from(lists).where(
+          and(
+            eq(lists.imdbId, imdbId),
+            eq(lists.username, username),
+          )
         )
-      )
-      return NextResponse.json(listnames.map(listRec => listRec.listname))
+        cache.set(cacheStr, listnames.map(listRec => listRec.listname))
+      }
+      return NextResponse.json(cache.get(cacheStr))
     } else {
-      const listRecs = await db.select().from(listnames).where(
-        eq(listnames.username, username)
-      )
-      return NextResponse.json({
-        listnames: listRecs.map(listRec => listRec.listname),
-        defaultList: listRecs.find(listRec => listRec.defaultList)?.listname
-      })
+      const cacheStr = `${username},lists`
+      if (!cache.get(cacheStr)) {
+        const listRecs = await db.select().from(listnames).where(
+          eq(listnames.username, username)
+        )
+        cache.set(cacheStr, {
+          listnames: listRecs.map(listRec => listRec.listname),
+          defaultList: listRecs.find(listRec => listRec.defaultList)?.listname
+        });
+      }
+      return NextResponse.json(cache.get(cacheStr))
     }
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

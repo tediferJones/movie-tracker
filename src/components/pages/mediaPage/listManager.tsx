@@ -11,12 +11,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 import Link from 'next/link';
 import { Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Loading from '@/components/subcomponents/loading';
 import { inputValidation } from '@/lib/inputValidation';
-import easyFetch from '@/lib/easyFetch'
-import { ListsRes } from '@/types';
+import easyFetchV3 from '@/lib/easyFetchV3';
+import ConfirmModal from '@/components/subcomponents/confirmModal';
+
+type AllLists = {
+  listnames: string[],
+  defaultList: string,
+}
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname'
@@ -25,68 +30,82 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const [currentList, setCurrentList] = useState<string>(illegalListname);
   const [allListnames, setAllListnames] = useState<string[]>();
   const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [confirmList, setConfirmList] = useState('');
+  const [buttonText, setButtonText] = useState('Waiting...');
 
+  const { user } = useUser();
   useEffect(() => {
-    easyFetch<ListsRes>('/api/lists', 'GET', { imdbId })
-      .then(data => {
-        const { allListnames, containsImdbId, defaultList } = data
-        const availableLists = !containsImdbId || containsImdbId.length === 0 ? allListnames :
-          allListnames?.filter(listname => !containsImdbId.includes(listname))
-        setMatchingLists(containsImdbId)
-        setAllListnames(availableLists)
+    if (!user?.username) return
+    (async () => {
+      const alreadyInLists = await easyFetchV3<string[]>({
+        route: `/api/users/${user.username}/lists`,
+        method: 'GET',
+        params: { imdbId }
+      });
+      const { defaultList, listnames } = await easyFetchV3<AllLists>({
+        route: `/api/users/${user.username}/lists`,
+        method: 'GET'
+      });
+      setMatchingLists(alreadyInLists);
+      const availableLists = listnames.filter(listname => !alreadyInLists.includes(listname));
+      setAllListnames(availableLists);
+      const autoSelectList = availableLists.includes(defaultList) ? defaultList : availableLists[0];
+      setCurrentList(autoSelectList);
+      setButtonText('');
+    })()
+  }, [refreshTrigger, user?.username]);
 
-        console.log('default list will be set to:',
-          defaultList && availableLists?.includes(defaultList) ? defaultList
-            : availableLists?.length ? availableLists[0] : illegalListname,
-          'data:', data
-        )/* TESTING */
-
-        setCurrentList(
-          defaultList && availableLists?.includes(defaultList) ? defaultList
-            : availableLists?.length ? availableLists[0] : illegalListname
-        )
-
-        setTimeout(() => console.log(currentList), 5000)/* TESTING */
-      })
-  }, [refreshTrigger])
+  // it's not stupid if it works
+  setTimeout(() => {
+    const container = document.getElementById('scrollAreaChild')?.parentElement
+    // @ts-ignore
+    if (container) container.style = ''
+  }, 100)
 
   return (
     <form className='flex flex-col justify-between gap-4 text-center p-4 showOutline sm:flex-1 sm:w-auto w-full max-h-[60vh]'
       onSubmit={e => {
         e.preventDefault();
-        easyFetch('/api/lists', 'POST', {
-          imdbId,
-          listname: e.currentTarget?.newListname?.value || currentList,
-        }, true).then(() => setRefreshTrigger(!refreshTrigger));
+        if (!user?.username) return;
+        if (buttonText) return console.log('early return');
+        const listname = e.currentTarget?.newListname?.value || currentList;
+        setButtonText(`Adding to ${listname}...`);
+        easyFetchV3({
+          route: `/api/users/${user.username}/lists/${listname}`,
+          method: 'POST',
+          params: { imdbId },
+          skipJSON: true,
+        }).then(() => setRefreshTrigger(!refreshTrigger));
         e.currentTarget.reset();
       }}
     >
       <h1 className='text-xl'>List Manager</h1>
-      {!matchingLists ? <Loading /> : 
+      {!matchingLists || !user?.username ? <Loading /> : 
         !matchingLists.length ? 'No records found' :
           <ScrollArea type='auto'>
-            <div className='flex flex-col gap-4 overflow-y-auto'>
-              {matchingLists.map(listname => <span key={listname} className='flex gap-2 justify-center px-4'>
-                <Link className='w-full text-center hover:underline'
+            <div id='scrollAreaChild' className='flex flex-col gap-4 overflow-y-auto'>
+              {matchingLists.map(listname => <div key={listname} className='px-4 flex items-center gap-4'>
+                <Link className='flex-1 text-center hover:underline truncate'
                   href={`/users/${username}/${listname}`}
                 >{listname}</Link>
                 <button type='button'
                   onClick={() => {
-                    easyFetch('/api/lists', 'DELETE', { imdbId, listname }, true)
-                      .then(() => setRefreshTrigger(!refreshTrigger))
+                    setConfirmList(listname);
+                    setModalVisible(true);
                   }}
                 >
                   <span className='sr-only'>Delete from list {listname}</span>
-                  <Trash2 className='text-red-700 min-h-6 min-w-6' />
+                  <Trash2 className='text-red-700 h-6 w-6' />
                 </button>
-              </span>)}
+              </div>)}
             </div>
           </ScrollArea>
       }
-      <div className='flex flex-col gap-4' key={currentList}/* TESTING */>
+      <div className='flex flex-col gap-4' key={currentList}>
         <Select value={currentList} onValueChange={setCurrentList}
-          defaultValue={currentList}/* TESTING */
-          required/* TESTING */
+          defaultValue={currentList}
+          required
         >
           <SelectTrigger>
             <SelectValue placeholder='Select listname'/>
@@ -109,8 +128,28 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
             {...inputValidation.listname}
           />
         }
-        <Button type='submit'>Add to List</Button>
+        <Button className='text-wrap' type='submit'>{buttonText || 'Add to List'}</Button>
       </div>
+      <ConfirmModal
+        visible={modalVisible}
+        setVisible={setModalVisible}
+        action={() => {
+          if (!user?.username) return;
+          if (buttonText) return;
+          setButtonText(`Deleting from ${confirmList}...`);
+          easyFetchV3({
+            route: `/api/users/${user.username}/lists/${confirmList}`,
+            method: 'DELETE',
+            params: { imdbId },
+            skipJSON: true,
+          }).then(() => setRefreshTrigger(!refreshTrigger));
+        }}
+      >
+        <>
+          <p>Are you sure you want to remove this movie from the list:</p>
+          <p>{confirmList}</p>
+        </>
+      </ConfirmModal>
     </form>
   )
 }

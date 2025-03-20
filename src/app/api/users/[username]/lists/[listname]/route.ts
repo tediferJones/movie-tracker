@@ -5,7 +5,7 @@ import { isValid } from '@/lib/inputValidation';
 import { currentUser } from '@clerk/nextjs';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
-// import cache from '@/lib/cache';
+import cache from '@/lib/cache';
 
 type Params = { username: string, listname: string }
 
@@ -13,37 +13,27 @@ export async function GET(req: Request, { params }: { params: Params }) {
   // Get full media data for every item in list
   const { username, listname } = params;
   
-  // const cacheStr = `${username},${listname}`
-  // let imdbIds: string[]
-  // if (cache[cacheStr]) {
-  //   imdbIds = cache[cacheStr].data
-  // } else {
-  //   const listRecords = await db.select().from(lists).where(
-  //     and(
-  //       eq(lists.username, username),
-  //       eq(lists.listname, listname),
-  //     )
-  //   )
-  //   imdbIds = listRecords.map(rec => rec.imdbId)
-  // }
-
-  const listRecords = await db.select().from(lists).where(
-    and(
-      eq(lists.username, username),
-      eq(lists.listname, listname),
+  const cacheStr = `${username},${listname}`
+  if (!cache.get(cacheStr)) {
+    const listRecords = await db.select().from(lists).where(
+      and(
+        eq(lists.username, username),
+        eq(lists.listname, listname),
+      )
     )
-  )
-  const imdbIds = listRecords.map(rec => rec.imdbId)
+    const imdbIds = listRecords.map(rec => rec.imdbId)
 
-  if (!imdbIds.length) return NextResponse.json({
-    error: 'No resources found',
-    listname,
-    username,
-  }, { status: 404 })
+    if (!imdbIds.length) return NextResponse.json({
+      error: 'No resources found',
+      listname,
+      username,
+    }, { status: 404 })
 
-  const listData = await getManyExistingMedia(imdbIds)
+    const listData = await getManyExistingMedia(imdbIds)
+    cache.set(cacheStr, listData)
+  }
 
-  return NextResponse.json(listData)
+  return NextResponse.json(cache.get(cacheStr))
 }
 
 export async function POST(req: Request, { params }: { params: Params }) {
@@ -68,9 +58,10 @@ export async function POST(req: Request, { params }: { params: Params }) {
       )
     ).get();
 
-    // if list already exists, just do nothing
     if (!alreadyExists) {
+      // if list doesnt exist, create it
       await db.insert(listnames).values({ username, listname, defaultList: false });
+      cache.delete(`${username},lists`)
     }
 
     if (searchParams.has('imdbId')) {
@@ -92,6 +83,8 @@ export async function POST(req: Request, { params }: { params: Params }) {
       ).get();
       if (!alreadyInList) {
         await db.insert(lists).values({ username, listname, imdbId });
+        cache.delete(`${username},${imdbId},lists`)
+        cache.delete(`${username},${listname}`)
       }
     }
 
@@ -117,7 +110,11 @@ export async function PUT(req: Request, { params }: { params: Params }) {
     return NextResponse.json('Unauthorized', { status: 401 });
   }
 
-  const valid = isValid({ listname });
+  if (listname === newListname) {
+    return new NextResponse()
+  }
+
+  const valid = isValid({ listname: newListname });
   if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
 
   try {
@@ -134,11 +131,13 @@ export async function PUT(req: Request, { params }: { params: Params }) {
         eq(lists.listname, listname),
       )
     );
+    cache.set(`${username},${newListname}`, cache.get(`${username},${listname}`))
+    cache.delete(`${username},${listname}`)
+
+    return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });
   }
-
-  return new NextResponse();
 }
 
 export async function DELETE(req: Request, { params }: { params: Params }) {
@@ -162,6 +161,8 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
           eq(lists.imdbId, imdbId)
         )
       )
+      cache.delete(`${username},${imdbId},lists`)
+      cache.delete(`${username},${listname}`)
     } else {
       await db.delete(listnames).where(
         and(
@@ -175,6 +176,8 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
           eq(lists.listname, listname),
         )
       );
+      cache.delete(`${username},lists`)
+      cache.delete(`${username},${listname}`)
     }
     return new NextResponse
   } catch {

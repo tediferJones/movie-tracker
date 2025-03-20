@@ -4,6 +4,7 @@ import { isValid } from '@/lib/inputValidation';
 import { currentUser } from '@clerk/nextjs';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import cache from '@/lib/cache';
 
 type Params = { username: string }
 type Review = typeof reviews.$inferInsert
@@ -18,19 +19,26 @@ export async function GET(req: Request, { params }: { params: Params }) {
   try {
     if (searchParams.has('imdbId')) {
       const imdbId = searchParams.get('imdbId')!;
-      console.log('imdbId is', imdbId)
-      const review = await db.select().from(reviews).where(
-        and(
-          eq(reviews.username, username),
-          eq(reviews.imdbId, imdbId),
-        )
-      ).get();
-      return NextResponse.json(review || null);
+      const cacheStr = `${username},${imdbId},review`;
+      if (!cache.get(cacheStr)) {
+        const review = await db.select().from(reviews).where(
+          and(
+            eq(reviews.username, username),
+            eq(reviews.imdbId, imdbId),
+          )
+        ).get();
+        cache.set(cacheStr, review);
+      }
+      return NextResponse.json(cache.get(cacheStr) || null);
     } else {
-      const allReviews = await db.select().from(reviews).where(
-        eq(reviews.username, username)
-      );
-      return NextResponse.json(allReviews);
+      const cacheStr = `${username},reviews`
+      if (!cache.get(cacheStr)) {
+        const allReviews = await db.select().from(reviews).where(
+          eq(reviews.username, username)
+        );
+        cache.set(cacheStr, allReviews)
+      }
+      return NextResponse.json(cache.get(cacheStr));
     }
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });
@@ -38,6 +46,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
 }
 
 export async function POST(req: Request, { params }: { params: Params }) {
+  // Create new review, requires imdbId, and at least one review field
   const { username } = params;
   const { searchParams } = new URL(req.url);
   const review: ReviewBody  = await req.json();
@@ -57,7 +66,19 @@ export async function POST(req: Request, { params }: { params: Params }) {
 
   const imdbId = searchParams.get('imdbId')!;
   try {
+    const exisitingReview = await db.select().from(reviews).where(
+      and(
+        eq(reviews.username, username),
+        eq(reviews.imdbId, imdbId),
+      )
+    ).get();
+    if (exisitingReview) {
+      return NextResponse.json('Review already exists', { status: 400 });
+    }
+
     await db.insert(reviews).values({ username, imdbId, ...review });
+    cache.delete(`${username},${imdbId},review`)
+    cache.delete(`${username},reviews`)
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });
@@ -65,6 +86,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
 }
 
 export async function PUT(req: Request, { params }: { params: Params }) {
+  // update existing review, requires imdbId
   const { username } = params;
   const { searchParams } = new URL(req.url);
   const review: ReviewBody  = await req.json();
@@ -84,12 +106,24 @@ export async function PUT(req: Request, { params }: { params: Params }) {
 
   const imdbId = searchParams.get('imdbId')!;
   try {
+    const existingReview = await db.select().from(reviews).where(
+      and(
+        eq(reviews.username, username),
+        eq(reviews.imdbId, imdbId),
+      )
+    )
+    if (!existingReview) {
+      return NextResponse.json('No review to update', { status: 400 });
+    }
+
     await db.update(reviews).set(review).where(
       and(
         eq(reviews.username, username),
         eq(reviews.imdbId, imdbId),
       )
     );
+    cache.delete(`${username},${imdbId},review`)
+    cache.delete(`${username},reviews`)
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });
@@ -97,6 +131,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
 }
 
 export async function DELETE(req: Request, { params }: { params: Params }) {
+  // Delete existing review
   const { username } = params;
   const { searchParams } = new URL(req.url);
 
@@ -117,6 +152,8 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
         eq(reviews.imdbId, imdbId),
       )
     );
+    cache.delete(`${username},${imdbId},review`)
+    cache.delete(`${username},reviews`)
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

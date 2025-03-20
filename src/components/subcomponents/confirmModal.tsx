@@ -20,9 +20,11 @@ export default function confirmModal(
         {children}
         <div className='flex gap-4 justify-end'>
           <button className='py-2 px-4 bg-primary rounded-lg'
+            type='button'
             onClick={() => setVisible(false)}
           >Cancel</button>
           <button className='py-2 px-4 bg-red-600 rounded-lg'
+            type='button'
             onClick={() => {
               setVisible(false)
               action()

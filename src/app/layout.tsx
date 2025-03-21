@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <body className={inter.className}>
           <ThemeProvider attribute='class'>
             <ScrollArea type='auto' className='h-screen'>
-              <div className='min-h-screen flex flex-col'>
+              <div className='min-h-screen flex flex-col max-w-[100vw]'>
                 <Header />
                 {children}
                 <Footer />

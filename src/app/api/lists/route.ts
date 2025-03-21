@@ -5,6 +5,7 @@ import { countries, genres, languages, listnames, lists, media, people } from '@
 import { and, eq, inArray, sql } from 'drizzle-orm';
 // import getExistingMedia from '@/lib/getExistingMedia';
 import { isValid } from '@/lib/inputValidation';
+import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 
 export async function GET(req: Request) {
   const user = await currentUser();
@@ -60,51 +61,53 @@ export async function GET(req: Request) {
       )
     )).map(rec => rec.imdbId)
 
-    // NEW QUERY: await db.select().from(myTable).where(inArray(myTable.id, ids));
-    // This works very well but is kind of a mess, trying using a JOIN statement
-    //  - JOIN statement might allow us to greatly simplify or eliminate the manual merging of media data
-    const mediaInfo = await db.select().from(media).where(inArray(media.imdbId, imdbIds))
-    const genreInfo = await db.select().from(genres).where(inArray(genres.imdbId, imdbIds))
-    const countryInfo = await db.select().from(countries).where(inArray(countries.imdbId, imdbIds))
-    const languageInfo = await db.select().from(languages).where(inArray(languages.imdbId, imdbIds))
-    const peopleInfo = await db.select().from(people).where(inArray(people.imdbId, imdbIds))
-    // console.log('GOT INFO WITH INARRAY METHOD')
+    betterResult = await getManyExistingMedia(imdbIds)
 
-    const mediaObj = mediaInfo.reduce((mediaObj, media) => {
-      mediaObj[media.imdbId] = media
-      return mediaObj
-    }, {} as Record<string, typeof media.$inferSelect>)
-    const genreObj = genreInfo.reduce((genreObj, genre) => {
-      if (!genreObj[genre.imdbId]) genreObj[genre.imdbId] = []
-      genreObj[genre.imdbId].push(genre.genre)
-      return genreObj
-    }, {} as Record<string, string[]>)
-    const countryObj = countryInfo.reduce((countryObj, country) => {
-      if (!countryObj[country.imdbId]) countryObj[country.imdbId] = []
-      countryObj[country.imdbId].push(country.country)
-      return countryObj
-    }, {} as Record<string, string[]>)
-    const languageObj = languageInfo.reduce((languageObj, language) => {
-      if (!languageObj[language.imdbId]) languageObj[language.imdbId] = []
-      languageObj[language.imdbId].push(language.language)
-      return languageObj
-    }, {} as Record<string, string[]>)
-    const peopleObj = peopleInfo.reduce((peopleObj, person) => {
-      if (!peopleObj[person.imdbId]) peopleObj[person.imdbId] = {}
-      if (!peopleObj[person.imdbId][person.position]) peopleObj[person.imdbId][person.position] = []
-      peopleObj[person.imdbId][person.position].push(person.name)
-      return peopleObj
-    }, {} as Record<string, Record<string, string[]>>)
+    // // NEW QUERY: await db.select().from(myTable).where(inArray(myTable.id, ids));
+    // // This works very well but is kind of a mess, trying using a JOIN statement
+    // //  - JOIN statement might allow us to greatly simplify or eliminate the manual merging of media data
+    // const mediaInfo = await db.select().from(media).where(inArray(media.imdbId, imdbIds))
+    // const genreInfo = await db.select().from(genres).where(inArray(genres.imdbId, imdbIds))
+    // const countryInfo = await db.select().from(countries).where(inArray(countries.imdbId, imdbIds))
+    // const languageInfo = await db.select().from(languages).where(inArray(languages.imdbId, imdbIds))
+    // const peopleInfo = await db.select().from(people).where(inArray(people.imdbId, imdbIds))
+    // // console.log('GOT INFO WITH INARRAY METHOD')
 
-    betterResult = imdbIds.map(imdbId => {
-      return {
-        ...mediaObj[imdbId],
-        genre: genreObj[imdbId] || [],
-        country: countryObj[imdbId] || [],
-        language: languageObj[imdbId] || [],
-        ...peopleObj[imdbId],
-      }
-    })
+    // const mediaObj = mediaInfo.reduce((mediaObj, media) => {
+    //   mediaObj[media.imdbId] = media
+    //   return mediaObj
+    // }, {} as Record<string, typeof media.$inferSelect>)
+    // const genreObj = genreInfo.reduce((genreObj, genre) => {
+    //   if (!genreObj[genre.imdbId]) genreObj[genre.imdbId] = []
+    //   genreObj[genre.imdbId].push(genre.genre)
+    //   return genreObj
+    // }, {} as Record<string, string[]>)
+    // const countryObj = countryInfo.reduce((countryObj, country) => {
+    //   if (!countryObj[country.imdbId]) countryObj[country.imdbId] = []
+    //   countryObj[country.imdbId].push(country.country)
+    //   return countryObj
+    // }, {} as Record<string, string[]>)
+    // const languageObj = languageInfo.reduce((languageObj, language) => {
+    //   if (!languageObj[language.imdbId]) languageObj[language.imdbId] = []
+    //   languageObj[language.imdbId].push(language.language)
+    //   return languageObj
+    // }, {} as Record<string, string[]>)
+    // const peopleObj = peopleInfo.reduce((peopleObj, person) => {
+    //   if (!peopleObj[person.imdbId]) peopleObj[person.imdbId] = {}
+    //   if (!peopleObj[person.imdbId][person.position]) peopleObj[person.imdbId][person.position] = []
+    //   peopleObj[person.imdbId][person.position].push(person.name)
+    //   return peopleObj
+    // }, {} as Record<string, Record<string, string[]>>)
+
+    // betterResult = imdbIds.map(imdbId => {
+    //   return {
+    //     ...mediaObj[imdbId],
+    //     genre: genreObj[imdbId] || [],
+    //     country: countryObj[imdbId] || [],
+    //     language: languageObj[imdbId] || [],
+    //     ...peopleObj[imdbId],
+    //   }
+    // })
   }
   // console.log('BETTER RESULT DONE')
 
@@ -164,6 +167,7 @@ export async function GET(req: Request) {
   //  - If imdbId is given, return all list names that contain imdbId
   //  - If listname is given, get all media info for listname and either specified user or self
   // WORKING
+  console.log('all media info', betterResult)
   return NextResponse.json({
     allListnames: (
       await db.select({ listname: listnames.listname }).from(listnames)

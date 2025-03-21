@@ -16,13 +16,13 @@ export default function easyFetchV3<T>({
   skipJSON,
   retryCount = 0
 }: Args): Promise<T> {
-  if (params) route += `?${new URLSearchParams(params)}`
-  return fetch(route, {
+  return fetch(params ? route + `?${new URLSearchParams(params)}` : route, {
     method,
     headers: body ? { 'content-type': 'application/json' } : undefined, 
     body: body ? JSON.stringify(body) : undefined,
   }).then(res => skipJSON ? res : res.json())
     .catch((err) => {
+      console.log(err)
       console.log('fetch failed, attempt', retryCount)
       if(retryCount < 5) return easyFetchV3({
         route,

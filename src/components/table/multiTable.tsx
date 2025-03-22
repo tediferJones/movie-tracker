@@ -13,8 +13,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
 import MyTable from '@/components/table/myTable';
-import easyFetch from '@/lib/easyFetch';
-import { ExistingMediaInfo, ListsRes } from '@/types';
+import easyFetchV3 from '@/lib/easyFetchV3';
+import { ExistingMediaInfo } from '@/types';
 
 export default function MultiTable({
   listnames,
@@ -22,18 +22,19 @@ export default function MultiTable({
   defaultListname
 }: {
   listnames: string[],
-  username?: string,
+  username: string,
   defaultListname?: string
 }) {
   const [currentList, setCurrentList] = useState(defaultListname || listnames[0]);
   const [listData, setListData] = useState<ExistingMediaInfo[]>();
 
   useEffect(() => {
-    // easyFetch<ListsRes>('/api/lists', 'GET', { listname: currentList, username: username })
-    //   .then(data => setListData(data.allMediaInfo || []))
-    easyFetch<ListsRes>('/api/lists', 'GET', { listname: currentList, username: username })
-      .then(data => setListData(data?.allMediaInfo || []))
-  }, [currentList])
+    if (!username) throw Error('no username available');
+    easyFetchV3<ExistingMediaInfo[]>({
+      route: `/api/users/${username}/lists/${currentList}`,
+      method: 'GET'
+    }).then(data => setListData(data));
+  }, [currentList]);
 
   return !listData ? <Loading /> :
     <div className='showOutline p-2'>
@@ -49,7 +50,9 @@ export default function MultiTable({
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup value={currentList} onValueChange={setCurrentList}>
                   {listnames.map(listname => {
-                    return <DropdownMenuRadioItem key={listname} value={listname}>{listname}</DropdownMenuRadioItem>
+                    return <DropdownMenuRadioItem key={listname} value={listname}>
+                      {listname}
+                    </DropdownMenuRadioItem>
                   })}
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>

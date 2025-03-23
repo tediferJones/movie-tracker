@@ -25,7 +25,7 @@ export default function ReviewsDisplay({ reviews }: { reviews: ReviewsRes[] }) {
               </div>
             </div>
             <div className='text-center'>
-              {review.review ? <span>{review.review}</span>
+              {review.review ? <span className='break-words'>{review.review}</span>
                 : <span className='text-muted-foreground'>No Review Content</span>
               }
             </div>

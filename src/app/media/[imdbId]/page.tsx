@@ -1,17 +1,28 @@
 'use client';
-import MediaInfo from '@/components/pages/mediaPage/mediaInfo';
-import WatchManger from '@/components/pages/mediaPage/watchManager';
-import ListManager from '@/components/pages/mediaPage/listManager';
-import ReviewManager from '@/components/pages/mediaPage/reviewManager';
+import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
+import { useEffect, useState } from 'react';
+import easyFetchV3 from '@/lib/easyFetchV3';
+import Loading from '@/components/subcomponents/loading';
+import MediaPage from '@/components/pages/mediaPage';
 
 export default function Media({ params }: { params: { imdbId: string } }) {
   const { imdbId } = params;
-  return <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
-    <MediaInfo imdbId={imdbId} />
-    <div className='relative flex flex-wrap gap-4'>
-      <WatchManger imdbId={imdbId} />
-      <ListManager imdbId={imdbId} />
+  const [title, setTitle] = useState('');
+
+  useEffect(() => {
+    easyFetchV3<string>({
+      route: `/api/media/${imdbId}/title`,
+      method: 'GET',
+    }).then(data => setTitle(data))
+  }, [])
+
+  return !title ? <Loading /> :
+    <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
+      <GetBreadcrumbs links={{
+        home: '/',
+        media: '/media',
+        [title]: `/media/${imdbId}`
+      }}/>
+      <MediaPage imdbId={imdbId} />
     </div>
-    <ReviewManager imdbId={imdbId} />
-  </div>
 }

@@ -15,22 +15,26 @@ export async function GET(req: Request, { params }: { params: Params }) {
   
   const cacheStr = `${username},${listname}`
   if (!cache.get(cacheStr)) {
-    const listRecords = await db.select().from(lists).where(
-      and(
-        eq(lists.username, username),
-        eq(lists.listname, listname),
+    try {
+      const listRecords = await db.select().from(lists).where(
+        and(
+          eq(lists.username, username),
+          eq(lists.listname, listname),
+        )
       )
-    )
-    const imdbIds = listRecords.map(rec => rec.imdbId)
+      const imdbIds = listRecords.map(rec => rec.imdbId)
 
-    if (!imdbIds.length) return NextResponse.json({
-      error: 'No resources found',
-      listname,
-      username,
-    }, { status: 404 })
+      if (!imdbIds.length) return NextResponse.json({
+        error: 'No resources found',
+        listname,
+        username,
+      }, { status: 404 })
 
-    const listData = await getManyExistingMedia(imdbIds)
-    cache.set(cacheStr, listData)
+      const listData = await getManyExistingMedia(imdbIds)
+      cache.set(cacheStr, listData)
+    } catch {
+      return NextResponse.json('Failed to process request, database error', { status: 500 });
+    }
   }
 
   return NextResponse.json(cache.get(cacheStr))

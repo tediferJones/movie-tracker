@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
 import Loading from '@/components/subcomponents/loading';
 import MyTable from '@/components/table/myTable';
-import easyFetch from '@/lib/easyFetch';
-import { ExistingMediaInfo, ListsRes } from '@/types';
+import { ExistingMediaInfo } from '@/types';
+import easyFetchV3 from '@/lib/easyFetchV3';
 
 export default function UserList({ params }: { params: { username: string, listname: string } }) {
   const username = decodeURIComponent(params.username);
@@ -14,8 +14,10 @@ export default function UserList({ params }: { params: { username: string, listn
   const [listContents, setListContents] = useState<ExistingMediaInfo[]>();
 
   useEffect(() => {
-    easyFetch<ListsRes>('/api/lists', 'GET', { username, listname })
-      .then(data => setListContents(data?.allMediaInfo || []))
+    easyFetchV3<ExistingMediaInfo[]>({
+      route: `/api/users/${username}/lists/${listname}`,
+      method: 'GET'
+    }).then(data => setListContents(data))
   }, []);
 
   return (

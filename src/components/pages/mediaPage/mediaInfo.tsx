@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button';
 
 import Link from 'next/link';
 import { Fragment, useEffect, useState } from 'react';
-import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
 import GetLinks from '@/components/subcomponents/getLinks';
 import Loading from '@/components/subcomponents/loading';
 import SeasonDisplay from '@/components/pages/mediaPage/seasonDisplay';
@@ -65,7 +64,6 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
   }
 
   return !media ? <Loading /> : <>
-    <GetBreadcrumbs links={{home: '/', media: '/media', [media.title]: `/media/${media.imdbId}`}}/>
     <div className='flex flex-wrap gap-4'>
       {media.poster ? <img className='m-auto showOutline' alt={`Poster for ${media.title}`} src={media.poster}/> : []}
       <div className='showOutline flex-1 flex w-auto flex-col justify-around p-4 text-lg'>

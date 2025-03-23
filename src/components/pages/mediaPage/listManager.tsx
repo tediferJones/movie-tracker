@@ -18,14 +18,8 @@ import { inputValidation } from '@/lib/inputValidation';
 import easyFetchV3 from '@/lib/easyFetchV3';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 
-type AllLists = {
-  listnames: string[],
-  defaultList: string,
-}
-
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname'
-  const username = useUser().user?.username;
   const [matchingLists, setMatchingLists] = useState<string[]>();
   const [currentList, setCurrentList] = useState<string>(illegalListname);
   const [allListnames, setAllListnames] = useState<string[]>();
@@ -37,23 +31,28 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const { user } = useUser();
   useEffect(() => {
     if (!user?.username) return
-    (async () => {
-      const alreadyInLists = await easyFetchV3<string[]>({
+    Promise.all([
+      easyFetchV3<string[]>({
         route: `/api/users/${user.username}/lists`,
         method: 'GET',
-        params: { imdbId }
-      });
-      const { defaultList, listnames } = await easyFetchV3<AllLists>({
+        params: { imdbId },
+      }),
+      easyFetchV3<string[]>({
         route: `/api/users/${user.username}/lists`,
         method: 'GET'
-      });
-      setMatchingLists(alreadyInLists);
-      const availableLists = listnames.filter(listname => !alreadyInLists.includes(listname));
-      setAllListnames(availableLists);
-      const autoSelectList = availableLists.includes(defaultList) ? defaultList : availableLists[0];
-      setCurrentList(autoSelectList);
-      setButtonText('');
-    })()
+      }),
+      easyFetchV3<string>({
+        route: `/api/users/${user.username}/defaultList`,
+        method: 'GET'
+      })
+    ]).then(([ alreadyInLists, listnames, defaultList ]) => {
+        setMatchingLists(alreadyInLists);
+        const availableLists = listnames.filter(listname => !alreadyInLists.includes(listname));
+        setAllListnames(availableLists);
+        const autoSelectList = availableLists.includes(defaultList) ? defaultList : availableLists[0];
+        setCurrentList(autoSelectList);
+        setButtonText('');
+      })
   }, [refreshTrigger, user?.username]);
 
   // it's not stupid if it works
@@ -87,7 +86,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
             <div id='scrollAreaChild' className='flex flex-col gap-4 overflow-y-auto'>
               {matchingLists.map(listname => <div key={listname} className='px-4 flex items-center gap-4'>
                 <Link className='flex-1 text-center hover:underline truncate'
-                  href={`/users/${username}/${listname}`}
+                  href={`/users/${user.username}/${listname}`}
                 >{listname}</Link>
                 <button type='button'
                   onClick={() => {

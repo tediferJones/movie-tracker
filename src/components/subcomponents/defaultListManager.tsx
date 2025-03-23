@@ -18,11 +18,6 @@ import Loading from '@/components/subcomponents/loading';
 import easyFetchV3 from '@/lib/easyFetchV3';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 
-type AllLists = {
-  listnames: string[],
-  defaultList: string,
-}
-
 export default function DefaultListManager() {
   const [listnames, setListnames] = useState<string[]>();
   const [newDefaultListname, setNewDefaultListname] = useState<string>();
@@ -35,15 +30,21 @@ export default function DefaultListManager() {
   const { user } = useUser();
   useEffect(() => {
     if (!user?.username) return;
-    easyFetchV3<AllLists>({
-      route: `/api/users/${user.username}/lists`,
-      method: 'GET'
-    }).then(data => {
-        setListnames(data.listnames);
-        setExistingDefaultList(data.defaultList);
+    Promise.all([
+      easyFetchV3<string[]>({
+        route: `/api/users/${user.username}/lists`,
+        method: 'GET',
+      }),
+      easyFetchV3<string>({
+        route: `/api/users/${user.username}/defaultList`,
+        method: 'GET',
+      })
+    ]).then(([ listnames, defaultList ]) => {
+        setListnames(listnames);
+        setExistingDefaultList(defaultList);
         setButtonText('');
         setConfirmList('');
-      });
+      })
   }, [refreshTrigger, user?.username]);
 
   // it's not stupid if it works
@@ -61,8 +62,8 @@ export default function DefaultListManager() {
         if (buttonText) return;
         setButtonText(`Setting default to ${newDefaultListname}...`);
         easyFetchV3({
-          route: `/api/users/${user.username}/lists`,
-          method: 'PUT',
+          route: `/api/users/${user.username}/defaultList`,
+          method: 'POST',
           params: { newDefaultListname },
           skipJSON: true,
         }).then(() => setRefreshTrigger(!refreshTrigger));

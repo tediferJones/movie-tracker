@@ -40,7 +40,7 @@ export default function MultiTable({
     <div className='showOutline p-2'>
       <ScrollArea type='auto'>
         <div className='max-h-[90vh] m-2 pr-2'>
-          <MyTable data={listData}>
+          <MyTable data={listData} linkPrefix={`/users/${username}/${currentList}`}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant='outline'>{currentList}</Button>

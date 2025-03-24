@@ -18,17 +18,21 @@ import { useEffect, useState } from 'react';
 type PersonMedia = { [key: string]: ExistingMediaInfo[] };
 
 export default function Person({ params }: { params: { name: string } }) {
-  const name = decodeURIComponent(params.name)
-  const [peopleMedia, setPeopleMedia] = useState<PersonMedia>()
+  const name = decodeURIComponent(params.name);
+  const [peopleMedia, setPeopleMedia] = useState<PersonMedia>();
 
   useEffect(() => {
     easyFetch<PersonMedia>('/api/people', 'GET', { name })
-      .then(data => setPeopleMedia(data))
-  }, [])
+      .then(data => setPeopleMedia(data));
+  }, []);
 
   return (
     <div className='w-4/5 m-auto mb-8'>
-      <GetBreadcrumbs links={{home: '/', people: '/people', [name]: `/people/${name}`}}/>
+      <GetBreadcrumbs links={{
+        home: '/',
+        people: '/people',
+        [name]: `/people/${name}`
+      }}/>
       <div className='text-center text-2xl border-b py-4'>{name}</div>
       {!peopleMedia ? <Loading /> :
       <Accordion type='single' collapsible>
@@ -39,7 +43,7 @@ export default function Person({ params }: { params: { name: string } }) {
                 {fromCamelCase(position)} ({peopleMedia[position].length})
               </AccordionTrigger>
               <AccordionContent>
-                <MyTable data={peopleMedia[position]} />
+                <MyTable data={peopleMedia[position]} linkPrefix={`/people/${name}`} />
               </AccordionContent>
             </AccordionItem>
           )

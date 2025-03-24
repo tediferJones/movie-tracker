@@ -139,7 +139,7 @@ export default function UserPage({ username, children }: { username: string, chi
         {children ? children : 
           <div className='showOutline p-4 sm:flex-1 w-full sm:w-auto flex flex-col gap-4 max-h-[60vh]'>
             <h3 className='text-center text-xl'>Lists ({user.listnames.length})</h3>
-            <div className='flex flex-col justify-center flex-1'>
+            <div className='flex flex-col justify-center flex-1 overflow-clip'>
               <ScrollArea type='auto'>
                 <div className='flex flex-col gap-4'>
                   {user.listnames.length === 0

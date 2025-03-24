@@ -6,11 +6,10 @@ import Loading from '@/components/subcomponents/loading';
 import easyFetchV3 from '@/lib/easyFetchV3';
 import { useEffect, useState } from 'react';
 
-type Params = { username: string, listname: string, imdbId: string }
+type Params = { name: string, imdbId: string }
 
-export default function UserListItem({ params }: { params: Params }) {
-  const username = decodeURIComponent(params.username);
-  const listname = decodeURIComponent(params.listname);
+export default function PersonMedia({ params }: { params: Params }) {
+  const name = decodeURIComponent(params.name);
   const imdbId = decodeURIComponent(params.imdbId);
   const [title, setTitle] = useState('');
 
@@ -26,10 +25,9 @@ export default function UserListItem({ params }: { params: Params }) {
       <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
         <GetBreadcrumbs links={{
           home: '/',
-          users: '/users',
-          [username]: `/users/${username}`,
-          [listname]: `/users/${username}/${listname}`,
-          [title]: `/users/${username}/${listname}/${imdbId}`
+          people: '/people',
+          [name]: `/people/${name}`,
+          [title]: `/people/${name}/${imdbId}`,
         }}/>
         <MediaPage imdbId={imdbId} />
       </div>

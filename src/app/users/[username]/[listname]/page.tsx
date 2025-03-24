@@ -28,7 +28,7 @@ export default function UserList({ params }: { params: { username: string, listn
         [username]: `/users/${username}`,
         [listname]: `/users/${username}/${listname}`
       }}/>
-      {!listContents ? <Loading /> : <MyTable data={listContents}/>}
+      {!listContents ? <Loading /> : <MyTable data={listContents} linkPrefix={`/users/${username}/${listname}`}/>}
     </div>
   )
 }

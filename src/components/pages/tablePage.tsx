@@ -10,17 +10,17 @@ import { ExistingMediaInfo } from '@/types';
 
 export default function TablePage({ route, propName }: { route: string, propName: any } ) {
   const [media, setMedia] = useState<ExistingMediaInfo[]>();
-  propName = decodeURIComponent(propName)
+  propName = decodeURIComponent(propName);
 
   useEffect(() => {
     easyFetch<ExistingMediaInfo[]>(`/api/${route}`, 'GET', { [tableToCol[route]]: propName  })
-      .then(data => setMedia(data))
+      .then(data => setMedia(data));
   }, [])
 
   return (
     <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
       <GetBreadcrumbs links={{ home: '/', [route]: `/${route}`, [propName]: `/${route}/${propName}`}}/>
-      {!media ? <Loading /> : <MyTable data={media}/>}
+      {!media ? <Loading /> : <MyTable data={media} linkPrefix={`/${route}/${propName}`} />}
     </div>
   )
 }

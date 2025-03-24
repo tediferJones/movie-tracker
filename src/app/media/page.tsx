@@ -18,7 +18,7 @@ export default function Media() {
   return (
     <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
       <GetBreadcrumbs links={{ home: '/', media: '/media' }} />
-      {!media ? <Loading /> : <MyTable data={media} />}
+      {!media ? <Loading /> : <MyTable data={media} linkPrefix='/media' />}
     </div>
   )
 }

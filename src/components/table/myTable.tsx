@@ -30,7 +30,17 @@ type SortFuncs = {
   }
 }
 
-export default function MyTable({ data, children }: { data: ExistingMediaInfo[], children?: ReactNode }) {
+export default function MyTable(
+  {
+    data,
+    children,
+    linkPrefix,
+  }: {
+    data: ExistingMediaInfo[],
+    children?: ReactNode,
+    linkPrefix: string,
+  }
+) {
   data = data.map((rec, i, arr) => arr[arr.length - 1 - i])
   const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
   const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
@@ -119,6 +129,7 @@ export default function MyTable({ data, children }: { data: ExistingMediaInfo[],
                   keys={columns}
                   details={details}
                   key={mediaInfo.imdbId}
+                  linkPrefix={linkPrefix}
                 />))
             }
           </tbody>
@@ -148,7 +159,7 @@ export default function MyTable({ data, children }: { data: ExistingMediaInfo[],
             <AccordionItem value={mediaInfo.imdbId} key={mediaInfo.imdbId}>
               <AccordionTrigger className='hover:no-underline px-2 flex gap-2'>
                 <div className='flex flex-col gap-2 w-full'>
-                  <Link className='w-fit m-auto' href={`/media/${mediaInfo.imdbId}`}>
+                  <Link className='w-fit m-auto' href={`${linkPrefix}/${mediaInfo.imdbId}`}/*href={`/media/${mediaInfo.imdbId}`}*/>
                     {mediaInfo.title}
                   </Link>
                   <div className='flex gap-4 justify-between'>

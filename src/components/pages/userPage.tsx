@@ -163,6 +163,6 @@ export default function UserPage({ username, children }: { username: string, chi
         />
       }
       <h3 className='text-xl px-4'>All Reviews</h3>
-      <ReviewsDisplay reviews={user.reviews} />
+      <ReviewsDisplay />
     </div>
 }

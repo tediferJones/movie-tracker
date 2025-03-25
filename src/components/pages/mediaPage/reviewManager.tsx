@@ -26,7 +26,6 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
   const [lockRating, setLockRating] = useState<boolean>(false);
   const [isHovering, setIsHovering] = useState<boolean>(false);
-  const [allReviews, setAllReviews] = useState<ExistingReview[]>([]);
   const [buttonText, setButtonText] = useState('Waiting...');
   const [modalVisibile, setModalVisible] = useState(false);
 
@@ -49,10 +48,6 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
           setButtonText(data ? 'Update Review' : 'Submit Review');
         });
     }
-    easyFetchV3<ExistingReview[]>({
-      route: `/api/media/${imdbId}/reviews`,
-      method: 'GET',
-    }).then(data => setAllReviews(data));
   }, [refreshTrigger, user?.username]);
 
   return !existingReview ? <Loading /> :
@@ -172,6 +167,6 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
       >
         <p>Are you sure you want to delete this review?</p>
       </ConfirmModal>
-      <ReviewsDisplay reviews={allReviews} />
+      <ReviewsDisplay imdbId={imdbId} extTrigger={refreshTrigger} />
     </>
 }

@@ -5,6 +5,7 @@ import { currentUser } from '@clerk/nextjs';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
+import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 
 type Params = { username: string }
 type Review = typeof reviews.$inferInsert
@@ -36,7 +37,11 @@ export async function GET(req: Request, { params }: { params: Params }) {
         const allReviews = await db.select().from(reviews).where(
           eq(reviews.username, username)
         );
-        cache.set(cacheStr, allReviews)
+        await getManyExistingMedia(allReviews.map(review => review.imdbId))
+        cache.set(cacheStr, allReviews.map((review: any) => {
+          review.title = cache.get(review.imdbId).title
+          return review
+        }))
       }
       return NextResponse.json(cache.get(cacheStr));
     }

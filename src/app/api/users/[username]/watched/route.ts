@@ -1,9 +1,10 @@
 import { db } from '@/drizzle/db';
 import { media, watched } from '@/drizzle/schema';
 import { currentUser } from '@clerk/nextjs';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
+import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 
 type Params = { username: string }
 
@@ -16,7 +17,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
   try {
     if (searchParams.has('imdbId')) {
       const imdbId = searchParams.get('imdbId')!;
-      const cacheStr = `${username},${imdbId},watched`
+      const cacheStr = `${username},${imdbId},watched`;
       if (!cache.get(cacheStr)) {
         cache.set(cacheStr,
           await db.select().from(watched).where(
@@ -25,13 +26,22 @@ export async function GET(req: Request, { params }: { params: Params }) {
               eq(watched.imdbId, imdbId),
             )
           )
-        )
+        );
       }
       return NextResponse.json(cache.get(cacheStr));
     } else {
-      const cacheStr = `${username},watched`
+      const cacheStr = `${username},watched`;
       if (!cache.get(cacheStr)) {
-        cache.set(cacheStr, db.select().from(watched).where(eq(watched.username, username)))
+        const watchRecs = await db.select().from(watched).where(
+          eq(watched.username, username)
+        ).orderBy(desc(watched.date));
+        await getManyExistingMedia(watchRecs.map(watchRec => watchRec.imdbId));
+
+        cache.set(cacheStr, watchRecs.map((watchRec: typeof watchRecs[number] & { title?: string }) => {
+          watchRec.title = cache.get(watchRec.imdbId).title;
+          if (!watchRec.title) throw Error('could not find title')
+          return watchRec;
+        }));
       }
       return NextResponse.json(cache.get(cacheStr));
     }
@@ -62,7 +72,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
 
   try {
     await db.insert(watched).values({ username, imdbId, date: Date.now() });
-    cache.delete(`${username},${imdbId},watched`)
+    cache.delete(`${username},${imdbId},watched`);
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });
@@ -74,7 +84,7 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
   const { username } = params;
   const { searchParams } = new URL(req.url);
 
-  const user = await currentUser()
+  const user = await currentUser();
   if (!user?.username || user.username !== username) {
     return NextResponse.json('Unauthorized', { status: 401 });
   }
@@ -87,8 +97,8 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
     return NextResponse.json('Bad request, no imdbId', { status: 400 });
   }
 
-  const id = searchParams.get('id')!
-  const imdbId = searchParams.get('imdbId')!
+  const id = searchParams.get('id')!;
+  const imdbId = searchParams.get('imdbId')!;
   try {
     await db.delete(watched).where(
       and(
@@ -96,7 +106,7 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
         eq(watched.id, Number(id)),
       )
     );
-    cache.delete(`${username},${imdbId},watched`)
+    cache.delete(`${username},${imdbId},watched`);
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

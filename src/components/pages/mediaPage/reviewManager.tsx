@@ -7,11 +7,11 @@ import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
 import ReviewsDisplay from '@/components/subcomponents/reviewsDisplay';
+import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { inputValidation } from '@/lib/inputValidation';
 import { useUser } from '@clerk/nextjs';
 import { reviews } from '@/drizzle/schema';
 import easyFetchV3 from '@/lib/easyFetchV3';
-import ConfirmModal from '@/components/subcomponents/confirmModal';
 
 type ExistingReview = typeof reviews.$inferSelect
 type EmptyReview = {

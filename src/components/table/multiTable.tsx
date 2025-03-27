@@ -29,7 +29,6 @@ export default function MultiTable({
   const [listData, setListData] = useState<ExistingMediaInfo[]>();
 
   useEffect(() => {
-    if (!username) throw Error('no username available');
     easyFetchV3<ExistingMediaInfo[]>({
       route: `/api/users/${username}/lists/${currentList}`,
       method: 'GET'

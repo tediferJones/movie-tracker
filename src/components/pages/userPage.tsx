@@ -1,15 +1,24 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
 import ReviewsDisplay from '@/components/subcomponents/reviewsDisplay';
 import WatchedDisplay from '@/components/subcomponents/watchedDisplay';
 import ListsDisplay from '@/components/subcomponents/listsDisplay';
+import DefaultListManager from '@/components/subcomponents/defaultListManager';
 import MultiTable from '@/components/table/multiTable';
 import easyFetch from '@/lib/easyFetch';
 import { UserRes } from '@/types';
 
-export default function UserPage({ username, children }: { username: string, children?: ReactNode }) {
+export default function UserPage(
+  {
+    username,
+    useDefaultListManager
+  }: {
+    username: string,
+    useDefaultListManager?: true
+  }
+) {
   const [user, setUser] = useState<UserRes>();
 
   useEffect(() => {
@@ -21,7 +30,7 @@ export default function UserPage({ username, children }: { username: string, chi
     <div className='flex flex-col gap-4'>
       <div className='flex flex-wrap gap-4'>
         <WatchedDisplay username={username} />
-        {children ? children : <ListsDisplay username={username} /> }
+        {useDefaultListManager ? <DefaultListManager /> : <ListsDisplay username={username} />}
       </div>
       {user.listnames.length === 0 ? [] :
         <MultiTable username={username}

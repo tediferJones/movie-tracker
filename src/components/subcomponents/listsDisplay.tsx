@@ -21,7 +21,7 @@ export default function ListsDisplay({ username }: { username: string }) {
           <h3 className='text-center text-xl'>Lists ({listnames.length})</h3>
           <div className='flex flex-col justify-center flex-1 overflow-clip'>
             <ScrollArea type='auto'>
-              <div className='flex flex-col gap-4'>
+              <div className='flex flex-col'>
                 {listnames.length === 0
                   ? <div className='text-center'>No Lists</div>
                   : listnames.map(listname => (

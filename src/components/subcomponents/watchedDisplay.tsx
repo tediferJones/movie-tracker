@@ -26,20 +26,20 @@ export default function WatchedDisplay({ username }: { username: string }) {
           <h3 className='text-center text-xl'>Recently watched ({watched.length})</h3>
           <div className='h-full flex flex-col justify-center overflow-hidden'>
             <ScrollArea type='auto'>
-              <div className='text-center flex flex-col gap-4'>
+              <div className='text-center flex flex-col'>
                 {watched.length === 0
                   ? <div className='text-center'>No watch records found</div>
                   : watched.map(watchRec => (
-                    <div className='flex flex-wrap mx-4 justify-between' key={`${watchRec.imdbId}-${watchRec.date}`}>
-                      <Link className='hover:underline flex-1'
-                        href={`/media/${watchRec.imdbId}`}
-                      >{watchRec.title || watchRec.imdbId || 'huh'}</Link>
-                      <span className='w-full text-center'>{new Date(watchRec.date).toLocaleTimeString(undefined, {
+                    <Link className='flex-1 flex flex-col hover:bg-secondary rounded-lg p-2 group'
+                      href={`/media/${watchRec.imdbId}`}
+                    >
+                      <span className='group-hover:underline'>{watchRec.title}</span>
+                      <span className='text-foreground w-full text-center'>{new Date(watchRec.date).toLocaleTimeString(undefined, {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
                       })}</span>
-                    </div>
+                    </Link>
                   ))}
               </div>
             </ScrollArea>

@@ -35,22 +35,23 @@ export default function ReviewsDisplay(
         method: 'GET',
       }).then(data => setReviews(data));
     } else {
-      throw Error('reviewsDisplay requires an imdbId or a username')
+      throw Error('reviewsDisplay requires an imdbId or a username');
     }
   }, [extTrigger, username]);
 
   return (
     !reviews ? <Loading /> :
-      <div className='showOutline px-4 flex flex-col'>
+      <div className='showOutline flex flex-col'>
         {reviews.length === 0 ? <div className='p-4 text-center'>No Existing Reviews</div> : 
           reviews.map((review, i) => {
-            return <div className={`flex flex-col gap-4 p-4 ${i < reviews.length - 1 ? 'border-b' : ''}`} key={`review-${i}`}>
+            return <Link className={`text-foreground group flex flex-col gap-4 p-4 hover:bg-secondary rounded-lg ${i < reviews.length - 1 ? 'border-b' : ''}`}
+              key={`review-${i}`}
+              href={imdbId ? `/users/${review.username}` : `/media/${review.imdbId}`}
+            >
               <div className='flex gap-4 flex-wrap'>
-                <Link className='hover:underline flex-1 text-center'
-                  href={imdbId ? `/users/${review.username}` : `/media/${review.imdbId}`}
-                >
+                <span className='text-primary group-hover:underline flex-1 text-center'>
                   {imdbId ? review.username : review.title}
-                </Link>
+                </span>
                 <div className='flex-1 text-center'>
                   {review.watchAgain === null ? <span className='text-muted-foreground'>No Opinion</span>
                     : <span>{`Would ${review.watchAgain ? '' : 'NOT'} watch again`}</span>
@@ -67,7 +68,7 @@ export default function ReviewsDisplay(
                   : <span className='text-muted-foreground'>No Review Content</span>
                 }
               </div>
-            </div>
+            </Link>
           })
         }
       </div>

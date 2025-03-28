@@ -16,27 +16,37 @@ import MyTable from '@/components/table/myTable';
 import easyFetchV3 from '@/lib/easyFetchV3';
 import { ExistingMediaInfo } from '@/types';
 
-export default function MultiTable({
-  listnames,
-  username,
-  defaultListname
-}: {
-  listnames: string[],
-  username: string,
-  defaultListname?: string
-}) {
-  const [currentList, setCurrentList] = useState(defaultListname || listnames[0]);
+export default function MultiTable({ username }: { username: string }) {
   const [listData, setListData] = useState<ExistingMediaInfo[]>();
+  const [currentList, setCurrentList] = useState<string>();
+  const [listnames, setListnames] = useState<string[]>();
 
   useEffect(() => {
-    easyFetchV3<ExistingMediaInfo[]>({
-      route: `/api/users/${username}/lists/${currentList}`,
-      method: 'GET'
-    }).then(data => setListData(data));
+    if (!listnames) {
+      Promise.all([
+        easyFetchV3<string[]>({
+          route: `/api/users/${username}/lists`,
+          method: 'GET',
+        }),
+        easyFetchV3<string>({
+          route: `/api/users/${username}/defaultList`,
+          method: 'GET',
+        }),
+      ]).then(([listnames, defaultList]) => {
+          setListnames(listnames);
+          setCurrentList(defaultList || listnames[0]);
+          if (!listnames.length) setListData([]);
+        });
+    } else {
+      easyFetchV3<ExistingMediaInfo[]>({
+        route: `/api/users/${username}/lists/${currentList}`,
+        method: 'GET',
+      }).then(data => setListData(data || []));
+    }
   }, [currentList]);
 
-  return !listData ? <Loading /> :
-    <div className='showOutline p-2'>
+  return <div className='showOutline p-2'>
+    {!listnames || !listData ? <Loading /> :
       <ScrollArea type='auto'>
         <div className='max-h-[90vh] m-2 pr-2'>
           <MyTable data={listData} linkPrefix={`/users/${username}/${currentList}`}>
@@ -59,5 +69,6 @@ export default function MultiTable({
           </MyTable>
         </div>
       </ScrollArea>
-    </div>
+    }
+  </div>
 }

@@ -26,6 +26,7 @@ export default function DefaultListManager() {
   const [buttonText, setButtonText] = useState('Waiting...');
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmList, setConfirmList] = useState('');
+  const [blockClick, setBlockClick] = useState(false);
 
   const { user } = useUser();
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function DefaultListManager() {
 
   // it's not stupid if it works
   setTimeout(() => {
-    const container = document.getElementById('scrollAreaChild')?.parentElement
+    const container = document?.getElementById('scrollAreaChild')?.parentElement
     // @ts-ignore
     if (container) container.style = ''
   }, 100);
@@ -93,10 +94,14 @@ export default function DefaultListManager() {
             </div>
           </ScrollArea>
           <div className='flex flex-col gap-4'>
-            <Select value={newDefaultListname} onValueChange={setNewDefaultListname}>
+            <Select onOpenChange={(e) => e ? setBlockClick(e) : setTimeout(() => setBlockClick(e), 500)}
+              value={newDefaultListname}
+              onValueChange={setNewDefaultListname}
+            >
               <SelectTrigger>
                 <SelectValue placeholder='New default list'/>
               </SelectTrigger>
+              <div className={`${blockClick ? 'block' : 'hidden'} z-10 fixed top-0 left-0 w-screen h-screen`}></div>
               <SelectContent>
                 {listnames.map(listname => (
                   <SelectItem key={listname} value={listname}>

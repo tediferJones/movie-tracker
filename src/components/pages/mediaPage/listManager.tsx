@@ -19,7 +19,7 @@ import easyFetchV3 from '@/lib/easyFetchV3';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
-  const illegalListname = 'illegalListname'
+  const illegalListname = 'illegalListname';
   const [matchingLists, setMatchingLists] = useState<string[]>();
   const [currentList, setCurrentList] = useState<string>(illegalListname);
   const [allListnames, setAllListnames] = useState<string[]>();
@@ -57,7 +57,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
 
   // it's not stupid if it works
   setTimeout(() => {
-    const container = document.getElementById('scrollAreaChild')?.parentElement
+    const container = document?.getElementById('scrollAreaChild')?.parentElement
     // @ts-ignore
     if (container) container.style = ''
   }, 100)
@@ -102,7 +102,8 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
           </ScrollArea>
       }
       <div className='flex flex-col gap-4' key={currentList}>
-        <Select value={currentList} onValueChange={setCurrentList}
+        <Select value={currentList}
+          onValueChange={setCurrentList}
           defaultValue={currentList}
           required
         >

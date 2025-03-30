@@ -27,6 +27,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmList, setConfirmList] = useState('');
   const [buttonText, setButtonText] = useState('Waiting...');
+  const [blockClick, setBlockClick] = useState(false);
 
   const { user } = useUser();
   useEffect(() => {
@@ -103,13 +104,19 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
       }
       <div className='flex flex-col gap-4' key={currentList}>
         <Select value={currentList}
-          onValueChange={setCurrentList}
+          onValueChange={(e) => {
+            setCurrentList(e);
+            // why is this required here, but not in defaultListManager?
+            setTimeout(() => setBlockClick(false), 250);
+          }}
           defaultValue={currentList}
           required
+          onOpenChange={(e) => e ? setBlockClick(true) : setTimeout(() => setBlockClick(false), 250)}
         >
           <SelectTrigger>
             <SelectValue placeholder='Select listname'/>
           </SelectTrigger>
+          <div className={`${blockClick ? 'block' : 'hidden'} z-10 fixed top-0 left-0 h-screen w-screen`}></div>
           <SelectContent>
             <SelectItem value={illegalListname}>Create new list</SelectItem>
             {allListnames?.map(listname => (

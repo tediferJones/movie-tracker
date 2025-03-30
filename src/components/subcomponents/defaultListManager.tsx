@@ -94,7 +94,7 @@ export default function DefaultListManager() {
             </div>
           </ScrollArea>
           <div className='flex flex-col gap-4'>
-            <Select onOpenChange={(e) => e ? setBlockClick(e) : setTimeout(() => setBlockClick(e), 500)}
+            <Select onOpenChange={(e) => e ? setBlockClick(e) : setTimeout(() => setBlockClick(e), 250)}
               value={newDefaultListname}
               onValueChange={setNewDefaultListname}
             >

@@ -26,7 +26,6 @@ export default function DefaultListManager() {
   const [buttonText, setButtonText] = useState('Waiting...');
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmList, setConfirmList] = useState('');
-  const [blockClick, setBlockClick] = useState(false);
 
   const { user } = useUser();
   useEffect(() => {
@@ -48,15 +47,8 @@ export default function DefaultListManager() {
       })
   }, [refreshTrigger, user?.username]);
 
-  // it's not stupid if it works
-  setTimeout(() => {
-    const container = document?.getElementById('scrollAreaChild')?.parentElement
-    // @ts-ignore
-    if (container) container.style = ''
-  }, 100);
-
   return (
-    <form className='showOutline flex flex-col justify-between gap-4 p-4 sm:flex-1 w-full sm:w-auto max-h-[60vh]'
+    <form className='showOutline flex flex-col justify-between gap-4 p-4 flex-1 max-h-96 min-w-72'
       onSubmit={(e) => {
         e.preventDefault();
         if (!user?.username) return;
@@ -73,35 +65,29 @@ export default function DefaultListManager() {
       {!listnames || !user?.username? <Loading /> :
         <>
           <div className='text-center text-xl'>Default: {existingDefaultList || 'No default list found'}</div>
-          <ScrollArea type='auto' className='max-h-fit'>
-            <div id='scrollAreaChild' className='flex flex-col'>
-              {listnames.map(listname => (
-                <span key={listname} className='flex gap-2 justify-center px-4'>
-                  <Link className='w-full text-center p-2 hover:underline hover:bg-secondary rounded-lg truncate'
-                    href={`/users/${user.username}/${listname}`}
-                  >{listname}</Link>
-                  <button type='button'
-                    onClick={() => {
-                      setConfirmList(listname);
-                      setModalVisible(true);
-                    }}
-                  >
-                    <span className='sr-only'>Delete {listname}</span>
-                    <Trash2 className='text-red-700 min-h-6 min-w-6' />
-                  </button>
-                </span>
-              ))}
-            </div>
+          <ScrollArea type='auto' className='max-h-fit flex flex-col flex-1'>
+            {listnames.map(listname => (
+              <span key={listname} className='flex gap-2 justify-center px-4'>
+                <Link className='w-full text-center p-2 hover:underline hover:bg-secondary rounded-lg truncate'
+                  href={`/users/${user.username}/${listname}`}
+                >{listname}</Link>
+                <button type='button'
+                  onClick={() => {
+                    setConfirmList(listname);
+                    setModalVisible(true);
+                  }}
+                >
+                  <span className='sr-only'>Delete {listname}</span>
+                  <Trash2 className='text-red-700 min-h-6 min-w-6' />
+                </button>
+              </span>
+            ))}
           </ScrollArea>
           <div className='flex flex-col gap-4'>
-            <Select onOpenChange={(e) => e ? setBlockClick(e) : setTimeout(() => setBlockClick(e), 250)}
-              value={newDefaultListname}
-              onValueChange={setNewDefaultListname}
-            >
+            <Select value={newDefaultListname} onValueChange={setNewDefaultListname}>
               <SelectTrigger>
                 <SelectValue placeholder='New default list'/>
               </SelectTrigger>
-              <div className={`${blockClick ? 'block' : 'hidden'} z-10 fixed top-0 left-0 w-screen h-screen`}></div>
               <SelectContent>
                 {listnames.map(listname => (
                   <SelectItem key={listname} value={listname}>

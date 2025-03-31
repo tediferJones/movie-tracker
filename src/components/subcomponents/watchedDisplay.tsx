@@ -20,28 +20,26 @@ export default function WatchedDisplay({ username }: { username: string }) {
   }, []);
 
   return (
-    <div className='showOutline p-4 sm:flex-1 w-full sm:w-auto flex flex-col gap-4 max-h-[60vh]'>
+    <div className='showOutline p-4 flex-1 flex flex-col gap-4 max-h-96 min-w-72'>
       {!watched ? <Loading/> :
         <>
-          <h3 className='text-center text-xl'>Recently watched ({watched.length})</h3>
+          <h3 className='text-center text-xl'>Recently Watched ({watched.length})</h3>
           <div className='h-full flex flex-col justify-center overflow-hidden'>
-            <ScrollArea type='auto'>
-              <div className='text-center flex flex-col'>
-                {watched.length === 0
-                  ? <div className='text-center'>No watch records found</div>
-                  : watched.map(watchRec => (
-                    <Link className='flex-1 flex flex-col hover:bg-secondary rounded-lg p-2 group'
-                      href={`/media/${watchRec.imdbId}`}
-                    >
-                      <span className='group-hover:underline'>{watchRec.title}</span>
-                      <span className='text-foreground w-full text-center'>{new Date(watchRec.date).toLocaleTimeString(undefined, {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}</span>
-                    </Link>
-                  ))}
-              </div>
+            <ScrollArea type='auto' className='flex flex-col'>
+              {watched.length === 0
+                ? <div className='text-center'>No watch records found</div>
+                : watched.map(watchRec => (
+                  <Link className='flex-1 flex flex-col hover:bg-secondary rounded-lg p-2 group text-center'
+                    href={`/media/${watchRec.imdbId}`}
+                  >
+                    <span className='group-hover:underline'>{watchRec.title}</span>
+                    <span className='text-foreground w-full text-center'>{new Date(watchRec.date).toLocaleTimeString(undefined, {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}</span>
+                  </Link>
+                ))}
             </ScrollArea>
           </div>
         </>

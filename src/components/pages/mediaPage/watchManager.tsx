@@ -43,14 +43,14 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
   }
 
   return (
-    <div className='flex flex-col justify-between gap-4 p-4 text-center showOutline sm:flex-1 sm:w-auto w-full max-h-[60vh]'>
+    <div className='flex flex-col justify-between gap-4 p-4 text-center showOutline flex-1 max-h-96 min-w-72'>
       <h1 className='text-xl'>Watch Manager</h1>
       {!watched || !user?.username ? <Loading /> : 
         <ScrollArea type='auto'>
           <div className='flex flex-col gap-4 overflow-y-auto'>
             {!watched.length ? 'No records found' : watched.map(record => {
               return (
-                <span key={record.date} className='flex items-center justify-center px-4'>
+                <span key={record.date} className='flex gap-4 items-center justify-center px-4'>
                   <span className='w-full'>
                     {getFormattedDateStr(record.date)}
                   </span>

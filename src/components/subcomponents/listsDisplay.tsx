@@ -15,7 +15,7 @@ export default function ListsDisplay({ username }: { username: string }) {
   }, []);
 
   return (
-    <div className='showOutline p-4 sm:flex-1 w-full sm:w-auto flex flex-col gap-4 max-h-[60vh]'>
+    <div className='showOutline p-4 flex-1 flex flex-col gap-4 max-h-96 min-w-72'>
       {!listnames ? <Loading /> : 
         <>
           <h3 className='text-center text-xl'>Lists ({listnames.length})</h3>
@@ -25,7 +25,7 @@ export default function ListsDisplay({ username }: { username: string }) {
                 {listnames.length === 0
                   ? <div className='text-center'>No Lists</div>
                   : listnames.map(listname => (
-                    <Link className='hover:underline hover:bg-secondary p-2 rounded-lg text-center mx-4'
+                    <Link className='hover:underline hover:bg-secondary p-2 rounded-lg text-center mx-4 truncate'
                       href={`/users/${username}/${listname}`}
                       key={listname}
                     >{listname}</Link>

@@ -27,11 +27,10 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmList, setConfirmList] = useState('');
   const [buttonText, setButtonText] = useState('Waiting...');
-  const [blockClick, setBlockClick] = useState(false);
 
   const { user } = useUser();
   useEffect(() => {
-    if (!user?.username) return
+    if (!user?.username) return;
     Promise.all([
       easyFetchV3<string[]>({
         route: `/api/users/${user.username}/lists`,
@@ -56,15 +55,8 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
       })
   }, [refreshTrigger, user?.username]);
 
-  // it's not stupid if it works
-  setTimeout(() => {
-    const container = document?.getElementById('scrollAreaChild')?.parentElement
-    // @ts-ignore
-    if (container) container.style = ''
-  }, 100)
-
   return (
-    <form className='flex flex-col justify-between gap-4 text-center p-4 showOutline sm:flex-1 sm:w-auto w-full max-h-[60vh]'
+    <form className='flex flex-col justify-between gap-4 p-4 showOutline flex-1 max-h-96 min-w-72'
       onSubmit={e => {
         e.preventDefault();
         if (!user?.username) return;
@@ -80,13 +72,13 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         e.currentTarget.reset();
       }}
     >
-      <h1 className='text-xl'>List Manager</h1>
+      <h1 className='text-xl text-center'>List Manager</h1>
       {!matchingLists || !user?.username ? <Loading /> : 
         !matchingLists.length ? 'No records found' :
-          <ScrollArea type='auto'>
-            <div id='scrollAreaChild' className='flex flex-col gap-4 overflow-y-auto'>
-              {matchingLists.map(listname => <div key={listname} className='px-4 flex items-center gap-4'>
-                <Link className='flex-1 text-center hover:underline truncate'
+          <ScrollArea type='auto' className='flex flex-col'>
+            {matchingLists.map(listname => (
+              <span key={listname} className='px-4 flex items-center gap-4'>
+                <Link className='flex-1 text-center hover:underline truncate p-2 hover:bg-secondary rounded-lg'
                   href={`/users/${user.username}/${listname}`}
                 >{listname}</Link>
                 <button type='button'
@@ -98,25 +90,19 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
                   <span className='sr-only'>Delete from list {listname}</span>
                   <Trash2 className='text-red-700 h-6 w-6' />
                 </button>
-              </div>)}
-            </div>
+              </span>
+            ))}
           </ScrollArea>
       }
       <div className='flex flex-col gap-4' key={currentList}>
         <Select value={currentList}
-          onValueChange={(e) => {
-            setCurrentList(e);
-            // why is this required here, but not in defaultListManager?
-            setTimeout(() => setBlockClick(false), 250);
-          }}
+          onValueChange={setCurrentList}
           defaultValue={currentList}
           required
-          onOpenChange={(e) => e ? setBlockClick(true) : setTimeout(() => setBlockClick(false), 250)}
         >
           <SelectTrigger>
             <SelectValue placeholder='Select listname'/>
           </SelectTrigger>
-          <div className={`${blockClick ? 'block' : 'hidden'} z-10 fixed top-0 left-0 h-screen w-screen`}></div>
           <SelectContent>
             <SelectItem value={illegalListname}>Create new list</SelectItem>
             {allListnames?.map(listname => (

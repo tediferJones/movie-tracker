@@ -91,7 +91,14 @@ const SelectContent = React.forwardRef<
             "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
         )}
       >
-        {children}
+        <div ref={(ref) => {
+          // div wrapper to prevent click through issue where tapping an element
+          // in the dropdown menu would also click the element behind it
+          if (!ref) return;
+          ref.ontouchstart = (e) => e.preventDefault();
+        }}>
+          {children}
+        </div>
       </SelectPrimitive.Viewport>
       <SelectScrollDownButton />
     </SelectPrimitive.Content>

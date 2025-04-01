@@ -17,17 +17,17 @@ export default function UserList({ params }: { params: { username: string, listn
     easyFetchV3<ExistingMediaInfo[]>({
       route: `/api/users/${username}/lists/${listname}`,
       method: 'GET'
-    }).then(data => setListContents(data))
+    }).then(data => setListContents(data));
   }, []);
 
   return (
     <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
-      <GetBreadcrumbs links={{
-        home: '/',
-        users: '/users',
-        [username]: `/users/${username}`,
-        [listname]: `/users/${username}/${listname}`
-      }}/>
+      <GetBreadcrumbs crumbs={[
+        { name: 'Home', link: '/' },
+        { name: 'Users', link: '/users' },
+        { name: username, link: `/users/${username}` },
+        { name: listname, link: `/users/${username}/${listname}` },
+      ]} />
       {!listContents ? <Loading /> : <MyTable data={listContents} linkPrefix={`/users/${username}/${listname}`}/>}
     </div>
   )

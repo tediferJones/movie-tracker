@@ -24,13 +24,13 @@ export default function UserListItem({ params }: { params: Params }) {
   return (
     !title ? <Loading /> :
       <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
-        <GetBreadcrumbs links={{
-          home: '/',
-          users: '/users',
-          [username]: `/users/${username}`,
-          [listname]: `/users/${username}/${listname}`,
-          [title]: `/users/${username}/${listname}/${imdbId}`
-        }}/>
+        <GetBreadcrumbs crumbs={[
+          { name: 'Home', link: '/' },
+          { name: 'Users', link: '/users' },
+          { name: username, link: `/users/${username}` },
+          { name: listname, link: `/users/${username}/${listname}` },
+          { name: title, link: `/users/${username}/${listname}/${imdbId}` },
+        ]} />
         <MediaPage imdbId={imdbId} />
       </div>
   )

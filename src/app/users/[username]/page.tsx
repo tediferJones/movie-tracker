@@ -7,7 +7,11 @@ export default function User({ params }: { params: { username: string } }) {
   const username = decodeURIComponent(params.username);
   return (
     <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
-      <GetBreadcrumbs links={{ home: '/', users: '/users', [username]: `/users/${username}` }} />
+      <GetBreadcrumbs crumbs={[
+        { name: 'Home', link: '/' },
+        { name: 'Users', link: '/users' },
+        { name: username, link: `/users/${username}` },
+      ]} />
       <UserPage username={username} />
     </div>
   )

@@ -7,27 +7,22 @@ import {
 } from '@/components/ui/breadcrumb';
 
 import { Fragment } from 'react';
-import { fromCamelCase } from '@/lib/formatters';
 
-export default function GetBreadcrumbs({ links }: { links: { [key: string]: string } }) {
-  const keys = Object.keys(links)
-  const ignoreCase: RegExp[] = [
-    /\/users\/.+/,
-    /\/media\/.+/,
-  ]
+type Breadcrumb = { name: string, link: string }
 
+export default function GetBreadcrumbs({ crumbs }: { crumbs: Breadcrumb[] }) {
   return (
     <Breadcrumb className='px-2'>
       <BreadcrumbList>
-        {keys.map((key, i) => {
+        {crumbs.map((crumb, i) => {
           return (
-            <Fragment key={`${key}-${links[key]}`}>
+            <Fragment key={`${crumb.name}-${crumb.link}-${i}`}>
               <BreadcrumbItem>
-                <BreadcrumbLink href={links[key]}>
-                  {ignoreCase.some(regex => links[key].match(regex)) ? key : fromCamelCase(key)}
+                <BreadcrumbLink href={crumb.link}>
+                  {crumb.name}
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              {i < keys.length - 1 ? <BreadcrumbSeparator /> : []}
+              {i < crumbs.length - 1 ? <BreadcrumbSeparator /> : []}
             </Fragment>
           )
         })}

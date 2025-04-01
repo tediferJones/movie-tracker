@@ -13,16 +13,16 @@ export default function Media({ params }: { params: { imdbId: string } }) {
     easyFetchV3<string>({
       route: `/api/media/${imdbId}/title`,
       method: 'GET',
-    }).then(data => setTitle(data))
-  }, [])
+    }).then(data => setTitle(data));
+  }, []);
 
   return !title ? <Loading /> :
     <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
-      <GetBreadcrumbs links={{
-        home: '/',
-        media: '/media',
-        [title]: `/media/${imdbId}`
-      }}/>
+      <GetBreadcrumbs crumbs={[
+        { name: 'Home', link: '/' },
+        { name: 'Media', link: '/media' },
+        { name: title, link: `/media/${imdbId}` },
+      ]} />
       <MediaPage imdbId={imdbId} />
     </div>
 }

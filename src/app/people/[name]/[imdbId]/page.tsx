@@ -23,12 +23,12 @@ export default function PersonMedia({ params }: { params: Params }) {
   return (
     !title ? <Loading /> :
       <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
-        <GetBreadcrumbs links={{
-          home: '/',
-          people: '/people',
-          [name]: `/people/${name}`,
-          [title]: `/people/${name}/${imdbId}`,
-        }}/>
+        <GetBreadcrumbs crumbs={[
+          { name: 'Home', link: '/' },
+          { name: 'People', link: '/people' },
+          { name: name, link: `/people/${name}` },
+          { name: title, link: `/people/${name}/${imdbId}` },
+        ]} />
         <MediaPage imdbId={imdbId} />
       </div>
   )

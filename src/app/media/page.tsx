@@ -12,12 +12,15 @@ export default function Media() {
 
   useEffect(() => {
     easyFetch<ExistingMediaInfo[]>('/api/media', 'GET')
-      .then(data => setMedia(data))
-  }, [])
+      .then(data => setMedia(data));
+  }, []);
 
   return (
     <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
-      <GetBreadcrumbs links={{ home: '/', media: '/media' }} />
+      <GetBreadcrumbs crumbs={[
+        { name: 'Home', link: '/' },
+        { name: 'Media', link: '/media' },
+      ]} />
       {!media ? <Loading /> : <MyTable data={media} linkPrefix='/media' />}
     </div>
   )

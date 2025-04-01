@@ -17,18 +17,18 @@ export default function GenreMedia({ params }: { params: Params }) {
     easyFetchV3<string>({
       route: `/api/media/${imdbId}/title`,
       method: 'GET'
-    }).then(data => setTitle(data))
-  }, [])
+    }).then(data => setTitle(data));
+  }, []);
 
   return (
     !title ? <Loading /> :
       <div className='w-4/5 m-auto mb-8 flex flex-col gap-4'>
-        <GetBreadcrumbs links={{
-          home: '/',
-          countries: '/countries',
-          [country]: `/countries/${country}`,
-          [title]: `/countries/${country}/${imdbId}`,
-        }}/>
+        <GetBreadcrumbs crumbs={[
+          { name: 'Home', link: '/' },
+          { name: 'Countries', link: '/countries' },
+          { name: country, link: `/countries/${country}` },
+          { name: title, link: `/countries/${country}/${imdbId}` },
+        ]} />
         <MediaPage imdbId={imdbId} />
       </div>
   )

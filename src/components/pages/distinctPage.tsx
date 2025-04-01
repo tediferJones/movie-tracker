@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
 import Loading from '@/components/subcomponents/loading';
 import easyFetch from '@/lib/easyFetch'
-import { tableToCol } from '@/lib/formatters';
+import { fromCamelCase, tableToCol } from '@/lib/formatters';
 
 export default function DistinctPage({ route }: { route: string }) {
   const [distinct, setDistinct] = useState<any[]>();
@@ -20,7 +20,10 @@ export default function DistinctPage({ route }: { route: string }) {
 
   return (
     <div className='w-4/5 m-auto flex flex-col gap-4'>
-      <GetBreadcrumbs links={{'home': '/', [route]: `/${route}`}}/>
+      <GetBreadcrumbs crumbs={[
+        { name: 'Home', link: '/' },
+        { name: fromCamelCase(route), link: `/${route}` },
+      ]} />
       {!distinct ? <Loading /> :
         <>
           <Input placeholder={`Search ${route}`}

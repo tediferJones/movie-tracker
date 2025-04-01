@@ -28,11 +28,11 @@ export default function Person({ params }: { params: { name: string } }) {
 
   return (
     <div className='w-4/5 m-auto mb-8'>
-      <GetBreadcrumbs links={{
-        home: '/',
-        people: '/people',
-        [name]: `/people/${name}`
-      }}/>
+      <GetBreadcrumbs crumbs={[
+        { name: 'Home', link: '/' },
+        { name: 'People', link: '/people' },
+        { name: name, link: `/people/${name}` },
+      ]} />
       <div className='text-center text-2xl border-b py-4'>{name}</div>
       {!peopleMedia ? <Loading /> :
       <Accordion type='single' collapsible>

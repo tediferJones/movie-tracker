@@ -13,7 +13,10 @@ export default function Media({ params }: { params: { imdbId: string } }) {
     easyFetchV3<string>({
       route: `/api/media/${imdbId}/title`,
       method: 'GET',
-    }).then(data => setTitle(data));
+    }).then(data => {
+        setTitle(data);
+        document.title = data;
+      });
   }, []);
 
   return !title ? <Loading /> :

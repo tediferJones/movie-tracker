@@ -31,6 +31,34 @@ export async function GET() {
     }
   });
 
+  // avoid flooding db with requests
+  // for (let i = 0; i < fixedReviews.length; i++) {
+  //   const review = fixedReviews[i];
+  //   await db.update(reviews).set({
+  //     date: review.date
+  //   }).where(
+  //     and(
+  //       eq(reviews.username, review.username),
+  //       eq(reviews.imdbId, review.imdbId),
+  //     )
+  //   );
+  // }
+
+  // for (let i = 0; i < fixedListRecs.length; i++) {
+  //   const listRec = fixedListRecs[i];
+  //   if (!listRec.username) throw Error('no username');
+  //   if (!listRec.listname) throw Error('no listname');
+  //   await db.update(lists).set({
+  //     date: listRec.date
+  //   }).where(
+  //       and(
+  //         eq(lists.username, listRec.username),
+  //         eq(lists.imdbId, listRec.imdbId),
+  //         eq(lists.listname, listRec.listname),
+  //       )
+  //     );
+  // }
+
   // await Promise.all(fixedReviews.map(review => {
   //   return db.update(reviews).set({
   //     date: review.date

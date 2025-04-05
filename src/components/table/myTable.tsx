@@ -90,7 +90,7 @@ export default function MyTable(
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant='outline'>{fromCamelCase(searchCol)}</Button>
+            <Button variant='outline'>Search By</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className='w-56 max-h-[60vh] overflow-auto'>
             <DropdownMenuLabel>Search column</DropdownMenuLabel>
@@ -122,7 +122,7 @@ export default function MyTable(
           </thead>
           <tbody>
             {data.length === 0 ?
-              <tr><td colSpan={100} className='text-center py-8 text-sm'>No Data Found</td></tr> :
+              <tr><td colSpan={100} className='text-center py-8 text-muted-foreground'>No Data Found</td></tr> :
               shallowSort(data.filter(search)).map(mediaInfo => (
                 <TableRow
                   mediaInfo={mediaInfo}

@@ -42,7 +42,7 @@ export default function ReviewsDisplay(
   return (
     !reviews ? <Loading /> :
       <div className='showOutline flex flex-col'>
-        {reviews.length === 0 ? <div className='p-4 text-center'>No Existing Reviews</div> : 
+        {reviews.length === 0 ? <div className='p-4 text-center text-muted-foreground'>No Reviews Found</div> : 
           reviews.map((review, i) => {
             return <Link className={`text-foreground group flex flex-col gap-4 p-4 hover:bg-secondary rounded-lg ${i < reviews.length - 1 ? 'border-b' : ''}`}
               key={`review-${i}`}

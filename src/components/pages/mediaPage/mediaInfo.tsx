@@ -79,13 +79,18 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
         </h1>
         <hr />
         <div className='flex flex-wrap gap-4 p-4'>
-          <div className='m-auto flex-1 text-center'>Rated: {media.rated || 'N/A'}</div>
-          <div className='m-auto flex-1 text-center'>
-            Runtime: {media.runtime ? formatRuntime(media.runtime) : 'N/A'}
+          <div className='m-auto flex-1 text-center flex gap-2 justify-center'>
+            <span className='text-muted-foreground'>Rated:</span>
+            <span>{media.rated || 'N/A'}</span>
+          </div>
+          <div className='m-auto flex-1 text-center flex gap-2 justify-center'>
+            <span className='text-muted-foreground'>Runtime:</span>
+            <span>{media.runtime ? formatRuntime(media.runtime) : 'N/A'}</span>
           </div>
           {!media.totalSeasons ? [] :
-            <div className='m-auto flex-1 text-center'>
-              Seasons: {media.totalSeasons}
+            <div className='m-auto flex-1 text-center flex gap-2 justify-center'>
+              <span className='text-muted-foreground'>Seasons:</span>
+              <span>{media.totalSeasons}</span>
             </div>
           }
           {!(media.season && media.episode) ? [] : 
@@ -100,14 +105,17 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
         </p>
         <hr />
         <div className='flex flex-wrap justify-around'>
-          <div className='p-4 text-center'>
-            IMDB: {media.imdbRating ? `${(media.imdbRating / 10).toFixed(1)} / 10` : 'N/A'}
+          <div className='p-4 text-center flex gap-2'>
+            <span className='text-muted-foreground'>IMDB:</span>
+            <span>{media.imdbRating ? `${(media.imdbRating / 10).toFixed(1)} / 10` : 'N/A'}</span>
           </div>
-          <div className='p-4 text-center'>
-            RottenTomatoes: {media.tomatoRating ? `${media.tomatoRating}%` : 'N/A'}
+          <div className='p-4 text-center flex gap-2'>
+            <span className='text-muted-foreground'>RottenTomatoes:</span>
+            <span>{media.tomatoRating ? `${media.tomatoRating}%` : 'N/A'}</span>
           </div>
-          <div className='p-4 text-center'>
-            Metacritic: {media.metaRating ? `${media.metaRating}/100` : 'N/A'}
+          <div className='p-4 text-center flex gap-2'>
+            <span className='text-muted-foreground'>Metacritic:</span>
+            <span>{media.metaRating ? `${media.metaRating}/100` : 'N/A'}</span>
           </div>
         </div>
         <hr />
@@ -144,7 +152,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
         ].map(key => {
             if (!media[key] || media[key]?.length === 0) return [];
             return <Fragment key={key}>
-              <div className='text-center m-auto'>
+              <div className='text-center m-auto text-muted-foreground'>
                 {fromCamelCase(key)}
               </div>
               <div className='col-span-2 text-center m-auto'>

@@ -52,9 +52,9 @@ export default function MultiTable({ username }: { username: string }) {
           <MyTable data={listData} linkPrefix={`/users/${username}/${currentList}`}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant='outline'>{currentList}</Button>
+                <Button variant='outline' disabled={!currentList}>{currentList || 'No Lists Found'}</Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className='w-56 max-h-[60vh] overflow-auto'>
+              <DropdownMenuContent className='max-h-[60vh] overflow-auto'>
                 <DropdownMenuLabel>Listname</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup value={currentList} onValueChange={setCurrentList}>

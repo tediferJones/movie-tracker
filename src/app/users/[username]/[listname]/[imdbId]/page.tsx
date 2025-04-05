@@ -18,7 +18,10 @@ export default function UserListItem({ params }: { params: Params }) {
     easyFetchV3<string>({
       route: `/api/media/${imdbId}/title`,
       method: 'GET'
-    }).then(data => setTitle(data));
+    }).then(data => {
+        document.title = data;
+        setTitle(data);
+      });
   }, []);
 
   return (

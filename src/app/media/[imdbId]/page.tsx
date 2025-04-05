@@ -14,8 +14,8 @@ export default function Media({ params }: { params: { imdbId: string } }) {
       route: `/api/media/${imdbId}/title`,
       method: 'GET',
     }).then(data => {
-        setTitle(data);
         document.title = data;
+        setTitle(data);
       });
   }, []);
 

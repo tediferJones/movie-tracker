@@ -74,7 +74,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
     >
       <h1 className='text-xl text-center'>List Manager</h1>
       {!matchingLists || !user?.username ? <Loading /> : 
-        !matchingLists.length ? <p className='text-center'>No records found</p> :
+        !matchingLists.length ? <p className='text-center text-muted-foreground'>No Lists Found</p> :
           <ScrollArea type='auto' className='flex flex-col'>
             {matchingLists.map(listname => (
               <span key={listname} className='px-4 flex items-center gap-4'>

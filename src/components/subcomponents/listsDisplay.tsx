@@ -23,7 +23,7 @@ export default function ListsDisplay({ username }: { username: string }) {
             <ScrollArea type='auto'>
               <div className='flex flex-col'>
                 {listnames.length === 0
-                  ? <div className='text-center'>No Lists</div>
+                  ? <p className='text-center text-muted-foreground'>No Lists Found</p>
                   : listnames.map(listname => (
                     <Link className='hover:underline hover:bg-secondary p-2 rounded-lg text-center mx-4 truncate'
                       href={`/users/${username}/${listname}`}

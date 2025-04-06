@@ -27,7 +27,7 @@ export default function WatchedDisplay({ username }: { username: string }) {
           <div className='h-full flex flex-col justify-center overflow-hidden'>
             <ScrollArea type='auto' className='flex flex-col'>
               {watched.length === 0
-                ? <div className='text-center'>No watch records found</div>
+                ? <p className='text-center text-muted-foreground'>No Watch History Found</p>
                 : watched.map(watchRec => (
                   <Link className='flex-1 flex flex-col hover:bg-secondary rounded-lg p-2 group text-center'
                     href={`/media/${watchRec.imdbId}`}

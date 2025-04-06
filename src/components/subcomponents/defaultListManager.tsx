@@ -65,24 +65,26 @@ export default function DefaultListManager() {
       {!listnames || !user?.username? <Loading /> :
         <>
           <div className='text-center text-xl'>Default: {existingDefaultList || 'No default list found'}</div>
-          <ScrollArea type='auto' className='max-h-fit flex flex-col flex-1'>
-            {listnames.map(listname => (
-              <span key={listname} className='flex gap-2 justify-center px-4'>
-                <Link className='w-full text-center p-2 hover:underline hover:bg-secondary rounded-lg truncate'
-                  href={`/users/${user.username}/${listname}`}
-                >{listname}</Link>
-                <button type='button'
-                  onClick={() => {
-                    setConfirmList(listname);
-                    setModalVisible(true);
-                  }}
-                >
-                  <span className='sr-only'>Delete {listname}</span>
-                  <Trash2 className='text-red-700 min-h-6 min-w-6' />
-                </button>
-              </span>
-            ))}
-          </ScrollArea>
+          {!listnames.length ? <p className='text-center text-muted-foreground'>No Lists Found</p> :
+            <ScrollArea type='auto' className='max-h-fit flex flex-col flex-1'>
+              {listnames.map(listname => (
+                <span key={listname} className='flex gap-2 justify-center px-4'>
+                  <Link className='w-full text-center p-2 hover:underline hover:bg-secondary rounded-lg truncate'
+                    href={`/users/${user.username}/${listname}`}
+                  >{listname}</Link>
+                  <button type='button'
+                    onClick={() => {
+                      setConfirmList(listname);
+                      setModalVisible(true);
+                    }}
+                  >
+                    <span className='sr-only'>Delete {listname}</span>
+                    <Trash2 className='text-red-700 min-h-6 min-w-6' />
+                  </button>
+                </span>
+              ))}
+            </ScrollArea>
+          }
           <div className='flex flex-col gap-4'>
             <Select value={newDefaultListname} onValueChange={setNewDefaultListname}>
               <SelectTrigger>

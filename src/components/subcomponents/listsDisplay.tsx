@@ -19,7 +19,7 @@ export default function ListsDisplay({ username }: { username: string }) {
       {!listnames ? <Loading /> : 
         <>
           <h3 className='text-center text-xl'>Lists ({listnames.length})</h3>
-          <div className='flex flex-col justify-center flex-1 overflow-clip'>
+          <div className='flex flex-col justify-center flex-1 overflow-hidden'>
             <ScrollArea type='auto'>
               <div className='flex flex-col'>
                 {listnames.length === 0

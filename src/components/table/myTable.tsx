@@ -41,7 +41,7 @@ export default function MyTable(
     linkPrefix: string,
   }
 ) {
-  data = data.map((rec, i, arr) => arr[arr.length - 1 - i])
+  data = data.map((rec, i, arr) => arr[arr.length - 1 - i]);
   const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
   const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
 
@@ -54,9 +54,9 @@ export default function MyTable(
     if (!searchTerm) return true;
     if (!mediaInfo[searchCol]) return false;
     if (typeof(mediaInfo[searchCol]) === 'string') {
-      return mediaInfo[searchCol].toLowerCase().includes(searchTerm.toLowerCase()) 
+      return mediaInfo[searchCol].toLowerCase().includes(searchTerm.toLowerCase());
     }
-    return mediaInfo[searchCol].some((str: string) => str.toLowerCase().includes(searchTerm.toLowerCase()))
+    return mediaInfo[searchCol].some((str: string) => str.toLowerCase().includes(searchTerm.toLowerCase()));
   }
 
   function shallowSort(arr: ExistingMediaInfo[]): ExistingMediaInfo[] {
@@ -78,26 +78,28 @@ export default function MyTable(
   }
 
   function formatCell(key: string, val: any) {
-    return val ? 'N/A' : getKeyFormatter[key] ? getKeyFormatter[key](val) : val
+    return val ? 'N/A' : getKeyFormatter[key] ? getKeyFormatter[key](val) : val;
   }
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='flex gap-4'>
+      <div className='flex gap-4 sm:flex-nowrap flex-wrap'>
         {children}
         <Input placeholder={`Search by ${searchCol}`} 
           onChange={e => setSearchTerm(e.target.value)}
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant='outline'>Search By</Button>
+            <Button variant='outline' className='sm:w-auto w-full'>Search By</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className='w-56 max-h-[60vh] overflow-auto'>
             <DropdownMenuLabel>Search column</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup value={searchCol} onValueChange={setSearchCol}>
               {['title', 'rated'].concat(details).filter(str => str).map(key => {
-                return <DropdownMenuRadioItem key={key} value={key}>{fromCamelCase(key)}</DropdownMenuRadioItem>
+                return <DropdownMenuRadioItem key={key} value={key}>
+                  {fromCamelCase(key)}
+                </DropdownMenuRadioItem>
               })}
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
@@ -159,7 +161,7 @@ export default function MyTable(
             <AccordionItem value={mediaInfo.imdbId} key={mediaInfo.imdbId}>
               <AccordionTrigger className='hover:no-underline px-2 flex gap-2'>
                 <div className='flex flex-col gap-2 w-full'>
-                  <Link className='w-fit m-auto' href={`${linkPrefix}/${mediaInfo.imdbId}`}/*href={`/media/${mediaInfo.imdbId}`}*/>
+                  <Link className='w-fit m-auto' href={`${linkPrefix}/${mediaInfo.imdbId}`}>
                     {mediaInfo.title}
                   </Link>
                   <div className='flex gap-4 justify-between'>
@@ -188,7 +190,7 @@ export default function MyTable(
                 </div>
                 {details.map(key => (
                   <div className='grid grid-cols-4' key={`${mediaInfo.imdbId}-${key}`}>
-                    <span className='col-span-1 text-center m-auto'>{fromCamelCase(key)}:</span>
+                    <span className='col-span-1 text-center m-auto text-muted-foreground'>{fromCamelCase(key)}:</span>
                     <div className='col-span-3 text-center'>
                       <GetLinks type={key} arr={mediaInfo[key]}/>
                     </div>

@@ -1,6 +1,7 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -81,6 +82,8 @@ export default function MyTable(
     return val ? 'N/A' : getKeyFormatter[key] ? getKeyFormatter[key](val) : val;
   }
 
+  // const sliderClass = sortType === 'asc' ? 'justify-start' : sortType === 'desc' ? 'justify-end' : 'justify-center'
+
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex gap-4 sm:flex-nowrap flex-wrap'>
@@ -104,6 +107,36 @@ export default function MyTable(
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+        <div className='sm:hidden flex gap-4'>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant='outline'>Sort By</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Sort by Column</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup value={sortCol} onValueChange={(col) => {
+                if (col !== sortCol) return setSortCol(col)
+                if (sortType === 'desc') setSortCol('')
+                setSortType(sortType === 'asc' ? 'desc' : 'asc')
+              }}>
+                {columns.filter(col => col).map(col => (
+                  <DropdownMenuRadioItem value={col}>{fromCamelCase(col)}</DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/* or just use shadcnui switch */}
+          <div className={`flex bg-secondary rounded-full aspect-video`}
+            onClick={() => {
+              if (!sortCol) return;
+              setSortType(sortType === 'asc' ? 'desc': 'asc');
+            }}
+          >
+            <div className={`bg-primary h-full aspect-square rounded-full transform duration-1000 ${!sortCol ? 'translate-x-1/2' : sortType === 'asc' ? 'translate-x-0' : 'translate-x-full'}`}
+            ></div>
+          </div>
+        </div>
       </div>
       <div className='showOutline overflow-x-auto hidden sm:table'>
         <table className='w-full'>
@@ -188,6 +221,7 @@ export default function MyTable(
                     </div>
                   ))}
                 </div>
+                <img src={mediaInfo.poster || undefined} />
                 {details.map(key => (
                   <div className='grid grid-cols-4' key={`${mediaInfo.imdbId}-${key}`}>
                     <span className='col-span-1 text-center m-auto text-muted-foreground'>{fromCamelCase(key)}:</span>

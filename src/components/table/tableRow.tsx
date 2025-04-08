@@ -30,7 +30,7 @@ export default function TableRow(
 
   return (
     <>
-      <tr className='border-t hover:bg-secondary' onClick={() => setIsOpen(!isOpen)}>
+      <tr className={`border-t hover:bg-secondary ${isOpen ? 'bg-primary-foreground' : ''}`} onClick={() => setIsOpen(!isOpen)}>
         {keys.map(key => (
           <td key={`${mediaInfo.imdbId}-${key}`} className='text-center p-2'>
             {!key ? dropDownTrigger :
@@ -46,13 +46,16 @@ export default function TableRow(
       </tr>
       <tr>
         <td colSpan={100} className='p-0'>
-          <div className={`grid grid-cols-2 gap-4 overflow-hidden transition-all ${isOpen ? 'p-4 border-t max-h-[9999px]' : 'max-h-[0px]'}`}>
-            {details.map(key => (
-              <div key={key} className='flex flex-wrap justify-center items-center gap-1'>
-                <span>{fromCamelCase(key)}:</span>
-                <GetLinks type={key} arr={mediaInfo[key]} />
-              </div>
-            ))}
+          <div className={`rounded-lg bg-primary-foreground flex gap-4 justify-center items-center overflow-hidden transition-all ${isOpen ? 'p-4 border-t max-h-[9999px]' : 'max-h-[0px]'}`}>
+            <img className={`h-48 ${isOpen ? 'opacity-100' : 'opacity-0'} transition-opacity`} src={mediaInfo.poster || undefined} />
+            <div className={`grid grid-cols-2 gap-4`}>
+              {details.map(key => (
+                <div key={key} className='flex flex-wrap justify-center items-center gap-1'>
+                  <span>{fromCamelCase(key)}:</span>
+                  <GetLinks type={key} arr={mediaInfo[key]} />
+                </div>
+              ))}
+            </div>
           </div>
         </td>
       </tr>

@@ -20,17 +20,15 @@ export default function ListsDisplay({ username }: { username: string }) {
         <>
           <h3 className='text-center text-xl'>Lists ({listnames.length})</h3>
           <div className='flex flex-col justify-center flex-1 overflow-hidden'>
-            <ScrollArea type='auto'>
-              <div className='flex flex-col'>
-                {listnames.length === 0
-                  ? <p className='text-center text-muted-foreground'>No Lists Found</p>
-                  : listnames.map(listname => (
-                    <Link className='hover:underline hover:bg-secondary p-2 rounded-lg text-center mx-4 truncate'
-                      href={`/users/${username}/${listname}`}
-                      key={listname}
-                    >{listname}</Link>
-                  ))}
-              </div>
+            <ScrollArea type='auto' className='flex flex-col'>
+              {listnames.length === 0
+                ? <p className='text-center text-muted-foreground'>No Lists Found</p>
+                : listnames.map(listname => (
+                  <Link className='block hover:underline hover:bg-secondary p-2 rounded-lg text-center mx-4 truncate'
+                    href={`/users/${username}/${listname}`}
+                    key={listname}
+                  >{listname}</Link>
+                ))}
             </ScrollArea>
           </div>
         </>

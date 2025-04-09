@@ -1,7 +1,6 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -23,6 +22,7 @@ import GetLinks from '@/components/subcomponents/getLinks';
 import TableRow from '@/components/table/tableRow';
 import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
+import { ArrowDownAz,  ArrowUpZa, Lock } from 'lucide-react';
 
 type SortType = 'asc' | 'desc';
 type SortFuncs = {
@@ -42,7 +42,7 @@ export default function MyTable(
     linkPrefix: string,
   }
 ) {
-  data = data.map((rec, i, arr) => arr[arr.length - 1 - i]);
+  data = data.map((_, i, arr) => arr[arr.length - 1 - i]);
   const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
   const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
 
@@ -77,12 +77,6 @@ export default function MyTable(
     const dataType = ['title', 'rated'].includes(sortCol) ? 'string' : 'number';
     return [...arr].sort(sortFunc[dataType][sortType]);
   }
-
-  function formatCell(key: string, val: any) {
-    return val ? 'N/A' : getKeyFormatter[key] ? getKeyFormatter[key](val) : val;
-  }
-
-  // const sliderClass = sortType === 'asc' ? 'justify-start' : sortType === 'desc' ? 'justify-end' : 'justify-center'
 
   return (
     <div className='flex flex-col gap-4'>
@@ -127,14 +121,19 @@ export default function MyTable(
             </DropdownMenuContent>
           </DropdownMenu>
           {/* or just use shadcnui switch */}
-          <div className={`flex bg-secondary rounded-full aspect-video`}
+          <div className={`aspect-[1.9/1] flex bg-secondary rounded-full h-3/4 items-center transition-all duration-1000`}
             onClick={() => {
               if (!sortCol) return;
               setSortType(sortType === 'asc' ? 'desc': 'asc');
             }}
           >
-            <div className={`bg-primary h-full aspect-square rounded-full transform duration-1000 ${!sortCol ? 'translate-x-1/2' : sortType === 'asc' ? 'translate-x-0' : 'translate-x-full'}`}
-            ></div>
+            <div className={`flex items-center justify-center bg-primary h-full aspect-square rounded-full transition-all duration-1000 ${!sortCol ? 'translate-x-1/2' : sortType === 'asc' ? 'translate-x-0' : 'translate-x-full'}`}
+            >
+              {!sortCol ? <Lock className='h-3/4' /> :
+                sortType === 'asc' ? <ArrowDownAz className={`h-3/4 transition-opacity duration-1000`} />
+                  : <ArrowUpZa className={`h-3/4 transition-opacity duration-1000`} />
+              }
+            </div>
           </div>
         </div>
       </div>

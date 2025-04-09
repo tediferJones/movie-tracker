@@ -140,7 +140,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
       >
         <>
           <p>Are you sure you want to remove this movie from the list:</p>
-          <p>{confirmList}</p>
+          <p className='m-auto'>{confirmList}</p>
         </>
       </ConfirmModal>
     </form>

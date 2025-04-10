@@ -35,11 +35,12 @@ export async function GET(req: Request, { params }: { params: Params }) {
         const watchRecs = await db.select().from(watched).where(
           eq(watched.username, username)
         ).orderBy(desc(watched.date));
+
         await getManyExistingMedia(watchRecs.map(watchRec => watchRec.imdbId));
 
         cache.set(cacheStr, watchRecs.map((watchRec: typeof watchRecs[number] & { title?: string }) => {
           watchRec.title = cache.get(watchRec.imdbId).title;
-          if (!watchRec.title) throw Error('could not find title')
+          if (!watchRec.title) throw Error('could not find title');
           return watchRec;
         }));
       }
@@ -73,6 +74,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
   try {
     await db.insert(watched).values({ username, imdbId, date: Date.now() });
     cache.delete(`${username},${imdbId},watched`);
+    cache.delete(`${username},watched`);
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });
@@ -107,6 +109,7 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
       )
     );
     cache.delete(`${username},${imdbId},watched`);
+    cache.delete(`${username},watched`);
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

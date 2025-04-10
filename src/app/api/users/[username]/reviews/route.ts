@@ -32,16 +32,19 @@ export async function GET(req: Request, { params }: { params: Params }) {
       }
       return NextResponse.json(cache.get(cacheStr) || null);
     } else {
-      const cacheStr = `${username},reviews`
+      const cacheStr = `${username},reviews`;
       if (!cache.get(cacheStr)) {
         const allReviews = await db.select().from(reviews).where(
           eq(reviews.username, username)
         );
-        await getManyExistingMedia(allReviews.map(review => review.imdbId))
-        cache.set(cacheStr, allReviews.map((review: any) => {
-          review.title = cache.get(review.imdbId).title
-          return review
-        }))
+
+        await getManyExistingMedia(allReviews.map(review => review.imdbId));
+
+        cache.set(cacheStr, allReviews.map((review: typeof allReviews[number] & { title?: string }) => {
+          review.title = cache.get(review.imdbId).title;
+          if (!review.title) throw Error('could not find title');
+          return review;
+        }));
       }
       return NextResponse.json(cache.get(cacheStr));
     }
@@ -82,8 +85,9 @@ export async function POST(req: Request, { params }: { params: Params }) {
     }
 
     await db.insert(reviews).values({ username, imdbId, ...review });
-    cache.delete(`${username},${imdbId},review`)
-    cache.delete(`${username},reviews`)
+    cache.delete(`${username},${imdbId},review`);
+    cache.delete(`${username},reviews`);
+    cache.delete(`${imdbId},reviews`);
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });
@@ -127,8 +131,9 @@ export async function PUT(req: Request, { params }: { params: Params }) {
         eq(reviews.imdbId, imdbId),
       )
     );
-    cache.delete(`${username},${imdbId},review`)
-    cache.delete(`${username},reviews`)
+    cache.delete(`${username},${imdbId},review`);
+    cache.delete(`${username},reviews`);
+    cache.delete(`${imdbId},reviews`);
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });
@@ -157,8 +162,9 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
         eq(reviews.imdbId, imdbId),
       )
     );
-    cache.delete(`${username},${imdbId},review`)
-    cache.delete(`${username},reviews`)
+    cache.delete(`${username},${imdbId},review`);
+    cache.delete(`${username},reviews`);
+    cache.delete(`${imdbId},reviews`);
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

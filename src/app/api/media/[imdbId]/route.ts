@@ -11,12 +11,12 @@ type Params = { imdbId: string }
 
 export async function GET(req: Request, { params }: { params: Params }) {
   const { imdbId } = params;
-
   if (!cache.get(imdbId)) {
     try {
       const dbResult = await db.select().from(media).where(eq(media.imdbId, imdbId)).get();
       if (!dbResult) {
-        await POST(req, { params });
+        const postRes = await POST(req, { params });
+        if (postRes.status !== 200) return postRes;
         return await GET(req, { params });
       }
       cache.set(imdbId, dbResult);
@@ -24,7 +24,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
       return NextResponse.json('Failed to process request, database error', { status: 500 });
     }
   }
-  return cache.get(imdbId);
+  return NextResponse.json(cache.get(imdbId));
 }
 
 export async function POST(req: Request, { params }: { params: Params }) {

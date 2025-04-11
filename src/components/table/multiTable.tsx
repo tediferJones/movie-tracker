@@ -61,11 +61,11 @@ export default function MultiTable({ username }: { username: string }) {
                 <DropdownMenuLabel>Listname</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup value={currentList} onValueChange={setCurrentList}>
-                  {listnames.map(listname => {
-                    return <DropdownMenuRadioItem key={listname} value={listname}>
+                  {listnames.map(listname => (
+                    <DropdownMenuRadioItem key={listname} value={listname}>
                       {listname}
                     </DropdownMenuRadioItem>
-                  })}
+                  ))}
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>

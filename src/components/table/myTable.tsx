@@ -80,10 +80,11 @@ export default function MyTable(
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='flex gap-4 sm:flex-nowrap flex-wrap'>
+      <div className='flex gap-4 flex-wrap'>
         {children}
         <Input placeholder={`Search by ${searchCol}`} 
           onChange={e => setSearchTerm(e.target.value)}
+          className='flex-1'
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -101,18 +102,16 @@ export default function MyTable(
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        <div className='sm:hidden flex gap-4'>
+        <div className='flex gap-4 sm:w-min w-full'>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant='outline'>Sort By</Button>
+              <Button variant='outline' className='sm:w-auto w-full'>Sort By</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>Sort by Column</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={sortCol} onValueChange={(col) => {
-                if (col !== sortCol) return setSortCol(col)
-                if (sortType === 'desc') setSortCol('')
-                setSortType(sortType === 'asc' ? 'desc' : 'asc')
+                setSortCol(col !== sortCol ? col : '');
               }}>
                 {columns.filter(col => col).map(col => (
                   <DropdownMenuRadioItem value={col}>{fromCamelCase(col)}</DropdownMenuRadioItem>
@@ -121,18 +120,16 @@ export default function MyTable(
             </DropdownMenuContent>
           </DropdownMenu>
           {/* or just use shadcnui switch */}
-          <div className={`aspect-[1.9/1] flex bg-secondary rounded-full h-3/4 items-center transition-all duration-1000`}
+          <div className={`relative my-auto bg-secondary rounded-full h-8 min-w-16 max-w-16 transition-all duration-1000`}
             onClick={() => {
               if (!sortCol) return;
               setSortType(sortType === 'asc' ? 'desc': 'asc');
             }}
           >
-            <div className={`flex items-center justify-center bg-primary h-full aspect-square rounded-full transition-all duration-1000 ${!sortCol ? 'translate-x-1/2' : sortType === 'asc' ? 'translate-x-0' : 'translate-x-full'}`}
-            >
-              {!sortCol ? <Lock className='h-3/4' /> :
-                sortType === 'asc' ? <ArrowDownAz className={`h-3/4 transition-opacity duration-1000`} />
-                  : <ArrowUpZa className={`h-3/4 transition-opacity duration-1000`} />
-              }
+            <div className={`absolute flex items-center justify-center bg-primary h-full aspect-square rounded-full transition-all duration-1000 cursor-pointer ${!sortCol ? 'left-4 right-4 opacity-50 cursor-none' : sortType === 'asc' ? 'left-0 right-8' : 'left-8 right-0'}`}>
+              <Lock className={`h-3/4 cursor-default ${!sortCol ? 'w-full' : 'w-0'}`} />
+              <ArrowDownAz className={`h-3/4 transition-all duration-1000 ${sortCol && sortType === 'asc' ? 'w-full' : 'w-0'}`} />
+              <ArrowUpZa className={`h-3/4 transition-all duration-1000 ${sortCol && sortType === 'desc' ? 'w-full' : 'w-0'}`} />
             </div>
           </div>
         </div>
@@ -171,6 +168,7 @@ export default function MyTable(
       </div>
 
       {/* Mobile View */}
+      {/*
       <div className='p-2 sm:hidden showOutline flex gap-2'>
         <span className='flex justify-center items-center text-center border-r pr-2'>Sort By</span>
         <div className='flex flex-wrap justify-center gap-2'>
@@ -187,6 +185,7 @@ export default function MyTable(
           })}
         </div>
       </div>
+      */}
       <Accordion type='multiple' className='block sm:hidden'>
         {shallowSort(data.filter(search)).map(mediaInfo => {
           return (

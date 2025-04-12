@@ -23,6 +23,7 @@ import TableRow from '@/components/table/tableRow';
 import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 import { ArrowDownAz,  ArrowUpZa, Lock } from 'lucide-react';
+import OptionalScrollArea from '../subcomponents/optionalScrollArea';
 
 type SortType = 'asc' | 'desc';
 type SortFuncs = {
@@ -36,10 +37,12 @@ export default function MyTable(
     data,
     children,
     linkPrefix,
+    useScrollArea,
   }: {
     data: ExistingMediaInfo[],
     children?: ReactNode,
     linkPrefix: string,
+    useScrollArea?: boolean,
   }
 ) {
   data = data.map((_, i, arr) => arr[arr.length - 1 - i]);
@@ -80,7 +83,7 @@ export default function MyTable(
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='flex gap-4 flex-wrap'>
+      <div className={`flex gap-4 flex-wrap ${useScrollArea ? 'px-2 pt-2' : ''}`}>
         {children}
         <Input placeholder={`Search by ${searchCol}`} 
           onChange={e => setSearchTerm(e.target.value)}
@@ -134,105 +137,89 @@ export default function MyTable(
           </div>
         </div>
       </div>
-      <div className='showOutline overflow-x-auto hidden sm:table'>
-        <table className='w-full'>
-          <thead>
-            <tr>
-              {columns.map(col => (
-                <th key={`colHeader-${col}`}
-                  className={`text-muted-foreground p-2 ${col === '' ? '' : sortCol !== col ? '' : sortType === 'asc' ? 'bg-secondary' : 'bg-neutral-800'}`}
-                >
-                  <button onClick={() => {
-                    if (col !== sortCol) return setSortCol(col)
-                    if (sortType === 'desc') setSortCol('')
-                    setSortType(sortType === 'asc' ? 'desc' : 'asc')
-                  }}>{fromCamelCase(col)}</button>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.length === 0 ?
-              <tr><td colSpan={100} className='text-center py-8 text-muted-foreground'>No Data Found</td></tr> :
-              shallowSort(data.filter(search)).map(mediaInfo => (
-                <TableRow
-                  mediaInfo={mediaInfo}
-                  keys={columns}
-                  details={details}
-                  key={mediaInfo.imdbId}
-                  linkPrefix={linkPrefix}
-                />))
-            }
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile View */}
-      {/*
-      <div className='p-2 sm:hidden showOutline flex gap-2'>
-        <span className='flex justify-center items-center text-center border-r pr-2'>Sort By</span>
-        <div className='flex flex-wrap justify-center gap-2'>
-          {columns.filter(col => col).map(col => {
-            return (
-              <button className={`flex-1 rounded-md text-muted-foreground p-2 ${col === '' ? '' : sortCol !== col ? '' : sortType === 'asc' ? 'bg-secondary' : 'bg-neutral-800'}`}
-                key={col}
-                onClick={() => {
-                  if (col !== sortCol) return setSortCol(col)
-                  if (sortType === 'desc') setSortCol('')
-                  setSortType(sortType === 'asc' ? 'desc' : 'asc')
-                }}>{fromCamelCase(col)}</button>
-            )
-          })}
+      <OptionalScrollArea scrollEnabled={useScrollArea} className='max-h-[90vh] m-2 pr-2'>
+        <div className='showOutline overflow-x-auto hidden sm:table'>
+          <table className='w-full'>
+            <thead>
+              <tr>
+                {columns.map(col => (
+                  <th key={`colHeader-${col}`}
+                    className={`text-muted-foreground p-2 ${col === '' ? '' : sortCol !== col ? '' : sortType === 'asc' ? 'bg-secondary' : 'bg-neutral-800'}`}
+                  >
+                    <button onClick={() => {
+                      if (col !== sortCol) return setSortCol(col)
+                      if (sortType === 'desc') setSortCol('')
+                      setSortType(sortType === 'asc' ? 'desc' : 'asc')
+                    }}>{fromCamelCase(col)}</button>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.length === 0 ?
+                <tr><td colSpan={100} className='text-center py-8 text-muted-foreground'>No Data Found</td></tr> :
+                shallowSort(data.filter(search)).map(mediaInfo => (
+                  <TableRow
+                    mediaInfo={mediaInfo}
+                    keys={columns}
+                    details={details}
+                    key={mediaInfo.imdbId}
+                    linkPrefix={linkPrefix}
+                  />))
+              }
+            </tbody>
+          </table>
         </div>
-      </div>
-      */}
-      <Accordion type='multiple' className='block sm:hidden'>
-        {shallowSort(data.filter(search)).map(mediaInfo => {
-          return (
-            <AccordionItem value={mediaInfo.imdbId} key={mediaInfo.imdbId}>
-              <AccordionTrigger className='hover:no-underline px-2 flex gap-2'>
-                <div className='flex flex-col gap-2 w-full'>
-                  <Link className='w-fit m-auto' href={`${linkPrefix}/${mediaInfo.imdbId}`}>
-                    {mediaInfo.title}
-                  </Link>
-                  <div className='flex gap-4 justify-between'>
-                    {['rated', 'startYear', 'runtime'].map(key => (
-                      <div className='flex-1 text-center'
+
+        {/* Mobile View */}
+        <Accordion type='multiple' className='block sm:hidden'>
+          {shallowSort(data.filter(search)).map(mediaInfo => {
+            return (
+              <AccordionItem value={mediaInfo.imdbId} key={mediaInfo.imdbId}>
+                <AccordionTrigger className='hover:no-underline px-2 flex gap-2'>
+                  <div className='flex flex-col gap-2 w-full'>
+                    <Link className='w-fit m-auto' href={`${linkPrefix}/${mediaInfo.imdbId}`}>
+                      {mediaInfo.title}
+                    </Link>
+                    <div className='flex gap-4 justify-between'>
+                      {['rated', 'startYear', 'runtime'].map(key => (
+                        <div className='flex-1 text-center'
+                          key={`${mediaInfo.imdbId}-${key}`}
+                        >
+                          {!mediaInfo[key] ? 'N/A' :
+                            getKeyFormatter[key] ? getKeyFormatter[key](mediaInfo[key]) : mediaInfo[key]
+                          }
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className='flex flex-col gap-2'>
+                  <div className='flex justify-between px-2'>
+                    {['imdbRating', 'tomatoRating', 'metaRating'].map(key => (
+                      <div className='flex flex-wrap gap-1 justify-center items-center'
                         key={`${mediaInfo.imdbId}-${key}`}
                       >
-                        {!mediaInfo[key] ? 'N/A' :
-                          getKeyFormatter[key] ? getKeyFormatter[key](mediaInfo[key]) : mediaInfo[key]
-                        }
+                        <span>{fromCamelCase(key)}:</span>
+                        <span>{getKeyFormatter[key](mediaInfo[key])}</span>
                       </div>
                     ))}
                   </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className='flex flex-col gap-2'>
-                <div className='flex justify-between px-2'>
-                  {['imdbRating', 'tomatoRating', 'metaRating'].map(key => (
-                    <div className='flex flex-wrap gap-1 justify-center items-center'
-                      key={`${mediaInfo.imdbId}-${key}`}
-                    >
-                      <span>{fromCamelCase(key)}:</span>
-                      <span>{getKeyFormatter[key](mediaInfo[key])}</span>
+                  <img src={mediaInfo.poster || undefined} />
+                  {details.map(key => (
+                    <div className='grid grid-cols-4' key={`${mediaInfo.imdbId}-${key}`}>
+                      <span className='col-span-1 text-center m-auto text-muted-foreground'>{fromCamelCase(key)}:</span>
+                      <div className='col-span-3 text-center'>
+                        <GetLinks type={key} arr={mediaInfo[key]}/>
+                      </div>
                     </div>
                   ))}
-                </div>
-                <img src={mediaInfo.poster || undefined} />
-                {details.map(key => (
-                  <div className='grid grid-cols-4' key={`${mediaInfo.imdbId}-${key}`}>
-                    <span className='col-span-1 text-center m-auto text-muted-foreground'>{fromCamelCase(key)}:</span>
-                    <div className='col-span-3 text-center'>
-                      <GetLinks type={key} arr={mediaInfo[key]}/>
-                    </div>
-                  </div>
-                ))}
-              </AccordionContent>
-            </AccordionItem>
-          )
-        })}
-      </Accordion>
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
+        </Accordion>
+      </OptionalScrollArea>
     </div>
   )
 }

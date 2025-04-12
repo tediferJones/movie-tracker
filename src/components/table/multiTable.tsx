@@ -47,31 +47,30 @@ export default function MultiTable({ username }: { username: string }) {
 
   return <div className='showOutline p-2'>
     {!listnames || !listData ? <Loading /> :
-      <ScrollArea type='auto'>
-        <div className='max-h-[90vh] m-2 pr-2'>
-          <MyTable data={listData} linkPrefix={`/users/${username}/${currentList}`}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant='outline'
-                  disabled={!currentList}
-                  className='w-full sm:w-auto'
-                >{currentList || 'No Lists Found'}</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className='max-h-[60vh] overflow-auto'>
-                <DropdownMenuLabel>Listname</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={currentList} onValueChange={setCurrentList}>
-                  {listnames.map(listname => (
-                    <DropdownMenuRadioItem key={listname} value={listname}>
-                      {listname}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </MyTable>
-        </div>
-      </ScrollArea>
+      <MyTable data={listData}
+        linkPrefix={`/users/${username}/${currentList}`}
+        useScrollArea={true}
+      >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant='outline'
+              disabled={!currentList}
+              className='w-full sm:w-auto'
+            >{currentList || 'No Lists Found'}</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className='max-h-[60vh] overflow-auto'>
+            <DropdownMenuLabel>Listname</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup value={currentList} onValueChange={setCurrentList}>
+              {listnames.map(listname => (
+                <DropdownMenuRadioItem key={listname} value={listname}>
+                  {listname}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </MyTable>
     }
   </div>
 }

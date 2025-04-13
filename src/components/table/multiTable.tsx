@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
@@ -55,8 +54,13 @@ export default function MultiTable({ username }: { username: string }) {
           <DropdownMenuTrigger asChild>
             <Button variant='outline'
               disabled={!currentList}
-              className='w-full sm:w-auto'
-            >{currentList || 'No Lists Found'}</Button>
+              className='w-full sm:w-auto flex gap-1'
+            >
+              {!currentList ? <span>No Lists Found</span> : <>
+                <span>List:</span>
+                <span className='truncate'>{currentList}</span>
+              </>}
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className='max-h-[60vh] overflow-auto'>
             <DropdownMenuLabel>Listname</DropdownMenuLabel>

@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { ScrollArea } from "../ui/scroll-area";
+import { ReactNode } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function OptionalScrollArea(
   {
@@ -14,6 +14,6 @@ export default function OptionalScrollArea(
 ) {
   return !scrollEnabled ? <>{children}</> :
     <ScrollArea type='auto'>
-      <div className={`bg-gradient-to-t ${className}`}>{children}</div>
+      <div className={`${className}`}>{children}</div>
     </ScrollArea>
 }

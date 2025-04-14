@@ -7,23 +7,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { ReactNode, useState } from 'react';
-import Link from 'next/link';
-import GetLinks from '@/components/subcomponents/getLinks';
-import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
-import TableRow from '@/components/table/tableRow';
-import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
-import { ExistingMediaInfo } from '@/types';
+import { ReactNode, useEffect, useState } from 'react';
 import { ArrowDownAz,  ArrowUpZa, Lock } from 'lucide-react';
+import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
+import MobileView from '@/components/table/mobileView';
+import DesktopView from '@/components/table/desktopView';
+import { fromCamelCase } from '@/lib/formatters';
+import useMediaQuery from '@/hooks/useMediaQuery';
+import { ExistingMediaInfo } from '@/types';
 
 type SortType = 'asc' | 'desc';
 type SortFuncs = {
@@ -31,6 +25,10 @@ type SortFuncs = {
     [key in SortType]: (a: ExistingMediaInfo, b: ExistingMediaInfo) => number
   }
 }
+export type ColumnType = typeof columns[number]
+
+export const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
+export const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
 
 export default function MyTable(
   {
@@ -46,13 +44,20 @@ export default function MyTable(
   }
 ) {
   data = data.map((_, i, arr) => arr[arr.length - 1 - i]);
-  const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
-  const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
+  const searchCache: Record<string, ExistingMediaInfo[]> = {}
+  let searchTimeout: NodeJS.Timeout;
 
   const [sortType, setSortType] = useState<SortType>('asc');
   const [sortCol, setSortCol] = useState('');
   const [searchCol, setSearchCol] = useState('title');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortedAndFiltered, setSortedAndFiltered] = useState(data);
+
+  const isDesktop = useMediaQuery('(width >= 40rem)');
+
+  useEffect(() => {
+    setSortedAndFiltered(shallowSort(data));
+  }, [searchTerm, searchCol, sortType, sortCol]);
 
   function search(mediaInfo: ExistingMediaInfo) {
     if (!searchTerm) return true;
@@ -64,7 +69,12 @@ export default function MyTable(
   }
 
   function shallowSort(arr: ExistingMediaInfo[]): ExistingMediaInfo[] {
-    if (!sortCol) return arr;
+    const cacheStr = `${searchCol},${searchTerm}`;
+    if (!searchCache[cacheStr]) {
+      searchCache[cacheStr] = arr.filter(search);
+    }
+    const filtered = searchCache[cacheStr];
+    if (!sortCol) return filtered;
 
     const sortFunc: SortFuncs = {
       string: {
@@ -86,112 +96,20 @@ export default function MyTable(
     }
 
     const dataType = ['title', 'rated'].includes(sortCol) ? 'string' : 'number';
-    return [...arr].sort(sortFunc[dataType][sortType]);
-  }
-
-  // should probably just be moved to its own components
-  function desktopDisplay(data: ExistingMediaInfo[]) {
-    const sorted = shallowSort(data.filter(search));
-    return (
-      <div className='showOutline overflow-x-auto hidden sm:table w-full'>
-        <table className='w-full'>
-          <thead>
-            <tr>
-              {columns.map(col => (
-                <th key={`colHeader-${col}`}
-                  className={`text-muted-foreground p-2 ${col === '' ? '' : sortCol !== col ? '' : sortType === 'asc' ? 'bg-secondary' : 'bg-neutral-800'}`}
-                >
-                  <button onClick={() => {
-                    if (col !== sortCol) return setSortCol(col)
-                    if (sortType === 'desc') setSortCol('')
-                    setSortType(sortType === 'asc' ? 'desc' : 'asc')
-                  }}>{fromCamelCase(col)}</button>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.length === 0 ?
-              <tr><td colSpan={100} className='text-center py-8 text-muted-foreground'>No Data Found</td></tr> :
-              sorted.length === 0 ? <tr><td colSpan={100} className='text-center py-8 text-muted-foreground'>No Results Found</td></tr> :
-              sorted.map(mediaInfo => (
-                <TableRow
-                  mediaInfo={mediaInfo}
-                  keys={columns}
-                  details={details}
-                  key={mediaInfo.imdbId}
-                  linkPrefix={linkPrefix}
-                />))
-            }
-          </tbody>
-        </table>
-      </div>
-    )
-  }
-
-  // should probably just be moved to its own components
-  function mobileDisplay(data: ExistingMediaInfo[]) {
-    const sorted = shallowSort(data.filter(search));
-    return (
-      <Accordion type='multiple' className='block sm:hidden'>
-        {data.length === 0 ? <div className='text-center text-muted-foreground'>No Data Found</div> :
-          sorted.length === 0 ? <div className='text-center text-muted-foreground'>No Results Found</div> :
-          sorted.map(mediaInfo => {
-          return (
-            <AccordionItem value={mediaInfo.imdbId} key={mediaInfo.imdbId}>
-              <AccordionTrigger className='hover:no-underline px-2 flex gap-2'>
-                <div className='flex flex-col gap-2 w-full'>
-                  <Link className='w-fit m-auto' href={`${linkPrefix}/${mediaInfo.imdbId}`}>
-                    {mediaInfo.title}
-                  </Link>
-                  <div className='flex gap-4 justify-between'>
-                    {['rated', 'startYear', 'runtime'].map(key => (
-                      <div className='flex-1 text-center'
-                        key={`${mediaInfo.imdbId}-${key}`}
-                      >
-                        {!mediaInfo[key] ? 'N/A' :
-                          getKeyFormatter[key] ? getKeyFormatter[key](mediaInfo[key]) : mediaInfo[key]
-                        }
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className='flex flex-col gap-2'>
-                <div className='flex justify-between px-2'>
-                  {['imdbRating', 'tomatoRating', 'metaRating'].map(key => (
-                    <div className='flex flex-wrap gap-1 justify-center items-center'
-                      key={`${mediaInfo.imdbId}-${key}`}
-                    >
-                      <span>{fromCamelCase(key)}:</span>
-                      <span>{getKeyFormatter[key](mediaInfo[key])}</span>
-                    </div>
-                  ))}
-                </div>
-                <img src={mediaInfo.poster || undefined} />
-                {details.map(key => (
-                  <div className='grid grid-cols-4' key={`${mediaInfo.imdbId}-${key}`}>
-                    <span className='col-span-1 text-center m-auto text-muted-foreground'>{fromCamelCase(key)}:</span>
-                    <div className='col-span-3 text-center'>
-                      <GetLinks type={key} arr={mediaInfo[key]}/>
-                    </div>
-                  </div>
-                ))}
-              </AccordionContent>
-            </AccordionItem>
-          )
-        })}
-      </Accordion>
-    )
+    return [...filtered].sort(sortFunc[dataType][sortType]);
   }
 
   return (
-    <div className='flex flex-col gap-4'>
-      <div className={`flex justify-center gap-4 flex-wrap ${useScrollArea ? 'px-2 pt-2' : ''}`}>
+    <div className={`flex flex-col ${useScrollArea ? '' : 'gap-4'}`}>
+      <div className={`flex justify-center gap-4 flex-wrap ${useScrollArea ? 'p-2' : ''}`}>
         {children}
         <Input placeholder={`Search by ${searchCol}`} 
-          // add a little delay to this, no point in setting the search term until user is done typing
-          onChange={e => setSearchTerm(e.target.value)}
+          onChange={e => {
+            if (searchTimeout) clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+              setSearchTerm(e.target.value);
+            }, 250);
+          }}
           className='flex-1 min-w-48'
         />
         <DropdownMenu>
@@ -248,8 +166,15 @@ export default function MyTable(
       <OptionalScrollArea className='max-h-[90vh] m-2 pr-2'
         scrollEnabled={useScrollArea}
       >
-        {desktopDisplay(data)}
-        {mobileDisplay(data)}
+        {isDesktop ? <DesktopView sorted={sortedAndFiltered}
+          linkPrefix={linkPrefix}
+          totalLength={data.length}
+          sortCol={sortCol}
+        /> : <MobileView sorted={sortedAndFiltered}
+            linkPrefix={linkPrefix}
+            totalLength={data.length}
+          />
+        }
       </OptionalScrollArea>
     </div>
   )

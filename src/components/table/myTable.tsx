@@ -44,7 +44,7 @@ export default function MyTable(
   }
 ) {
   data = data.map((_, i, arr) => arr[arr.length - 1 - i]);
-  const searchCache: Record<string, ExistingMediaInfo[]> = {}
+  const searchCache: Record<string, ExistingMediaInfo[]> = {};
   let searchTimeout: NodeJS.Timeout;
 
   const [sortType, setSortType] = useState<SortType>('asc');
@@ -53,7 +53,7 @@ export default function MyTable(
   const [searchTerm, setSearchTerm] = useState('');
   const [sortedAndFiltered, setSortedAndFiltered] = useState(data);
 
-  const isDesktop = useMediaQuery('(width >= 40rem)');
+  const isDesktop = useMediaQuery('(width >= 840px)');
 
   useEffect(() => {
     setSortedAndFiltered(shallowSort(data));
@@ -143,6 +143,7 @@ export default function MyTable(
               <DropdownMenuRadioGroup value={sortCol} onValueChange={(col) => {
                 setSortCol(col !== sortCol ? col : '');
               }}>
+                <DropdownMenuRadioItem value={''}>None</DropdownMenuRadioItem>
                 {columns.filter(col => col).map(col => (
                   <DropdownMenuRadioItem value={col}>{fromCamelCase(col)}</DropdownMenuRadioItem>
                 ))}

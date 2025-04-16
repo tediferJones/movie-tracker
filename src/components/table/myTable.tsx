@@ -10,11 +10,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { ArrowDownAz,  ArrowUpZa, Lock } from 'lucide-react';
 import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
-import MobileView from '@/components/table/mobileView';
 import DesktopView from '@/components/table/desktopView';
+import MobileView from '@/components/table/mobileView';
+import SliderView from '@/components/table/sliderView';
 import { fromCamelCase } from '@/lib/formatters';
 import useMediaQuery from '@/hooks/useMediaQuery';
 import { ExistingMediaInfo } from '@/types';
@@ -26,9 +27,11 @@ type SortFuncs = {
   }
 }
 export type ColumnType = typeof columns[number]
+type ViewTypes = typeof views[number]
 
 export const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
 export const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
+const views = ['desktop', 'mobile', 'slider']
 
 export default function MyTable(
   {
@@ -53,7 +56,18 @@ export default function MyTable(
   const [searchTerm, setSearchTerm] = useState('');
   const [sortedAndFiltered, setSortedAndFiltered] = useState(data);
 
-  const isDesktop = useMediaQuery('(width >= 840px)');
+  // const isDesktop = useMediaQuery('(width >= 840px)');
+  // useEffect(() => {
+  //   setViewType(isDesktop ? 'desktop' : 'mobile')
+  // }, [isDesktop])
+
+  const [viewType, setViewType] = useState<ViewTypes>('desktop');
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    const isDesktop = ref.current.clientWidth > 650
+    setViewType(isDesktop ? 'desktop' : 'mobile')
+  }, [ref.current])
 
   useEffect(() => {
     setSortedAndFiltered(shallowSort(data));
@@ -99,8 +113,14 @@ export default function MyTable(
     return [...filtered].sort(sortFunc[dataType][sortType]);
   }
 
+  const tableData = {
+    sorted: sortedAndFiltered,
+    totalLength: data.length,
+    linkPrefix,
+  }
+
   return (
-    <div className={`flex flex-col ${useScrollArea ? '' : 'gap-4'}`}>
+    <div className={`flex flex-col ${useScrollArea ? '' : 'gap-4'}`} ref={ref}>
       <div className={`flex justify-center gap-4 flex-wrap ${useScrollArea ? 'p-2' : ''}`}>
         {children}
         <Input placeholder={`Search by ${searchCol}`} 
@@ -127,6 +147,22 @@ export default function MyTable(
                   {fromCamelCase(key)}
                 </DropdownMenuRadioItem>
               })}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant='outline'>View</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuLabel>Select View</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup value={viewType} onValueChange={setViewType}>
+              {views.map(view => (
+                <DropdownMenuRadioItem key={view} value={view}>
+                  {fromCamelCase(view)}
+                </DropdownMenuRadioItem>
+              ))}
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -167,6 +203,7 @@ export default function MyTable(
       <OptionalScrollArea className='max-h-[90vh] m-2 pr-2'
         scrollEnabled={useScrollArea}
       >
+        {/*
         {isDesktop ? <DesktopView sorted={sortedAndFiltered}
           linkPrefix={linkPrefix}
           totalLength={data.length}
@@ -176,6 +213,12 @@ export default function MyTable(
             totalLength={data.length}
           />
         }
+        */}
+        {{
+          desktop: <DesktopView {...tableData} sortCol={sortCol} />,
+          mobile: <MobileView {...tableData} />,
+          slider: <SliderView {...tableData} />,
+        }[viewType]}
       </OptionalScrollArea>
     </div>
   )

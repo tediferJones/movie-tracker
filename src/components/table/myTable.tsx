@@ -17,7 +17,6 @@ import DesktopView from '@/components/table/desktopView';
 import MobileView from '@/components/table/mobileView';
 import SliderView from '@/components/table/sliderView';
 import { fromCamelCase } from '@/lib/formatters';
-import useMediaQuery from '@/hooks/useMediaQuery';
 import { ExistingMediaInfo } from '@/types';
 
 type SortType = 'asc' | 'desc';
@@ -56,18 +55,13 @@ export default function MyTable(
   const [searchTerm, setSearchTerm] = useState('');
   const [sortedAndFiltered, setSortedAndFiltered] = useState(data);
 
-  // const isDesktop = useMediaQuery('(width >= 840px)');
-  // useEffect(() => {
-  //   setViewType(isDesktop ? 'desktop' : 'mobile')
-  // }, [isDesktop])
-
   const [viewType, setViewType] = useState<ViewTypes>('desktop');
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current) return;
-    const isDesktop = ref.current.clientWidth > 650
-    setViewType(isDesktop ? 'desktop' : 'mobile')
-  }, [ref.current])
+    const isDesktop = ref.current.clientWidth > 650;
+    setViewType(isDesktop ? 'desktop' : 'mobile');
+  }, [ref.current]);
 
   useEffect(() => {
     setSortedAndFiltered(shallowSort(data));
@@ -200,20 +194,10 @@ export default function MyTable(
           </div>
         </div>
       </div>
-      <OptionalScrollArea className='max-h-[90vh] m-2 pr-2'
+      <OptionalScrollArea className={`${viewType === 'slider' ? '' : 'max-h-[90vh]'} m-2 pr-2`}
+        orientation={viewType === 'slider' ? 'horizontal' : 'vertical'}
         scrollEnabled={useScrollArea}
       >
-        {/*
-        {isDesktop ? <DesktopView sorted={sortedAndFiltered}
-          linkPrefix={linkPrefix}
-          totalLength={data.length}
-          sortCol={sortCol}
-        /> : <MobileView sorted={sortedAndFiltered}
-            linkPrefix={linkPrefix}
-            totalLength={data.length}
-          />
-        }
-        */}
         {{
           desktop: <DesktopView {...tableData} sortCol={sortCol} />,
           mobile: <MobileView {...tableData} />,

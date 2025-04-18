@@ -30,7 +30,7 @@ type ViewTypes = typeof views[number]
 
 export const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
 export const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
-const views = ['desktop', 'mobile', 'slider']
+const views = ['desktop', 'mobile', 'slider'];
 
 export default function MyTable(
   {
@@ -58,10 +58,22 @@ export default function MyTable(
   const [viewType, setViewType] = useState<ViewTypes>('desktop');
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!ref.current) return;
-    const isDesktop = ref.current.clientWidth > 650;
-    setViewType(isDesktop ? 'desktop' : 'mobile');
+    const screenType = getScreenType();
+    if (!screenType) return;
+    const key = `${screenType}View`
+    const savedView = localStorage.getItem(key);
+    if (!savedView) {
+      localStorage.setItem(key, screenType);
+      setViewType(screenType);
+    } else {
+      setViewType(savedView);
+    }
   }, [ref.current]);
+
+  function getScreenType() {
+    if (!ref.current) return;
+    return ref.current.clientWidth > 650 ? 'desktop' : 'mobile';
+  }
 
   useEffect(() => {
     setSortedAndFiltered(shallowSort(data));
@@ -146,12 +158,18 @@ export default function MyTable(
         </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant='outline'>View</Button>
+            <Button variant='outline' className='sm:w-auto w-full'>View</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuLabel>Select View</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup value={viewType} onValueChange={setViewType}>
+            <DropdownMenuRadioGroup value={viewType} onValueChange={(val) => {
+              const key = `${getScreenType()}View`
+              console.log('setting', key, val)
+              localStorage.setItem(key, val)
+              console.log('saved', key, localStorage.getItem(key))
+              setViewType(val)
+            }}>
               {views.map(view => (
                 <DropdownMenuRadioItem key={view} value={view}>
                   {fromCamelCase(view)}

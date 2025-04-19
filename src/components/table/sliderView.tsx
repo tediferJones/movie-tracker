@@ -1,7 +1,7 @@
 import { getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import MediaInfo from '@/components/pages/mediaPage/mediaInfo';
 
@@ -18,18 +18,45 @@ export default function SliderView(
 ) {
   const [viewIndex, setViewIndex] = useState(0);
   const [showDialog, setShowDialog] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return console.log('no ref.current')
+    const observer = new IntersectionObserver((entries) => {
+      console.log('what is entries', entries)
+      const visibileEntry = entries.reduce((max, entry) => {
+        return entry.intersectionRatio > max.intersectionRatio ? entry : max;
+      }, entries[0])
+
+      if (visibileEntry) {
+        console.log('visible entry', visibileEntry)
+        setViewIndex(Number((visibileEntry.target as HTMLElement).dataset.index))
+      }
+      
+    }, {
+        root: ref.current,
+        threshold: 1,
+      })
+
+    const items = ref.current.querySelectorAll('.snap-item');
+    items.forEach((item) => observer.observe(item));
+
+    return () => {
+      items.forEach((item) => observer.unobserve(item));
+    };
+  }, [])
+
   return (
-    <div className='flex gap-4 p-4 snap-x snap-mandatory'/* onClick={() => setViewIndex(viewIndex + 1)}*/>
-      {/*
-      {sorted.map((_, i) => {
-        return <div className="w-64 h-64 bg-red-400 shrink-0 rounded-lg snap-center">{i}</div>
-      })}
-      */}
+    <div className='flex gap-4 p-4 snap-x snap-mandatory w-1/2 overflow-x-scroll border-red-500 border-2 mx-auto'
+      ref={ref}
+    >
       {sorted.map((mediaInfo, i) => {
-        return <div className={`flex-shrink-0 flex flex-col gap-4 snap-center ${i === viewIndex ? '' : 'scale-50 opacity-50'}`}
+        return <div className={`snap-item flex-shrink-0 flex flex-col gap-4 snap-center transition-transform duration-500 ${i === 0 ? 'ml-24' : ''} ${i === viewIndex ? '' : 'scale-50 opacity-50'}`}
           onClick={() => {
             if (i === viewIndex) setShowDialog(true)
           }}
+          data-index={i}
+          key={i}
         >
           <img className='aspect-auto my-auto' src={mediaInfo.poster || undefined} />
           <div className='bg-secondary rounded-lg flex flex-col items-center justify-center p-4'>

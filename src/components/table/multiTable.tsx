@@ -19,6 +19,7 @@ export default function MultiTable({ username }: { username: string }) {
   const [listData, setListData] = useState<ExistingMediaInfo[]>();
   const [currentList, setCurrentList] = useState<string>();
   const [listnames, setListnames] = useState<string[]>();
+  const [fakeKey, setFakeKey] = useState(0);
 
   useEffect(() => {
     if (!listnames) {
@@ -40,7 +41,10 @@ export default function MultiTable({ username }: { username: string }) {
       easyFetchV3<ExistingMediaInfo[]>({
         route: `/api/users/${username}/lists/${currentList}`,
         method: 'GET',
-      }).then(data => setListData(data || []));
+      }).then(data => {
+          setListData(data || [])
+          setFakeKey(fakeKey + 1)
+        });
     }
   }, [currentList]);
 
@@ -49,6 +53,7 @@ export default function MultiTable({ username }: { username: string }) {
       <MyTable data={listData}
         linkPrefix={`/users/${username}/${currentList}`}
         useScrollArea={true}
+        key={fakeKey}
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

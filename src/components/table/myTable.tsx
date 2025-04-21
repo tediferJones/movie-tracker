@@ -13,8 +13,8 @@ import { Input } from '@/components/ui/input';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { ArrowDownAz,  ArrowUpZa, Lock } from 'lucide-react';
 import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
-import DesktopView from '@/components/table/desktopView';
-import MobileView from '@/components/table/mobileView';
+import TableView from '@/components/table/tableView';
+import ListView from '@/components/table/listView';
 import SliderView from '@/components/table/sliderView';
 import { fromCamelCase } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
@@ -27,10 +27,12 @@ type SortFuncs = {
 }
 export type ColumnType = typeof columns[number]
 type ViewTypes = typeof views[number]
+type ScreenTypes = 'desktop' | 'mobile'
 
 export const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
 export const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
-const views = ['desktop', 'mobile', 'slider'];
+// const views = ['desktop', 'mobile', 'slider'];
+const views = ['table', 'list', 'slider'] as const;
 
 export default function MyTable(
   {
@@ -55,16 +57,21 @@ export default function MyTable(
   const [searchTerm, setSearchTerm] = useState('');
   const [sortedAndFiltered, setSortedAndFiltered] = useState(data);
 
-  const [viewType, setViewType] = useState<ViewTypes>('desktop');
+  const [viewType, setViewType] = useState<ViewTypes>('table');
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const defaultView: Record<ScreenTypes, ViewTypes> = {
+      desktop: 'table',
+      mobile: 'list',
+    }
+
     const screenType = getScreenType();
     if (!screenType) return;
-    const key = `${screenType}View`
-    const savedView = localStorage.getItem(key);
+    const key = `${screenType}View`;
+    const savedView = localStorage.getItem(key) as ViewTypes | null;
     if (!savedView) {
-      localStorage.setItem(key, screenType);
-      setViewType(screenType);
+      localStorage.setItem(key, defaultView[screenType]);
+      setViewType(defaultView[screenType]);
     } else {
       setViewType(savedView);
     }
@@ -164,11 +171,11 @@ export default function MyTable(
             <DropdownMenuLabel>Select View</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup value={viewType} onValueChange={(val) => {
-              const key = `${getScreenType()}View`
-              console.log('setting', key, val)
-              localStorage.setItem(key, val)
-              console.log('saved', key, localStorage.getItem(key))
-              setViewType(val)
+              if ((views as readonly string[]).includes(val)) {
+                const key = `${getScreenType()}View`
+                localStorage.setItem(key, val)
+                setViewType(val as ViewTypes)
+              }
             }}>
               {views.map(view => (
                 <DropdownMenuRadioItem key={view} value={view}>
@@ -217,8 +224,8 @@ export default function MyTable(
         scrollEnabled={useScrollArea}
       >
         {{
-          desktop: <DesktopView {...tableData} sortCol={sortCol} />,
-          mobile: <MobileView {...tableData} />,
+          table: <TableView {...tableData} sortCol={sortCol} />,
+          list: <ListView {...tableData} />,
           slider: <SliderView {...tableData} />,
         }[viewType]}
       </OptionalScrollArea>

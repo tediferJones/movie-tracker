@@ -18,64 +18,7 @@ export default function SliderView(
     totalLength: number,
   }
 ) {
-  // const [viewIndex, setViewIndex] = useState(0);
   const [showDialog, setShowDialog] = useState(false);
-  // const ref = useRef<HTMLDivElement>(null);
-
-  // useEffect(() => {
-  //   if (!ref.current) return console.log('no ref.current')
-  //   const observer = new IntersectionObserver((entries) => {
-  //     // console.log('what is entries', entries)
-  //     // working with w-1/2 on container
-  //     // console.log('observing', entries)
-  //     // const visibileEntry = entries.reduce((max, entry) => {
-  //     //   return entry.intersectionRatio > max.intersectionRatio ? entry : max;
-  //     // }, entries[0])
-
-  //     // if (visibileEntry) {
-  //     //   console.log('visible entry', visibileEntry)
-  //     //   setViewIndex(Number((visibileEntry.target as HTMLElement).dataset.index))
-  //     // }
-
-  //     // console.log(entries.filter(entry => entry.isIntersecting))
-
-  //     // console.log('all entries', entries.length)
-  //     // console.log('isIntersecting', entries.filter(entries => entries.isIntersecting).length)
-  //     // entries.some(entry => {
-  //     //   if (entry.isIntersecting) {
-  //     //     setViewIndex(Number((entry.target as HTMLElement).dataset.index))
-  //     //   }
-  //     // })
-
-  //     // const visible = entries.filter(entry => entry.isIntersecting)
-  //     // console.log(visible)
-  //     // if (visible.length) {
-  //     //   const i = (visible[Math.floor(visible.length / 2)].target as HTMLDivElement).dataset.index
-  //     //   setViewIndex(Number(i))
-  //     // }
-
-  //     // const fullyVisible = entries.reduce((arr, entry) => {
-  //     //   if (entry.intersectionRatio >= 0.75) {
-  //     //     return arr.concat(entry)
-  //     //   }
-  //     //   return arr
-  //     // }, [] as IntersectionObserverEntry[])
-  //     // console.log({ fullyVisible })
-
-  //     // console.log('length', entries.length)
-  //     // console.log(entries)
-  //   }, {
-  //       root: ref.current,
-  //       threshold: 1,
-  //     })
-
-  //   const items = ref.current.querySelectorAll('.snap-item');
-  //   items.forEach((item) => observer.observe(item));
-
-  //   return () => {
-  //     items.forEach((item) => observer.unobserve(item));
-  //   };
-  // }, [])
 
   const { containerRef, centeredElement } = useCenteredItem<HTMLDivElement>();
   console.log(centeredElement?.dataset.index);
@@ -83,9 +26,6 @@ export default function SliderView(
   const router = useRouter();
 
   const scrollToCenter = (item: HTMLElement, container: HTMLElement) => {
-    // const itemRect = item.getBoundingClientRect();
-    // const containerRect = container.getBoundingClientRect();
-
     const itemCenter = item.offsetLeft + item.offsetWidth / 2;
     const containerCenter = container.clientWidth / 2;
 

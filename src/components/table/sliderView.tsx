@@ -1,12 +1,13 @@
+import { ScrollBar } from '@/components/ui/scroll-area';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import MediaInfo from '@/components/pages/mediaPage/mediaInfo';
 import useCenteredItem from '@/hooks/useCenteredItem';
 import { getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
-import { ScrollBar } from '../ui/scroll-area';
 
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
 import { forwardRef } from 'react';
@@ -25,6 +26,46 @@ export const CustomScrollArea = forwardRef<HTMLDivElement, React.ComponentPropsW
 );
 CustomScrollArea.displayName = 'CustomScrollArea';
 
+function ImgWithFallback(
+  {
+    src,
+    alt,
+    ...props
+  }: {
+    src?: string,
+    alt: string,
+  }
+) {
+  const [hasError, setHasError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && img.complete && img.naturalHeight !== 0) {
+      setLoaded(true);
+    }
+  }, [src])
+
+  if (!src || hasError) {
+    return <div className='bg-secondary flex flex-col gap-4 justify-center items-center w-full h-1/2'>
+      <span className='text-5xl font-extrabold'>404</span>
+      <span className='text-wrap text-center'>Poster Not Found</span>
+    </div>
+  }
+
+  return <img src={src}
+    alt={alt}
+    onError={() => setHasError(true)}
+    {...props}
+
+    loading='lazy'
+
+    ref={imgRef}
+    onLoad={() => setLoaded(true)}
+    decoding='async'
+  />
+}
 
 export default function SliderView(
   {
@@ -40,7 +81,7 @@ export default function SliderView(
   const [showDialog, setShowDialog] = useState(false);
 
   const { containerRef, centeredElement } = useCenteredItem<HTMLDivElement>();
-  console.log({ centeredElement })
+  // console.log({ centeredElement })
   const viewIndex = Number(centeredElement?.dataset.index);
   const router = useRouter();
 
@@ -91,12 +132,16 @@ export default function SliderView(
           data-index={i}
           key={i}
         >
+          {/*
           <img className='aspect-auto' src={mediaInfo.poster || undefined} 
             onError={e => {
               console.log('failed to load image for', mediaInfo.title)
               // e.currentTarget.src = '/someImage'
+              // e.currentTarget.outerHTML = <div></div>
             }}
           />
+          */}
+          <ImgWithFallback src={mediaInfo.poster || undefined} alt={`Poster for ${mediaInfo.title}`} />
           <div className='bg-secondary rounded-lg flex flex-col gap-4 items-center justify-center p-4 w-full'>
             <Link href={`${linkPrefix}/${mediaInfo.imdbId}`} className='text-center text-wrap hover:underline z-10'>{mediaInfo.title}</Link>
             <div className='flex flex-wrap whitespace-nowrap justify-between gap-4 w-full'>

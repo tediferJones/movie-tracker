@@ -1,4 +1,4 @@
-import { ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -106,9 +106,16 @@ export default function SliderView(
         console.log('navigate to media page')
         router.push(`/media/${sorted[viewIndex].imdbId}`)
       }} key={viewIndex}>
-        <div className='max-h-[75vh] overflow-auto'>
-          {viewIndex > -1 ? <MediaInfo imdbId={sorted[viewIndex].imdbId}/> : undefined}
-        </div>
+        <ScrollArea type='auto' className='flex flex-col gap-4 text-wrap'
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <div className='mr-6'>
+            {viewIndex > -1 ? <MediaInfo imdbId={sorted[viewIndex].imdbId}/> : undefined}
+          </div>
+        </ScrollArea>
       </ConfirmModal>
       <ScrollBar orientation='horizontal' />
     </ScrollAreaHorizontalSnap>

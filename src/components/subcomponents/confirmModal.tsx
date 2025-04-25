@@ -1,3 +1,5 @@
+import { X } from "lucide-react"
+
 export default function confirmModal(
   {
     visible,
@@ -16,13 +18,16 @@ export default function confirmModal(
     <div className={`${toggleClass} transition-all duration-300 fixed top-0 left-0 w-screen h-screen flex justify-center items-center`}
       onClick={() => setVisible(false)}
     >
-      <div className='showOutline m-4 p-4 bg-background flex flex-col gap-4 h-min'>
+      <div className='relative max-w-[90vw] max-h-[90vh] overflow-y-auto showOutline m-4 p-4 bg-background flex flex-col gap-4 h-min'>
+        <div>
+          <X className='ml-auto' onClick={() => setVisible(false)} />
+        </div>
         {children}
         <div className='flex gap-4 justify-end'>
           <button className='py-2 px-4 bg-primary rounded-lg'
             type='button'
             onClick={() => setVisible(false)}
-          >Cancel</button>
+          >Back</button>
           <button className='py-2 px-4 bg-red-600 rounded-lg'
             type='button'
             onClick={() => {

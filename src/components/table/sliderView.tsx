@@ -59,7 +59,7 @@ export default function SliderView(
     >
       <div className='w-screen shrink-0'></div>
       {sorted.map((mediaInfo, i) => {
-        return <div className={`sm:max-w-max max-w-36 max-h-[90vh] snap-item flex-shrink-0 flex flex-col items-center justify-center gap-4 snap-center transition-transform duration-500 ${i === viewIndex ? '' : 'scale-50 opacity-50'}`}
+        return <div className={`sm:max-w-max max-w-36 max-h-[90vh] snap-item flex-shrink-0 flex flex-col items-center justify-center gap-4 snap-center cursor-pointer transition-transform duration-500 ${i === viewIndex ? '' : 'scale-50 opacity-50'}`}
           onClick={(e) => {
             if (i === viewIndex) {
               setShowDialog(true);
@@ -67,6 +67,7 @@ export default function SliderView(
               if (!containerRef.current) return;
               scrollToCenter(e.currentTarget, containerRef.current);
 
+              // autoScroll to item
               // const clickedIndex = Number(e.currentTarget.dataset.index);
               // console.log(viewIndex, clickedIndex);
               // autoScroll(viewIndex, clickedIndex, 500);
@@ -75,8 +76,11 @@ export default function SliderView(
           data-index={i}
           key={i}
         >
-          <ImageWithFallback src={mediaInfo.poster || undefined} alt={`Poster for ${mediaInfo.title}`} />
           {/*
+          // pick a 'sortBy' column, toggle sort direction a couple times and then go back to default order,
+          // some images won't reload, and that needs fixed
+          <ImageWithFallback src={mediaInfo.poster || undefined} alt={`Poster for ${mediaInfo.title}`} />
+          */}
           <img className='aspect-auto' src={mediaInfo.poster || undefined} 
             onError={e => {
               console.log('failed to load image for', mediaInfo.title)
@@ -84,9 +88,11 @@ export default function SliderView(
               // e.currentTarget.outerHTML = <div></div>
             }}
           />
-          */}
           <div className='bg-secondary rounded-lg flex flex-col gap-4 items-center justify-center p-4 w-full'>
-            <Link href={`${linkPrefix}/${mediaInfo.imdbId}`} className='text-center text-wrap hover:underline z-10'>{mediaInfo.title}</Link>
+            <Link className='text-center text-wrap hover:underline z-10'
+              href={`${linkPrefix}/${mediaInfo.imdbId}`}
+              onClick={(e) => e.stopPropagation()}
+            >{mediaInfo.title}</Link>
             <div className='flex flex-wrap whitespace-nowrap justify-between gap-4 w-full'>
               {['rated', 'startYear', 'runtime'].map(key => (
                 <div className='flex-1 text-center'
@@ -102,18 +108,22 @@ export default function SliderView(
         </div>
       })}
       <div className='w-screen shrink-0'></div>
-      <ConfirmModal visible={showDialog} setVisible={setShowDialog} action={() => {
-        console.log('navigate to media page')
-        router.push(`/media/${sorted[viewIndex].imdbId}`)
-      }} key={viewIndex}>
+      <ConfirmModal visible={showDialog} setVisible={setShowDialog}
+        action={() => {
+          console.log('navigate to media page')
+          router.push(`/media/${sorted[viewIndex].imdbId}`)
+        }}
+        key={viewIndex}
+        acceptText='Go To Media Page'
+      >
         <ScrollArea type='auto' className='flex flex-col gap-4 text-wrap'
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
           }}
         >
-          <div className='mr-6'>
-            {viewIndex > -1 ? <MediaInfo imdbId={sorted[viewIndex].imdbId}/> : undefined}
+          <div className='mr-6 flex flex-col gap-4'>
+            {sorted[viewIndex]?.imdbId ? <MediaInfo imdbId={sorted[viewIndex].imdbId}/> : undefined}
           </div>
         </ScrollArea>
       </ConfirmModal>

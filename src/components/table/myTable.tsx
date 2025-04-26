@@ -165,7 +165,7 @@ export default function MyTable(
         </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant='outline' className='sm:w-auto w-full'>View</Button>
+            <Button variant='outline' className='sm:w-auto w-full'>{`View: ${fromCamelCase(viewType)}`}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuLabel>Select View</DropdownMenuLabel>

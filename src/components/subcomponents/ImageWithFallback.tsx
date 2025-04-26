@@ -11,9 +11,10 @@ export default function ImageWithFallback({ src, alt, ...props }: { src?: string
     if (img && img.complete && img.naturalHeight !== 0) {
       setLoaded(true);
     }
-  }, [src])
+  }, [src, imgRef.current]);
 
   if (!src || hasError) {
+    console.log(`failed to load`, alt)
     return <div className='bg-secondary flex flex-col gap-4 justify-center items-center w-full h-1/2'>
       <span className='text-5xl font-extrabold'>404</span>
       <span className='text-wrap text-center'>Poster Not Found</span>

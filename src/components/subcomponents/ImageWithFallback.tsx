@@ -1,17 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
-// import { useState } from 'react';
+// import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 
 export default function ImageWithFallback({ src, alt, ...props }: { src?: string, alt: string }) {
   const [hasError, setHasError] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  // const [loaded, setLoaded] = useState(false);
+  // const imgRef = useRef<HTMLImageElement>(null);
 
-  useEffect(() => {
-    const img = imgRef.current;
-    if (img && img.complete && img.naturalHeight !== 0) {
-      setLoaded(true);
-    }
-  }, [src, imgRef.current]);
+  // useEffect(() => {
+  //   const img = imgRef.current;
+  //   if (img && img.complete && img.naturalHeight !== 0) {
+  //     setLoaded(true);
+  //   }
+  // }, [src, imgRef.current]);
 
   if (!src || hasError) {
     console.log(`failed to load`, alt)
@@ -23,14 +24,21 @@ export default function ImageWithFallback({ src, alt, ...props }: { src?: string
 
   return <img src={src}
     alt={alt}
-    onError={() => setHasError(true)}
+    // onError={() => setHasError(true)}
+    onError={() => {
+      if (retryCount < 5) {
+        setRetryCount(retryCount + 1)
+      } else {
+        setHasError(true)
+      }
+    }}
     {...props}
-    key={src}
+    key={`${src}-${retryCount}`}
 
-    loading='lazy'
+    // loading='lazy'
 
-    ref={imgRef}
-    onLoad={() => setLoaded(true)}
-    decoding='async'
+    // ref={imgRef}
+    // onLoad={() => setLoaded(true)}
+    // decoding='async'
   />
 }

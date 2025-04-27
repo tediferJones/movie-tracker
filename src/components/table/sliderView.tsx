@@ -2,7 +2,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import MediaInfo from '@/components/pages/mediaPage/mediaInfo';
 import ScrollAreaHorizontalSnap from '@/components/subcomponents/ScrollAreaHorizontalSnap';
@@ -23,11 +23,25 @@ export default function SliderView(
   }
 ) {
   const [showDialog, setShowDialog] = useState(false);
+  const [viewIndex, setViewIndex] = useState(0);
 
   const { containerRef, centeredElement } = useCenteredItem<HTMLDivElement>();
   // console.log({ centeredElement })
-  const viewIndex = Number(centeredElement?.dataset.index);
+  // let viewIndex = Number(centeredElement?.dataset.index);
   const router = useRouter();
+
+  useEffect(() => {
+    console.log('centered element has changed')
+    setViewIndex(Number(centeredElement?.dataset.index));
+  }, [centeredElement?.dataset.index]);
+
+  useEffect(() => {
+    console.log('sorted has changed')
+    setViewIndex(0);
+    const firstItem = document.querySelector<HTMLDivElement>(`[data-index='${0}']`);
+    if (!firstItem || !containerRef.current) return;
+    scrollToCenter(firstItem, containerRef.current);
+  }, [sorted]);
 
   function scrollToCenter(item: HTMLElement, container: HTMLElement) {
     const itemCenter = item.offsetLeft + item.offsetWidth / 2;
@@ -79,15 +93,18 @@ export default function SliderView(
           {/*
           // pick a 'sortBy' column, toggle sort direction a couple times and then go back to default order,
           // some images won't reload, and that needs fixed
-          <ImageWithFallback src={mediaInfo.poster || undefined} alt={`Poster for ${mediaInfo.title}`} />
           */}
+          <ImageWithFallback src={mediaInfo.poster || undefined} alt={`Poster for ${mediaInfo.title}`} />
+          {/*
           <img className='aspect-auto' src={mediaInfo.poster || undefined} 
+            key={mediaInfo.poster}
             onError={e => {
-              console.log('failed to load image for', mediaInfo.title)
+              // console.log('failed to load image for', mediaInfo.title)
               // e.currentTarget.src = '/someImage'
               // e.currentTarget.outerHTML = <div></div>
             }}
           />
+          */}
           <div className='bg-secondary rounded-lg flex flex-col gap-4 items-center justify-center p-4 w-full'>
             <Link className='text-center text-wrap hover:underline z-10'
               href={`${linkPrefix}/${mediaInfo.imdbId}`}

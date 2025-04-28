@@ -31,14 +31,14 @@ export default function SliderView(
   const router = useRouter();
 
   useEffect(() => {
-    console.log('centered element has changed')
+    // console.log('centered element has changed')
     setViewIndex(Number(centeredElement?.dataset.index));
   }, [centeredElement?.dataset.index]);
 
   useEffect(() => {
-    console.log('sorted has changed')
+    // console.log('sorted has changed')
     setViewIndex(0);
-    const firstItem = document.querySelector<HTMLDivElement>(`[data-index='${0}']`);
+    const firstItem = document.querySelector<HTMLDivElement>(`[data-index='0']`);
     if (!firstItem || !containerRef.current) return;
     scrollToCenter(firstItem, containerRef.current);
   }, [sorted]);

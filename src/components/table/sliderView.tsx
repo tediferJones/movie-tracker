@@ -56,15 +56,15 @@ export default function SliderView(
   };
 
   function autoScroll(from: number, to: number, delay: number) {
-    if (from === to) return
+    if (from === to) return;
     const newIndex = from > to ? from - 1 : from + 1;
 
-    const current = document.querySelector<HTMLDivElement>(`[data-index='${newIndex}']`)
-    if (!current) throw Error('cant find it')
-    if (!containerRef.current) throw Error('no container')
-    scrollToCenter(current, containerRef.current)
+    const current = document.querySelector<HTMLDivElement>(`[data-index='${newIndex}']`);
+    if (!current) throw Error('cant find it');
+    if (!containerRef.current) throw Error('no container');
+    scrollToCenter(current, containerRef.current);
 
-    setTimeout(() => autoScroll(newIndex, to, delay), delay)
+    setTimeout(() => autoScroll(newIndex, to, delay), delay);
   }
 
   return (
@@ -76,6 +76,7 @@ export default function SliderView(
         return <div className={`sm:max-w-max max-w-36 max-h-[90vh] snap-item flex-shrink-0 flex flex-col items-center justify-center gap-4 snap-center cursor-pointer transition-transform duration-500 ${i === viewIndex ? '' : 'scale-50 opacity-50'}`}
           onClick={(e) => {
             if (i === viewIndex) {
+              // console.log({ i, viewIndex }, sorted[i])
               setShowDialog(true);
             } else {
               if (!containerRef.current) return;
@@ -127,10 +128,16 @@ export default function SliderView(
       <div className='w-screen shrink-0'></div>
       <ConfirmModal visible={showDialog} setVisible={setShowDialog}
         action={() => {
-          console.log('navigate to media page')
-          router.push(`/media/${sorted[viewIndex].imdbId}`)
+          console.log('navigate to media page');
+          router.push(`/media/${sorted[viewIndex].imdbId}`);
         }}
-        key={viewIndex}
+        // key={viewIndex}
+        // works but I would rethink this, 
+        // technically if we search/sort and the first item is still the first item, this component will not re-render
+        // which kinda doesnt matter, because it will display the right information, and will update properly if user scrolls to a different element
+        // but still seems kinda hacky
+        // alternatively could pass some kind of key that is a combo of sort/search parameters from myTable component to this component
+        key={`${viewIndex},${sorted[viewIndex].imdbId}`}
         acceptText='Go To Media Page'
       >
         <ScrollArea type='auto' className='flex flex-col gap-4 text-wrap'

@@ -25,10 +25,10 @@ export default function ImageWithFallback({ src, alt, ...props }: ImageWithFallb
 
     const imgTag = ref.current;
     if (imgTag) {
-      console.log('adding observer for', alt)
+      // console.log('adding observer for', alt)
       observer.observe(imgTag);
       return () => {
-        console.log('removing observer for', alt)
+        // console.log('removing observer for', alt)
         observer.unobserve(imgTag);
       }
     }
@@ -57,15 +57,15 @@ export default function ImageWithFallback({ src, alt, ...props }: ImageWithFallb
 
             onLoad={() => {
               console.log('onLoad event')
-              setIsLoaded(true)
+              setIsLoaded(true);
             }}
             // onError={() => setHasError(true)}
             onError={() => {
               if (retryCount < maxRetryCount) {
                 console.log('retry', retryCount, 'for', alt)
-                setRetryCount(retryCount + 1)
+                setRetryCount(retryCount + 1);
               } else {
-                setHasError(true)
+                setHasError(true);
               }
             }}
             loading='lazy'

@@ -56,6 +56,10 @@ export default function MyTable(
   const [searchCol, setSearchCol] = useState('title');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortedAndFiltered, setSortedAndFiltered] = useState(data);
+  const [loadingText, setLoadingText] = useState('');
+  // const [oldState, setOldState] = useState({
+  //   sortType, sortCol, searchTerm, searchCol
+  // })
 
   const [viewType, setViewType] = useState<ViewTypes>('table');
   const ref = useRef<HTMLDivElement>(null);
@@ -83,7 +87,13 @@ export default function MyTable(
   }
 
   useEffect(() => {
+    // This should display some more meaning full text, like "searching for 'someString'" or "sorting ratings in ascending order"
+    setLoadingText('Loading...');
     setSortedAndFiltered(shallowSort(data));
+    setLoadingText('');
+    // setTimeout(() => {
+    //   setLoadingText('');
+    // }, 5000)
   }, [searchTerm, searchCol, sortType, sortCol]);
 
   function search(mediaInfo: ExistingMediaInfo) {
@@ -223,7 +233,7 @@ export default function MyTable(
         orientation={viewType === 'slider' ? 'horizontal' : 'vertical'}
         scrollEnabled={useScrollArea}
       >
-        {{
+        {loadingText ? <div className='text-center h-full'>{loadingText}</div> : {
           table: <TableView {...tableData} sortCol={sortCol} />,
           list: <ListView {...tableData} />,
           slider: <SliderView {...tableData} />,

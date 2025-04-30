@@ -72,64 +72,73 @@ export default function SliderView(
       ref={containerRef}
     >
       <div className='w-screen shrink-0'></div>
-      {sorted.map((mediaInfo, i) => {
-        return <div className={`sm:max-w-max max-w-36 max-h-[90vh] snap-item flex-shrink-0 flex flex-col items-center justify-center gap-4 snap-center cursor-pointer transition-transform duration-500 ${i === viewIndex ? '' : 'scale-50 opacity-50'}`}
-          onClick={(e) => {
-            if (i === viewIndex) {
-              // console.log({ i, viewIndex }, sorted[i])
-              setShowDialog(true);
-            } else {
-              if (!containerRef.current) return;
-              scrollToCenter(e.currentTarget, containerRef.current);
+      {totalLength === 0 ? <div className='text-center text-muted-foreground snap-item snap-center'>No Data Found</div> :
+        sorted.length === 0 ? <div className='text-center text-muted-foreground snap-item snap-center'>No Results Found</div> :
+          sorted.map((mediaInfo, i) => {
+            return <div className={`sm:max-w-max max-w-36 max-h-[90vh] snap-item flex-shrink-0 flex flex-col items-center justify-center gap-4 snap-center cursor-pointer transition-transform duration-500 ${i === viewIndex ? '' : 'scale-50 opacity-50'}`}
+              onClick={(e) => {
+                if (i === viewIndex) {
+                  // console.log({ i, viewIndex }, sorted[i])
+                  setShowDialog(true);
+                } else {
+                  if (!containerRef.current) return;
+                  scrollToCenter(e.currentTarget, containerRef.current);
 
-              // autoScroll to item
-              // const clickedIndex = Number(e.currentTarget.dataset.index);
-              // console.log(viewIndex, clickedIndex);
-              // autoScroll(viewIndex, clickedIndex, 500);
-            }
-          }}
-          data-index={i}
-          key={i}
-        >
-          {/*
-          // pick a 'sortBy' column, toggle sort direction a couple times and then go back to default order,
-          // some images won't reload, and that needs fixed
-          */}
-          <ImageWithFallback src={mediaInfo.poster || undefined} alt={`Poster for ${mediaInfo.title}`} />
-          {/*
-          <img className='aspect-auto' src={mediaInfo.poster || undefined} 
-            key={mediaInfo.poster}
-            onError={e => {
-              // console.log('failed to load image for', mediaInfo.title)
-              // e.currentTarget.src = '/someImage'
-              // e.currentTarget.outerHTML = <div></div>
-            }}
-          />
-          */}
-          <div className='bg-secondary rounded-lg flex flex-col gap-4 items-center justify-center p-4 w-full'>
-            <Link className='text-center text-wrap hover:underline z-10'
-              href={`${linkPrefix}/${mediaInfo.imdbId}`}
-              onClick={(e) => e.stopPropagation()}
-            >{mediaInfo.title}</Link>
-            <div className='flex flex-wrap whitespace-nowrap justify-between gap-4 w-full'>
-              {['rated', 'startYear', 'runtime'].map(key => (
-                <div className='flex-1 text-center'
-                  key={`${mediaInfo.imdbId}-${key}`}
-                >
-                  {!mediaInfo[key] ? 'N/A' :
-                    getKeyFormatter[key] ? getKeyFormatter[key](mediaInfo[key]) : mediaInfo[key]
-                  }
+                  // autoScroll to item
+                  // const clickedIndex = Number(e.currentTarget.dataset.index);
+                  // console.log(viewIndex, clickedIndex);
+                  // autoScroll(viewIndex, clickedIndex, 500);
+                }
+              }}
+              data-index={i}
+              key={i}
+            >
+              {/*
+              // pick a 'sortBy' column, toggle sort direction a couple times and then go back to default order,
+              // some images won't reload, and that needs fixed
+              */}
+              <ImageWithFallback src={mediaInfo.poster || undefined} alt={`Poster for ${mediaInfo.title}`} />
+              {/*
+              <img className='aspect-auto' src={mediaInfo.poster || undefined} 
+                key={mediaInfo.poster}
+                onError={e => {
+                  // console.log('failed to load image for', mediaInfo.title)
+                  // e.currentTarget.src = '/someImage'
+                  // e.currentTarget.outerHTML = <div></div>
+                }}
+              />
+              */}
+              <div className='bg-secondary rounded-lg flex flex-col gap-4 items-center justify-center p-4 w-full'>
+                <Link className='text-center text-wrap hover:underline z-10'
+                  href={`${linkPrefix}/${mediaInfo.imdbId}`}
+                  onClick={(e) => e.stopPropagation()}
+                >{mediaInfo.title}</Link>
+                <div className='flex flex-wrap whitespace-nowrap justify-between gap-4 w-full'>
+                  {['rated', 'startYear', 'runtime'].map(key => (
+                    <div className='flex-1 text-center'
+                      key={`${mediaInfo.imdbId}-${key}`}
+                    >
+                      {!mediaInfo[key] ? 'N/A' :
+                        getKeyFormatter[key] ? getKeyFormatter[key](mediaInfo[key]) : mediaInfo[key]
+                      }
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        </div>
-      })}
+          })}
       <div className='w-screen shrink-0'></div>
       <ConfirmModal visible={showDialog} setVisible={setShowDialog}
-        action={() => {
-          console.log('navigate to media page');
-          router.push(`/media/${sorted[viewIndex].imdbId}`);
+        action={(e) => {
+          // if (e.ctrlKey) {
+          //   const link = document.querySelector<HTMLAnchorElement>('#hiddenLink');
+          //   console.log(link)
+          //   if (!link) throw Error('cannot find hiddenLink');
+          //   console.log('clicking link')
+          //   link.click();
+          // } else {
+          //   router.push(`${linkPrefix}/${sorted[viewIndex].imdbId}`);
+          // }
         }}
         // key={viewIndex}
         // works but I would rethink this, 
@@ -137,8 +146,13 @@ export default function SliderView(
         // which kinda doesnt matter, because it will display the right information, and will update properly if user scrolls to a different element
         // but still seems kinda hacky
         // alternatively could pass some kind of key that is a combo of sort/search parameters from myTable component to this component
-        key={`${viewIndex},${sorted[viewIndex].imdbId}`}
-        acceptText='Go To Media Page'
+        key={`${viewIndex},${sorted[viewIndex]?.imdbId}`}
+        // acceptText='Go To Media Page'
+        acceptButton={
+          <Link className='p-4 bg-primary text-current rounded-lg'
+            href={`${linkPrefix}/${sorted[viewIndex]?.imdbId}`}
+          >Go To Media Page</Link>
+        }
       >
         <ScrollArea type='auto' className='flex flex-col gap-4 text-wrap'
           onClick={(e) => {
@@ -147,7 +161,7 @@ export default function SliderView(
           }}
         >
           <div className='mr-6 flex flex-col gap-4'>
-            {sorted[viewIndex]?.imdbId ? <MediaInfo imdbId={sorted[viewIndex].imdbId}/> : undefined}
+            {sorted[viewIndex]?.imdbId && <MediaInfo imdbId={sorted[viewIndex].imdbId} />}
           </div>
         </ScrollArea>
       </ConfirmModal>

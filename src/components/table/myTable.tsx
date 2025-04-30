@@ -86,15 +86,37 @@ export default function MyTable(
     return ref.current.clientWidth > 650 ? 'desktop' : 'mobile';
   }
 
+  // useEffect(() => {
+  //   // This should display some more meaning full text, like "searching for 'someString'" or "sorting ratings in ascending order"
+  //   setLoadingText('Loading...');
+  //   setSortedAndFiltered(shallowSort(data));
+  //   setLoadingText('');
+  //   // setTimeout(() => {
+  //   //   setLoadingText('');
+  //   // }, 5000)
+  // }, [searchTerm, searchCol, sortType, sortCol]);
+
   useEffect(() => {
-    // This should display some more meaning full text, like "searching for 'someString'" or "sorting ratings in ascending order"
-    setLoadingText('Loading...');
+    setLoadingText(`Searching ${fromCamelCase(searchCol)} for "${searchTerm}"`)
     setSortedAndFiltered(shallowSort(data));
     setLoadingText('');
     // setTimeout(() => {
     //   setLoadingText('');
-    // }, 5000)
-  }, [searchTerm, searchCol, sortType, sortCol]);
+    // }, 2000)
+  }, [searchTerm])
+
+  useEffect(() => {
+    const fullSortType: Record<SortType, string> = {
+      asc: 'ascending',
+      desc: 'descending',
+    }
+    setLoadingText(`Sorting ${fromCamelCase(sortCol)} in ${fullSortType[sortType]} order`)
+    setSortedAndFiltered(shallowSort(data));
+    setLoadingText('');
+    // setTimeout(() => {
+    //   setLoadingText('');
+    // }, 2000)
+  }, [sortType, sortCol])
 
   function search(mediaInfo: ExistingMediaInfo) {
     if (!searchTerm) return true;
@@ -228,6 +250,7 @@ export default function MyTable(
             </div>
           </div>
         </div>
+        <div className='my-auto text-nowrap text-muted-foreground'>{sortedAndFiltered.length} / {data.length}</div>
       </div>
       <OptionalScrollArea className={`${viewType === 'slider' ? '' : 'max-h-[90vh]'} m-2 pr-2`}
         orientation={viewType === 'slider' ? 'horizontal' : 'vertical'}

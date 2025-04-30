@@ -1,5 +1,7 @@
 import { X } from 'lucide-react';
-import { ReactNode } from 'react';
+import { MouseEvent, ReactNode } from 'react';
+
+type ActionFunction = (e: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>) => void
 
 export default function confirmModal(
   {
@@ -7,13 +9,15 @@ export default function confirmModal(
     setVisible,
     action,
     children,
-    acceptText,
+    // acceptText,
+    acceptButton,
   }: {
     visible: boolean,
     setVisible: Function,
-    action: Function,
+    action: ActionFunction,
     children: ReactNode,
-    acceptText?: string,
+    // acceptText?: string,
+    acceptButton: ReactNode,
   }
 ) {
   const toggleClass = visible ? 'opacity-100 z-10 backdrop-blur-lg' : 'pointer-events-none opacity-0 backdrop-blur-none';
@@ -31,13 +35,24 @@ export default function confirmModal(
             type='button'
             onClick={() => setVisible(false)}
           >Back</button>
+          {/*
           <button className={`py-2 px-4 rounded-lg ${acceptText ? 'bg-primary' : 'bg-red-600'}`}
             type='button'
-            onClick={() => {
+            onClick={(e) => {
               setVisible(false)
-              action()
+              action(e)
             }}
           >{acceptText || 'Confirm'}</button>
+          */}
+          {acceptButton || 
+            <button className={`py-2 px-4 rounded-lg bg-red-600`}
+              type='button'
+              onClick={(e) => {
+                setVisible(false)
+                action(e)
+              }}
+            >Confirm</button>
+          }
         </div>
       </div>
     </div>

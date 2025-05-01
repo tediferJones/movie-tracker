@@ -31,7 +31,6 @@ type ScreenTypes = 'desktop' | 'mobile'
 
 export const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
 export const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
-// const views = ['desktop', 'mobile', 'slider'];
 const views = ['table', 'list', 'slider'] as const;
 
 export default function MyTable(
@@ -57,9 +56,10 @@ export default function MyTable(
   const [searchTerm, setSearchTerm] = useState('');
   const [sortedAndFiltered, setSortedAndFiltered] = useState(data);
   const [loadingText, setLoadingText] = useState('');
-  // const [oldState, setOldState] = useState({
-  //   sortType, sortCol, searchTerm, searchCol
-  // })
+  const fullSortType: Record<SortType, string> = {
+    asc: 'ascending',
+    desc: 'descending',
+  }
 
   const [viewType, setViewType] = useState<ViewTypes>('table');
   const ref = useRef<HTMLDivElement>(null);
@@ -86,37 +86,17 @@ export default function MyTable(
     return ref.current.clientWidth > 650 ? 'desktop' : 'mobile';
   }
 
-  // useEffect(() => {
-  //   // This should display some more meaning full text, like "searching for 'someString'" or "sorting ratings in ascending order"
-  //   setLoadingText('Loading...');
-  //   setSortedAndFiltered(shallowSort(data));
-  //   setLoadingText('');
-  //   // setTimeout(() => {
-  //   //   setLoadingText('');
-  //   // }, 5000)
-  // }, [searchTerm, searchCol, sortType, sortCol]);
-
   useEffect(() => {
     setLoadingText(`Searching ${fromCamelCase(searchCol)} for "${searchTerm}"`)
     setSortedAndFiltered(shallowSort(data));
     setLoadingText('');
-    // setTimeout(() => {
-    //   setLoadingText('');
-    // }, 2000)
-  }, [searchTerm])
+  }, [searchTerm, searchCol]);
 
   useEffect(() => {
-    const fullSortType: Record<SortType, string> = {
-      asc: 'ascending',
-      desc: 'descending',
-    }
     setLoadingText(`Sorting ${fromCamelCase(sortCol)} in ${fullSortType[sortType]} order`)
     setSortedAndFiltered(shallowSort(data));
     setLoadingText('');
-    // setTimeout(() => {
-    //   setLoadingText('');
-    // }, 2000)
-  }, [sortType, sortCol])
+  }, [sortType, sortCol]);
 
   function search(mediaInfo: ExistingMediaInfo) {
     if (!searchTerm) return true;
@@ -187,11 +167,11 @@ export default function MyTable(
             <DropdownMenuLabel>Search column</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup value={searchCol} onValueChange={setSearchCol}>
-              {['title', 'rated'].concat(details).filter(str => str).map(key => {
-                return <DropdownMenuRadioItem key={key} value={key}>
+              {['title', 'rated'].concat(details).filter(str => str).map(key => (
+                <DropdownMenuRadioItem key={key} value={key}>
                   {fromCamelCase(key)}
                 </DropdownMenuRadioItem>
-              })}
+              ))}
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>

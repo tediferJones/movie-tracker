@@ -1,7 +1,6 @@
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import MediaInfo from '@/components/pages/mediaPage/mediaInfo';
@@ -26,17 +25,12 @@ export default function SliderView(
   const [viewIndex, setViewIndex] = useState(0);
 
   const { containerRef, centeredElement } = useCenteredItem<HTMLDivElement>();
-  // console.log({ centeredElement })
-  // let viewIndex = Number(centeredElement?.dataset.index);
-  const router = useRouter();
 
   useEffect(() => {
-    // console.log('centered element has changed')
     setViewIndex(Number(centeredElement?.dataset.index));
   }, [centeredElement?.dataset.index]);
 
   useEffect(() => {
-    // console.log('sorted has changed')
     setViewIndex(0);
     const firstItem = document.querySelector<HTMLDivElement>(`[data-index='0']`);
     if (!firstItem || !containerRef.current) return;
@@ -78,7 +72,6 @@ export default function SliderView(
             return <div className={`sm:max-w-max max-w-36 max-h-[90vh] snap-item flex-shrink-0 flex flex-col items-center justify-center gap-4 snap-center cursor-pointer transition-transform duration-500 ${i === viewIndex ? '' : 'scale-50 opacity-50'}`}
               onClick={(e) => {
                 if (i === viewIndex) {
-                  // console.log({ i, viewIndex }, sorted[i])
                   setShowDialog(true);
                 } else {
                   if (!containerRef.current) return;
@@ -98,16 +91,6 @@ export default function SliderView(
               // some images won't reload, and that needs fixed
               */}
               <ImageWithFallback src={mediaInfo.poster || undefined} alt={`Poster for ${mediaInfo.title}`} />
-              {/*
-              <img className='aspect-auto' src={mediaInfo.poster || undefined} 
-                key={mediaInfo.poster}
-                onError={e => {
-                  // console.log('failed to load image for', mediaInfo.title)
-                  // e.currentTarget.src = '/someImage'
-                  // e.currentTarget.outerHTML = <div></div>
-                }}
-              />
-              */}
               <div className='bg-secondary rounded-lg flex flex-col gap-4 items-center justify-center p-4 w-full'>
                 <Link className='text-center text-wrap hover:underline z-10'
                   href={`${linkPrefix}/${mediaInfo.imdbId}`}
@@ -129,27 +112,14 @@ export default function SliderView(
           })}
       <div className='w-screen shrink-0'></div>
       <ConfirmModal visible={showDialog} setVisible={setShowDialog}
-        action={(e) => {
-          // if (e.ctrlKey) {
-          //   const link = document.querySelector<HTMLAnchorElement>('#hiddenLink');
-          //   console.log(link)
-          //   if (!link) throw Error('cannot find hiddenLink');
-          //   console.log('clicking link')
-          //   link.click();
-          // } else {
-          //   router.push(`${linkPrefix}/${sorted[viewIndex].imdbId}`);
-          // }
-        }}
-        // key={viewIndex}
         // works but I would rethink this, 
         // technically if we search/sort and the first item is still the first item, this component will not re-render
         // which kinda doesnt matter, because it will display the right information, and will update properly if user scrolls to a different element
         // but still seems kinda hacky
         // alternatively could pass some kind of key that is a combo of sort/search parameters from myTable component to this component
         key={`${viewIndex},${sorted[viewIndex]?.imdbId}`}
-        // acceptText='Go To Media Page'
         acceptButton={
-          <Link className='p-4 bg-primary text-current rounded-lg'
+          <Link className='py-2 px-4 bg-primary text-current rounded-lg'
             href={`${linkPrefix}/${sorted[viewIndex]?.imdbId}`}
           >Go To Media Page</Link>
         }
@@ -169,11 +139,3 @@ export default function SliderView(
     </ScrollAreaHorizontalSnap>
   )
 }
-
-/*
-<div className='flex gap-4 p-4 snap-x snap-mandatory'>
-  {sorted.map((_, i) => {
-    return <div className='w-64 h-64 bg-red-400 shrink-0 rounded-lg snap-center'>{i}</div>
-  })}
-</div>
- * */

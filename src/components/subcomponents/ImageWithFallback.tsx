@@ -33,7 +33,7 @@ export default function ImageWithFallback({ src, alt, ...props }: ImageWithFallb
   if (!src || hasError) {
     console.log('failed to load', alt, 'from', src)
     return (
-      <div className='bg-secondary flex flex-col gap-4 justify-center items-center w-full min-h-72'>
+      <div className='bg-secondary flex flex-col gap-4 justify-center items-center min-h-72 aspect-[2/3] rounded-lg max-w-full'>
         <span className='text-5xl font-extrabold'>404</span>
         <span className='text-wrap text-center'>Poster Not Found</span>
       </div>
@@ -41,7 +41,10 @@ export default function ImageWithFallback({ src, alt, ...props }: ImageWithFallb
   }
 
   return (
-    <div key={`${alt}-${isVisible}-${isLoaded}`} ref={ref} className='my-auto'>
+    <div className='my-auto rounded-lg overflow-hidden'
+      key={`${alt}-${isVisible}-${isLoaded}`}
+      ref={ref}
+    >
       {!isVisible ? <div>Not Visible</div> :
         <>
           {!isLoaded && <Loading />}

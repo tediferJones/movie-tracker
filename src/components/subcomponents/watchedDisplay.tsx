@@ -29,7 +29,7 @@ export default function WatchedDisplay({ username }: { username: string }) {
               {watched.length === 0
                 ? <p className='text-center text-muted-foreground'>No Watch History Found</p>
                 : watched.map(watchRec => (
-                  <Link className='flex-1 flex flex-col hover:bg-secondary rounded-lg p-2 group text-center'
+                  <Link className='flex-1 flex flex-col hover:bg-secondary rounded-lg p-2 mx-4 group text-center'
                     href={`/media/${watchRec.imdbId}`}
                   >
                     <span className='group-hover:underline'>{watchRec.title}</span>

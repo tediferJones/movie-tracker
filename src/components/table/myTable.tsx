@@ -11,13 +11,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { ArrowDownAz,  ArrowUpZa, Lock } from 'lucide-react';
+import { ArrowDownAz,  ArrowUpZa, Lock, X } from 'lucide-react';
 import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
 import TableView from '@/components/table/tableView';
 import ListView from '@/components/table/listView';
 import SliderView from '@/components/table/sliderView';
 import { fromCamelCase } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
+import FancyInput from '../subcomponents/fancyInput';
 
 type SortType = 'asc' | 'desc';
 type SortFuncs = {
@@ -217,13 +218,13 @@ export default function MyTable(
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          <div className={`relative my-auto bg-secondary rounded-full h-8 min-w-16 max-w-16 transition-all duration-1000`}
+          <div className={`relative my-auto bg-secondary rounded-full h-8 min-w-16 max-w-16 transition-all duration-1000 ${sortCol ? 'cursor-pointer' : ''}`}
             onClick={() => {
               if (!sortCol) return;
               setSortType(sortType === 'asc' ? 'desc': 'asc');
             }}
           >
-            <div className={`absolute flex items-center justify-center bg-primary h-full aspect-square rounded-full transition-all duration-1000 cursor-pointer ${!sortCol ? 'left-4 right-4 opacity-50 cursor-none' : sortType === 'asc' ? 'left-0 right-8' : 'left-8 right-0'}`}>
+            <div className={`absolute flex items-center justify-center bg-primary h-full aspect-square rounded-full transition-all duration-1000 ${!sortCol ? 'left-4 right-4 opacity-50 cursor-none' : sortType === 'asc' ? 'left-0 right-8' : 'left-8 right-0'}`}>
               <Lock className={`h-3/4 cursor-default ${!sortCol ? 'w-full' : 'w-0'}`} />
               <ArrowDownAz className={`h-3/4 transition-all duration-1000 ${sortCol && sortType === 'asc' ? 'w-full' : 'w-0'}`} />
               <ArrowUpZa className={`h-3/4 transition-all duration-1000 ${sortCol && sortType === 'desc' ? 'w-full' : 'w-0'}`} />
@@ -231,9 +232,13 @@ export default function MyTable(
           </div>
         </div>
         <div className='my-auto text-nowrap text-muted-foreground'>{sortedAndFiltered.length} / {data.length}</div>
+        <FancyInput
+          inputState={[searchTerm, setSearchTerm]}
+          placeholder={`Search by ${searchCol}`}
+        />
       </div>
-      <OptionalScrollArea className={`${viewType === 'slider' ? '' : 'max-h-[90vh]'} m-2 pr-2`}
-        orientation={viewType === 'slider' ? 'horizontal' : 'vertical'}
+      <OptionalScrollArea className='max-h-[90vh] m-2 pr-2'
+        orientation='vertical'
         scrollEnabled={useScrollArea}
       >
         {loadingText ? <div className='text-center h-full'>{loadingText}</div> : {

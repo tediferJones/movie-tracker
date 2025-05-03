@@ -112,11 +112,6 @@ export default function SliderView(
           })}
       <div className='w-screen shrink-0'></div>
       <ConfirmModal visible={showDialog} setVisible={setShowDialog}
-        // works but I would rethink this, 
-        // technically if we search/sort and the first item is still the first item, this component will not re-render
-        // which kinda doesnt matter, because it will display the right information, and will update properly if user scrolls to a different element
-        // but still seems kinda hacky
-        // alternatively could pass some kind of key that is a combo of sort/search parameters from myTable component to this component
         key={`${viewIndex},${sorted[viewIndex]?.imdbId}`}
         acceptButton={
           <Link className='py-2 px-4 bg-primary text-current rounded-lg'

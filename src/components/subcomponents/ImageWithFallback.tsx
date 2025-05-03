@@ -31,7 +31,7 @@ export default function ImageWithFallback({ src, alt, ...props }: ImageWithFallb
   }, [ref.current]);
 
   if (!src || hasError) {
-    console.log('failed to load', alt, 'from', src)
+    console.log('failed to load', alt, 'from', src, { src, hasError })
     return (
       <div className='bg-secondary flex flex-col gap-4 justify-center items-center min-h-72 aspect-[2/3] rounded-lg max-w-full'>
         <span className='text-5xl font-extrabold'>404</span>

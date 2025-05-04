@@ -149,6 +149,12 @@ export default function MyTable(
     <div className={`flex flex-col ${useScrollArea ? '' : 'gap-4'}`} ref={ref}>
       <div className={`flex justify-center gap-4 flex-wrap ${useScrollArea ? 'p-2' : ''}`}>
         {children}
+        <FancyInput className='flex-1 min-w-48 w-fit'
+          inputState={[searchTerm, setSearchTerm]}
+          placeholder={`Search by ${searchCol}`}
+          delay={250}
+        />
+        {/*
         <Input placeholder={`Search by ${searchCol}`} 
           onChange={e => {
             if (searchTimeout) clearTimeout(searchTimeout);
@@ -158,6 +164,7 @@ export default function MyTable(
           }}
           className='flex-1 min-w-48'
         />
+        */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='outline' className='sm:w-auto w-full'>
@@ -232,10 +239,6 @@ export default function MyTable(
           </div>
         </div>
         <div className='my-auto text-nowrap text-muted-foreground'>{sortedAndFiltered.length} / {data.length}</div>
-        <FancyInput
-          inputState={[searchTerm, setSearchTerm]}
-          placeholder={`Search by ${searchCol}`}
-        />
       </div>
       <OptionalScrollArea className='max-h-[90vh] m-2 pr-2'
         orientation='vertical'

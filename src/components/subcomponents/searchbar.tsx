@@ -1,6 +1,5 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -8,9 +7,12 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import FancyInput from '@/components/subcomponents/fancyInput';
 import easyFetch from '@/lib/easyFetch';
 import { OmdbSearch, OmdbSearchResult } from '@/types';
 
@@ -21,7 +23,7 @@ export default function Searchbar() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('movie');
   const [searchResult, setSearchResult] = useState(defaultState);
-  const [displaySearchResult, setDisplaySearchResult] = useState<boolean>(false)
+  const [displaySearchResult, setDisplaySearchResult] = useState<boolean>(false);
 
   useEffect(() => {
     if (!searchTerm) return setSearchResult(defaultState);
@@ -42,16 +44,29 @@ export default function Searchbar() {
   }, [searchTerm, searchType])
 
   return (
-    <div className='m-auto flex w-4/5 justify-center py-4 gap-2'>
-      <div className='relative flex w-full flex-col'
-        onBlur={() => autoCloseTimer = setTimeout(() => setDisplaySearchResult(false), 100)}
-        onFocus={() => clearTimeout(autoCloseTimer)}
+    <div className='m-auto flex w-4/5 justify-center py-4 gap-4'>
+      {/* Search bar area */}
+      <div className='relative flex flex-col w-full'
+        // WHAT DOES THIS DO, WHY IS IT HERE
+        // onBlur={() => autoCloseTimer = setTimeout(() => setDisplaySearchResult(false), 1000)}
+        // onFocus={() => clearTimeout(autoCloseTimer)}
       >
         {!displaySearchResult ? [] : 
           <div className='fixed left-0 top-0 h-[100vh] w-[100vw]' 
             onClick={() => setDisplaySearchResult(false)}>
           </div> 
         }
+        <div className='h-full'
+          onFocus={() => setDisplaySearchResult(true)}
+        >
+          <FancyInput 
+            className='w-full relative h-full'
+            inputState={[searchTerm, setSearchTerm]}
+            delay={250}
+            placeholder={'Search...'}
+          />
+        </div>
+        {/*
         <Input className='w-full relative text-xl'
           onFocus={() => setDisplaySearchResult(true)}
           type='text'
@@ -59,20 +74,20 @@ export default function Searchbar() {
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder='Search...'
         />
+        */}
         {/* Search Results area */}
-        <div className={`absolute top-12 flex w-full flex-col items-center z-10 ${displaySearchResult && searchTerm ? 'showOutline overflow-hidden block' : 'hidden'}`}>
+        <div className={`opacity-95 absolute top-12 flex w-full flex-col gap-2 p-2 bg-secondary items-center z-10 ${displaySearchResult && searchTerm ? 'showOutline overflow-hidden block' : 'hidden'}`}>
           {searchResult.length === 0 ? <div className='bg-secondary w-full p-2 text-center'>No Results</div> :
-            searchResult.map((item, i) => {
-            return (
-              <Link className={`flex w-full flex-wrap bg-secondary p-2 rounded-none ${i > 0 ? 'border-t border-primary' : ''}`}
+            searchResult.map((item) => (
+              <Link className='showOutline flex w-full flex-wrap bg-primary-foreground p-2 hover:underline'
                 href={`/media/${item.imdbID}`}
                 key={item.imdbID}
                 onClick={(e) => e.ctrlKey ? undefined : setDisplaySearchResult(false)}
-              > <p className='m-auto flex-[2]'>{item.Title}</p>
-                <p className='m-auto flex-1'>{item.Year}</p>
+              >
+                <p className='m-auto flex-[2]'>{item.Title}</p>
+                <p className='m-auto flex-1 text-center'>{item.Year}</p>
               </Link>
-            )
-          })}
+            ))}
         </div>
       </div>
       {/* Selector for media type */}
@@ -84,7 +99,7 @@ export default function Searchbar() {
         }}
       >
         <SelectTrigger className='w-min'>
-          <SelectValue />
+          <SelectValue className='flex justify-between' />
         </SelectTrigger>
         <SelectContent>
           {['Movie', 'Series', 'Game'].map((searchTerm) => {
@@ -95,6 +110,14 @@ export default function Searchbar() {
           })}
         </SelectContent>
       </Select>
+      {/*
+      <Button className='flex-1'
+        variant='outline'
+        onClick={() => {
+          console.log('go to search page')
+        }}
+      >Search</Button>
+      */}
     </div>
   )
 }

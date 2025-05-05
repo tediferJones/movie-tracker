@@ -8,6 +8,8 @@ export async function GET(req: Request) {
   const queryType = searchParams.get('queryType') || '';
   const searchTerm = searchParams.get('searchTerm');
   const searchType = searchParams.get('searchType');
+  const page = searchParams.get('page');
+  console.log({  queryTerm, searchTerm, queryType, searchType, page })
   // console.log(
   //   `\n QUERY TERM: ${queryTerm} 
   //   \n SEARCH TERM: ${searchTerm} 

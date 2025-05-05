@@ -15,6 +15,7 @@ import Link from 'next/link';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import easyFetch from '@/lib/easyFetch';
 import { OmdbSearch, OmdbSearchResult } from '@/types';
+import SearchResults from './searchResults';
 
 export default function Searchbar() {
   const defaultState: OmdbSearchResult[] = [];
@@ -41,10 +42,41 @@ export default function Searchbar() {
     }, 250);
 
     return () => clearTimeout(delaySetState);
-  }, [searchTerm, searchType])
+  }, [searchTerm, searchType]);
+
+  function getSearchUrl() {
+    const params = new URLSearchParams({
+      searchTerm: searchTerm.trim(), 
+      searchType, 
+      queryTerm: 's', 
+      queryType: 'type',
+    });
+
+    return `/search?${params.toString()}`;
+  }
 
   return (
     <div className='m-auto flex w-4/5 justify-center py-4 gap-4'>
+      {/* Selector for media type */}
+      <Select
+        defaultValue={searchType}
+        onValueChange={val => {
+          setSearchResult(defaultState);
+          setSearchType(val);
+        }}
+      >
+        <SelectTrigger className='w-min'>
+          <SelectValue className='flex justify-between' />
+        </SelectTrigger>
+        <SelectContent>
+          {['Movie', 'Series', 'Game'].map(searchTerm => (
+            <SelectItem
+              key={searchTerm}
+              value={searchTerm.toLowerCase()}
+            >{searchTerm}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       {/* Search bar area */}
       <div className='relative flex flex-col w-full'
         // WHAT DOES THIS DO, WHY IS IT HERE
@@ -77,8 +109,12 @@ export default function Searchbar() {
         */}
         {/* Search Results area */}
         <div className={`opacity-95 absolute top-12 flex w-full flex-col gap-2 p-2 bg-secondary items-center z-10 ${displaySearchResult && searchTerm ? 'showOutline overflow-hidden block' : 'hidden'}`}>
+          <SearchResults results={searchResult}
+            onLinkClick={(e) => e.ctrlKey || setDisplaySearchResult(false)}
+          />
+          {/*
           {searchResult.length === 0 ? <div className='bg-secondary w-full p-2 text-center'>No Results</div> :
-            searchResult.map((item) => (
+            searchResult.map(item => (
               <Link className='showOutline flex w-full flex-wrap bg-primary-foreground p-2 hover:underline'
                 href={`/media/${item.imdbID}`}
                 key={item.imdbID}
@@ -87,29 +123,11 @@ export default function Searchbar() {
                 <p className='m-auto flex-[2]'>{item.Title}</p>
                 <p className='m-auto flex-1 text-center'>{item.Year}</p>
               </Link>
-            ))}
+            ))
+          }
+          */}
         </div>
       </div>
-      {/* Selector for media type */}
-      <Select
-        defaultValue={searchType}
-        onValueChange={(val) => {
-          setSearchResult(defaultState)
-          setSearchType(val)
-        }}
-      >
-        <SelectTrigger className='w-min'>
-          <SelectValue className='flex justify-between' />
-        </SelectTrigger>
-        <SelectContent>
-          {['Movie', 'Series', 'Game'].map((searchTerm) => {
-            return <SelectItem
-              key={searchTerm}
-              value={searchTerm.toLowerCase()}
-            >{searchTerm}</SelectItem>
-          })}
-        </SelectContent>
-      </Select>
       {/*
       <Button className='flex-1'
         variant='outline'
@@ -118,6 +136,9 @@ export default function Searchbar() {
         }}
       >Search</Button>
       */}
+      <Link className='rouned-lg flex-1 showOutline text-secondary-foreground px-4 flex items-center hover:bg-secondary text-sm font-medium'
+        href={getSearchUrl()}
+      >Search</Link>
     </div>
   )
 }

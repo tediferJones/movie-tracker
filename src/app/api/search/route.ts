@@ -16,12 +16,24 @@ export async function GET(req: Request) {
   //   \n QUERY TYPE: ${queryType} 
   //   \n SEARCH TYPE: ${searchType} 
   //   \n`)
-  const omdbResult = await easyFetch('https://www.omdbapi.com/', 'GET', { 
+
+
+  // const omdbResult = await easyFetch('https://www.omdbapi.com/', 'GET', { 
+  //   apikey: process.env.OMDBAPI_KEY, 
+  //   // This type is ignored for Season/Episode queries, so no need to override it
+  //   [queryType]: searchType,
+  //   [queryTerm]: searchTerm, 
+  // });
+
+  const params = { 
     apikey: process.env.OMDBAPI_KEY, 
     // This type is ignored for Season/Episode queries, so no need to override it
     [queryType]: searchType,
     [queryTerm]: searchTerm, 
-  });
+  }
+  if (page) params.page = page;
+
+  const omdbResult = await easyFetch('https://www.omdbapi.com/', 'GET', params);
 
   return NextResponse.json(omdbResult)
 }

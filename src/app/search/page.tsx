@@ -3,46 +3,58 @@
 import Loading from '@/components/subcomponents/loading';
 import SearchResults from '@/components/subcomponents/searchResults';
 import easyFetchV3 from '@/lib/easyFetchV3';
-import { OmdbSearch, OmdbSearchResult } from '@/types';
+import { OmdbSearch } from '@/types';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Search() {
-  const [searchResult, setSearchResult] = useState<OmdbSearch>();
-  const [pageCount, setPageCount] = useState(2);
   const observed = useRef(null);
-
+  const params = useSearchParams();
+  const [searchResult, setSearchResult] = useState<OmdbSearch>();
+  const [pageCount, setPageCount] = useState(1);
+  const [oldParams, setOldParams] = useState(params.toString());
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    params.set('page', pageCount.toString());
+    if (oldParams !== params.toString()) {
+      setOldParams(params.toString());
+      window.location.reload();
+    }
+  }, [params]);
+
+  useEffect(() => {
+    console.log('fetching results')
+    const newParams = new URLSearchParams(params.toString());
+    newParams.set('page', pageCount.toString());
 
     easyFetchV3<OmdbSearch>({
       route: '/api/search',
       method: 'GET',
-      params: params,
-    }).then(data => setSearchResult(data));
+      params: newParams,
+    }).then(data => {
+        setSearchResult({
+          Search: (searchResult?.Search || []).concat(data.Search),
+          Response: data.Response,
+          totalResults: data.totalResults,
+        });
+      });
   }, [pageCount]);
 
   useEffect(() => {
     if (!observed.current) return;
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.length > 1) throw Error('too many entries')
-        const [ entry ] = entries
+      ([ entry ]) => {
         if (entry.isIntersecting) {
-          console.log('shit do be intersecting')
+          setPageCount(prev => prev + 1);
         }
       },
       { threshold: 0.1 }
     );
 
     observer.observe(observed.current);
-  }, [observed.current])
+    console.log('attached observer')
+    return () => observer.disconnect();
+  }, [searchResult?.Search.length]);
 
-  {/*
-  <p>{JSON.stringify(searchResult, undefined, 2)}</p>
-  */}
-  console.log(searchResult)
   return (
     <div className='showOutline w-4/5 mx-auto p-4 mb-4'>
       {!searchResult ? <Loading /> :
@@ -50,7 +62,11 @@ export default function Search() {
           <div className='flex flex-col gap-4'>
             <span className='text-center'>Displaying {searchResult.Search.length} out of {searchResult.totalResults}</span>
             <SearchResults results={searchResult.Search} />
-            <div className='text-center' ref={observed}>If visible get more results</div>
+            {searchResult.Search.length < Number(searchResult.totalResults) &&
+              <div className='text-center' ref={observed}>
+                <Loading />
+              </div>
+            }
           </div>
       }
     </div>

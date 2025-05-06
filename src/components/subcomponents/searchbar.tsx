@@ -13,9 +13,10 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import FancyInput from '@/components/subcomponents/fancyInput';
+import SearchResults from '@/components/subcomponents/searchResults';
 import easyFetch from '@/lib/easyFetch';
 import { OmdbSearch, OmdbSearchResult } from '@/types';
-import SearchResults from './searchResults';
+import { useSearchParams } from 'next/navigation';
 
 export default function Searchbar() {
   const defaultState: OmdbSearchResult[] = [];
@@ -25,6 +26,14 @@ export default function Searchbar() {
   const [searchType, setSearchType] = useState('movie');
   const [searchResult, setSearchResult] = useState(defaultState);
   const [displaySearchResult, setDisplaySearchResult] = useState<boolean>(false);
+  const params = useSearchParams();
+
+  useEffect(() => {
+    const urlSearchTerm = params.get('searchTerm');
+    if (urlSearchTerm) {
+      setSearchTerm(urlSearchTerm);
+    }
+  }, []);
 
   useEffect(() => {
     if (!searchTerm) return setSearchResult(defaultState);
@@ -96,6 +105,7 @@ export default function Searchbar() {
             inputState={[searchTerm, setSearchTerm]}
             delay={250}
             placeholder={'Search...'}
+            key={searchTerm}
           />
         </div>
         {/*

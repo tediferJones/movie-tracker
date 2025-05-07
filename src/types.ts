@@ -44,11 +44,24 @@ interface OmdbSearchResult {
   imdbID: string,
 }
 
-interface OmdbSearch {
-  Response: string,
-  Search: OmdbSearchResult[],
+// interface OmdbSearch {
+//   Response: string,
+//   Search: OmdbSearchResult[],
+//   totalResults: string,
+// }
+
+interface OmdbSearchSuccess {
+  Response: 'True',
   totalResults: string,
+  Search: OmdbSearchResult[],
 }
+
+interface OmdbSearchFailure {
+  Response: 'False',
+  Error: string,
+}
+
+type OmdbSearch = OmdbSearchSuccess | OmdbSearchFailure
 
 import { countries, genres, languages, media, people, reviews } from '@/drizzle/schema';
 

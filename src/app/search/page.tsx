@@ -31,11 +31,19 @@ export default function Search() {
       method: 'GET',
       params: newParams,
     }).then(data => {
-        setSearchResult({
-          Search: (searchResult?.Search || []).concat(data.Search),
-          Response: data.Response,
-          totalResults: data.totalResults,
-        });
+        if (data.Response === 'True') {
+          setSearchResult({
+            // Search: (searchResult?.Search || []).concat(data.Search),
+            Search: (searchResult?.Response === 'True' ? searchResult.Search : []).concat(data.Search),
+            Response: 'True',
+            totalResults: data.totalResults,
+          });
+        } else {
+          setSearchResult({
+            Response: 'False',
+            Error: data.Error,
+          })
+        }
       });
   }, [pageCount]);
 
@@ -53,12 +61,12 @@ export default function Search() {
     observer.observe(observed.current);
     console.log('attached observer')
     return () => observer.disconnect();
-  }, [searchResult?.Search.length]);
+  }, [searchResult]);
 
   return (
     <div className='showOutline w-4/5 mx-auto p-4 mb-4'>
       {!searchResult ? <Loading /> :
-        searchResult.Response !== 'True' ? <div>{(searchResult as any).Error}</div> :
+        searchResult.Response === 'False' ? <div className='text-center'>{searchResult.Error}</div> :
           <div className='flex flex-col gap-4'>
             <span className='text-center'>Displaying {searchResult.Search.length} out of {searchResult.totalResults}</span>
             <SearchResults results={searchResult.Search} />

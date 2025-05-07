@@ -7,47 +7,52 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+// import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+// import Link from 'next/link';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import SearchResults from '@/components/subcomponents/searchResults';
+import Loading from '@/components/subcomponents/loading';
 import easyFetch from '@/lib/easyFetch';
-import { OmdbSearch, OmdbSearchResult } from '@/types';
-import { useSearchParams } from 'next/navigation';
+import { OmdbSearch } from '@/types';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Searchbar() {
-  const defaultState: OmdbSearchResult[] = [];
-  let autoCloseTimer: NodeJS.Timeout;
-
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('movie');
-  const [searchResult, setSearchResult] = useState(defaultState);
-  const [displaySearchResult, setDisplaySearchResult] = useState<boolean>(false);
-  const params = useSearchParams();
+  const [displaySearchResult, setDisplaySearchResult] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResult, setSearchResult] = useState<OmdbSearch>();
+
+  const router = useRouter();
+
+  // try to find some other way to autofill search input with url param "searchTerm"
+  // const params = useSearchParams();
+  // useEffect(() => {
+  //   const urlSearchTerm = params.get('searchTerm');
+  //   if (urlSearchTerm) {
+  //     setSearchTerm(urlSearchTerm);
+  //   }
+  // }, []);
 
   useEffect(() => {
-    const urlSearchTerm = params.get('searchTerm');
-    if (urlSearchTerm) {
-      setSearchTerm(urlSearchTerm);
-    }
-  }, []);
+    if (!searchTerm) return setSearchResult(undefined);
+    setIsSearching(true);
 
-  useEffect(() => {
-    if (!searchTerm) return setSearchResult(defaultState);
-
-    let delaySetState: NodeJS.Timeout | undefined = setTimeout(() => {
+    const delaySetState: NodeJS.Timeout | undefined = setTimeout(() => {
       easyFetch<OmdbSearch>('/api/search', 'GET', { 
         // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
         searchTerm: searchTerm.trim(), 
         searchType, 
         queryTerm: 's', 
         queryType: 'type',
-      }).then(data => 
-          setSearchResult(data.Response === 'True' ? data.Search : defaultState)
-        )
+      }).then(data => {
+          console.log('search result', data)
+          setSearchResult(data)
+          setIsSearching(false);
+        })
     }, 250);
 
     return () => clearTimeout(delaySetState);
@@ -65,17 +70,27 @@ export default function Searchbar() {
   }
 
   return (
-    <div className='m-auto flex w-4/5 justify-center py-4 gap-4'>
+    <form className='m-auto flex flex-wrap w-4/5 justify-center py-4 gap-4 z-30'
+      onSubmit={(e) => {
+        e.preventDefault();
+        router.push(getSearchUrl());
+        setDisplaySearchResult(false);
+      }}
+    >
+      {/* Pop-up backdrop */}
+      <div className={`-z-10 fixed left-0 top-0 h-[100vh] w-[100vw] transition-all duration-300 ${displaySearchResult ? 'opacity-100 backdrop-blur-md' : 'opacity-0 backdrop-blur-none pointer-events-none'}`}
+        onClick={() => setDisplaySearchResult(false)}>
+      </div> 
       {/* Selector for media type */}
       <Select
         defaultValue={searchType}
         onValueChange={val => {
-          setSearchResult(defaultState);
+          setSearchResult(undefined);
           setSearchType(val);
         }}
       >
-        <SelectTrigger className='w-min'>
-          <SelectValue className='flex justify-between' />
+        <SelectTrigger className='flex-1 order-1'>
+          <SelectValue className='flex justify-between text-center' />
         </SelectTrigger>
         <SelectContent>
           {['Movie', 'Series', 'Game'].map(searchTerm => (
@@ -87,68 +102,44 @@ export default function Searchbar() {
         </SelectContent>
       </Select>
       {/* Search bar area */}
-      <div className='relative flex flex-col w-full'
-        // WHAT DOES THIS DO, WHY IS IT HERE
-        // onBlur={() => autoCloseTimer = setTimeout(() => setDisplaySearchResult(false), 1000)}
-        // onFocus={() => clearTimeout(autoCloseTimer)}
-      >
-        {!displaySearchResult ? [] : 
-          <div className='fixed left-0 top-0 h-[100vh] w-[100vw]' 
-            onClick={() => setDisplaySearchResult(false)}>
-          </div> 
-        }
-        <div className='h-full'
-          onFocus={() => setDisplaySearchResult(true)}
-        >
-          <FancyInput 
-            className='w-full relative h-full'
-            inputState={[searchTerm, setSearchTerm]}
-            delay={250}
-            placeholder={'Search...'}
-            key={searchTerm}
-          />
-        </div>
-        {/*
-        <Input className='w-full relative text-xl'
-          onFocus={() => setDisplaySearchResult(true)}
-          type='text'
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder='Search...'
+      <div className='relative flex flex-col flex-[6] sm:order-2 order-3'>
+        <FancyInput 
+          className='sm:h-full h-[40px] min-w-72'
+          inputState={[searchTerm, setSearchTerm]}
+          delay={250}
+          inputProps={{
+            placeholder: 'Search...',
+            onFocus: () => setDisplaySearchResult(true),
+            className: 'text-lg'
+          }}
+          // key={searchTerm}
         />
-        */}
         {/* Search Results area */}
-        <div className={`opacity-95 absolute top-12 flex w-full flex-col gap-2 p-2 bg-secondary items-center z-10 ${displaySearchResult && searchTerm ? 'showOutline overflow-hidden block' : 'hidden'}`}>
-          <SearchResults results={searchResult}
-            onLinkClick={(e) => e.ctrlKey || setDisplaySearchResult(false)}
-          />
-          {/*
-          {searchResult.length === 0 ? <div className='bg-secondary w-full p-2 text-center'>No Results</div> :
-            searchResult.map(item => (
-              <Link className='showOutline flex w-full flex-wrap bg-primary-foreground p-2 hover:underline'
-                href={`/media/${item.imdbID}`}
-                key={item.imdbID}
-                onClick={(e) => e.ctrlKey ? undefined : setDisplaySearchResult(false)}
-              >
-                <p className='m-auto flex-[2]'>{item.Title}</p>
-                <p className='m-auto flex-1 text-center'>{item.Year}</p>
-              </Link>
-            ))
+        <div className={`opacity-95 absolute top-12 flex w-full flex-col gap-2 p-2 bg-secondary items-center z-10 transition-all duration-300 showOutline overflow-hidden ${displaySearchResult && searchTerm ? 'scale-y-100' : 'scale-y-0'}`}>
+          {isSearching || !searchResult ? <Loading /> :
+            searchResult.Response === 'False' ? <div className='p-2'>{searchResult.Error}</div> :
+              <>
+                <SearchResults results={searchResult.Search}
+                  onLinkClick={(e) => e.ctrlKey || setDisplaySearchResult(false)}
+                />
+                {Number(searchResult.totalResults) - searchResult.Search.length > 0 &&
+                  <button className='text-primary bg-primary-foreground w-full p-2 rounded-lg hover:underline ring-offset-2 ring-offset-background hover:ring-ring hover:ring-2'
+                    type='submit'
+                  >
+                    View {Number(searchResult.totalResults) - searchResult.Search.length} Other Results
+                  </button>
+                }
+              </>
           }
-          */}
         </div>
       </div>
-      {/*
-      <Button className='flex-1'
+      <Button className='flex-1 z-10 sm:order-3 order-2'
         variant='outline'
+        type='submit'
         onClick={() => {
           console.log('go to search page')
         }}
       >Search</Button>
-      */}
-      <Link className='rouned-lg flex-1 showOutline text-secondary-foreground px-4 flex items-center hover:bg-secondary text-sm font-medium'
-        href={getSearchUrl()}
-      >Search</Link>
-    </div>
+    </form>
   )
 }

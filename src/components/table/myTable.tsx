@@ -8,17 +8,16 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { ArrowDownAz,  ArrowUpZa, Lock, X } from 'lucide-react';
+import { ArrowDownAz,  ArrowUpZa, Lock } from 'lucide-react';
+import FancyInput from '@/components/subcomponents/fancyInput';
 import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
 import TableView from '@/components/table/tableView';
 import ListView from '@/components/table/listView';
 import SliderView from '@/components/table/sliderView';
 import { fromCamelCase } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
-import FancyInput from '../subcomponents/fancyInput';
 
 type SortType = 'asc' | 'desc';
 type SortFuncs = {
@@ -49,7 +48,6 @@ export default function MyTable(
 ) {
   data = data.map((_, i, arr) => arr[arr.length - 1 - i]);
   const searchCache: Record<string, ExistingMediaInfo[]> = {};
-  let searchTimeout: NodeJS.Timeout;
 
   const [sortType, setSortType] = useState<SortType>('asc');
   const [sortCol, setSortCol] = useState('');
@@ -151,8 +149,10 @@ export default function MyTable(
         {children}
         <FancyInput className='flex-1 min-w-48 w-fit'
           inputState={[searchTerm, setSearchTerm]}
-          placeholder={`Search by ${searchCol}`}
           delay={250}
+          inputProps={{
+            placeholder: `Search by ${searchCol}`
+          }}
         />
         {/*
         <Input placeholder={`Search by ${searchCol}`} 

@@ -1,5 +1,5 @@
 import { db } from '@/drizzle/db';
-import { lists, reviews, watched } from '@/drizzle/schema';
+import { listnames, lists, reviews, watched } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
@@ -12,6 +12,7 @@ export async function GET() {
   const allWatched = await db.select().from(watched);
   const allReviews = await db.select().from(reviews);
   const allListRecs = await db.select().from(lists);
+  const allListnameRecs = await db.select().from(listnames);
 
   // add time stamps to reviews, if watch record exists, just use that timestamp
   const fixedReviews = allReviews.map(review => {
@@ -27,6 +28,13 @@ export async function GET() {
   const fixedListRecs = allListRecs.map(listRec => {
     return {
       ...listRec,
+      date: getNextDate(),
+    }
+  });
+
+  const fixedListnameRecs = allListnameRecs.map(listnameRec => {
+    return {
+      ...listnameRec,
       date: getNextDate(),
     }
   });
@@ -59,6 +67,19 @@ export async function GET() {
   //     );
   // }
 
+  // for (let i = 0; i < fixedListnameRecs.length; i++) {
+  //   const listnameRec = fixedListnameRecs[i];
+  //   await db.update(listnames).set({
+  //     date: listnameRec.date,
+  //   }).where(
+  //     and(
+  //       eq(listnames.username, listnameRec.username),
+  //       eq(listnames.listname, listnameRec.listname),
+  //       eq(listnames.defaultList, listnameRec.defaultList),
+  //     )
+  //   );
+  // }
+
   // await Promise.all(fixedReviews.map(review => {
   //   return db.update(reviews).set({
   //     date: review.date
@@ -88,5 +109,6 @@ export async function GET() {
     msg: 'Operation completed successfully',
     fixedReviews,
     fixedListRecs,
+    fixedListnameRecs,
   })
 }

@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 
 export default function FancyInput(
@@ -7,16 +8,19 @@ export default function FancyInput(
     delay,
     className,
     inputProps,
+    autoFillParam,
   }: {
     inputState: [string, Dispatch<SetStateAction<string>>],
     delay?: number,
     className?: string,
-    inputProps: React.InputHTMLAttributes<HTMLInputElement>,
+    inputProps?: React.InputHTMLAttributes<HTMLInputElement>,
+    autoFillParam?: string,
   }
 ) {
   const [inputData, setInputData] = inputState;
   const [showX, setShowX] = useState(false);
   const [localValue, setLocalValue] = useState(inputData);
+  const params = useSearchParams();
 
   useEffect(() => {
     if (delay) {
@@ -27,12 +31,19 @@ export default function FancyInput(
     }
   }, [localValue]);
 
+  useEffect(() => {
+    if (autoFillParam) {
+      const searchTerm = params.get(autoFillParam);
+      if (searchTerm) setLocalValue(searchTerm);
+    }
+  }, []);
+
   const {
     onFocus,
     onBlur,
     className: inputClassName,
     ...otherProps
-  } = inputProps;
+  } = inputProps || {};
 
   return (
     <div className={`${className || ''} showOutline flex items-stretch px-2 gap-2 ring-offset-2 ring-offset-background focus-within:ring-2 focus-within:ring-ring transition duration-500`}>
@@ -51,7 +62,10 @@ export default function FancyInput(
         {...otherProps}
       />
       <X className={`text-muted-foreground cursor-pointer hover:ring-2 rounded-lg shrink-0 m-auto transition-opacity duration-500 ${showX ? 'opacity-100' : 'opacity-0'}`}
-        onClick={() => setInputData('')}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setLocalValue('');
+        }}
       />
     </div>
   )

@@ -7,17 +7,15 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-// import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 import { useState, useEffect } from 'react';
-// import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import SearchResults from '@/components/subcomponents/searchResults';
 import Loading from '@/components/subcomponents/loading';
 import easyFetch from '@/lib/easyFetch';
 import { OmdbSearch } from '@/types';
-import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Searchbar() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,37 +23,39 @@ export default function Searchbar() {
   const [displaySearchResult, setDisplaySearchResult] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<OmdbSearch>();
-
   const router = useRouter();
-
-  // try to find some other way to autofill search input with url param "searchTerm"
-  // const params = useSearchParams();
-  // useEffect(() => {
-  //   const urlSearchTerm = params.get('searchTerm');
-  //   if (urlSearchTerm) {
-  //     setSearchTerm(urlSearchTerm);
-  //   }
-  // }, []);
 
   useEffect(() => {
     if (!searchTerm) return setSearchResult(undefined);
     setIsSearching(true);
+    easyFetch<OmdbSearch>('/api/search', 'GET', { 
+      // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
+      searchTerm: searchTerm.trim(), 
+      searchType, 
+      queryTerm: 's', 
+      queryType: 'type',
+    }).then(data => {
+        console.log('search result', data)
+        setSearchResult(data);
+        setIsSearching(false);
+      });
 
-    const delaySetState: NodeJS.Timeout | undefined = setTimeout(() => {
-      easyFetch<OmdbSearch>('/api/search', 'GET', { 
-        // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
-        searchTerm: searchTerm.trim(), 
-        searchType, 
-        queryTerm: 's', 
-        queryType: 'type',
-      }).then(data => {
-          console.log('search result', data)
-          setSearchResult(data)
-          setIsSearching(false);
-        })
-    }, 250);
 
-    return () => clearTimeout(delaySetState);
+    // const delaySetState: NodeJS.Timeout | undefined = setTimeout(() => {
+    //   easyFetch<OmdbSearch>('/api/search', 'GET', { 
+    //     // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
+    //     searchTerm: searchTerm.trim(), 
+    //     searchType, 
+    //     queryTerm: 's', 
+    //     queryType: 'type',
+    //   }).then(data => {
+    //       console.log('search result', data)
+    //       setSearchResult(data)
+    //       setIsSearching(false);
+    //     })
+    // }, 250);
+
+    // return () => clearTimeout(delaySetState);
   }, [searchTerm, searchType]);
 
   function getSearchUrl() {
@@ -110,9 +110,10 @@ export default function Searchbar() {
           inputProps={{
             placeholder: 'Search...',
             onFocus: () => setDisplaySearchResult(true),
-            className: 'text-lg'
+            onBlur: () => setDisplaySearchResult(false),
+            className: 'text-lg',
           }}
-          // key={searchTerm}
+          autoFillParam={'searchTerm'}
         />
         {/* Search Results area */}
         <div className={`opacity-95 absolute top-12 flex w-full flex-col gap-2 p-2 bg-secondary items-center z-10 transition-all duration-300 showOutline overflow-hidden ${displaySearchResult && searchTerm ? 'scale-y-100' : 'scale-y-0'}`}>
@@ -136,9 +137,6 @@ export default function Searchbar() {
       <Button className='flex-1 z-10 sm:order-3 order-2'
         variant='outline'
         type='submit'
-        onClick={() => {
-          console.log('go to search page')
-        }}
       >Search</Button>
     </form>
   )

@@ -62,7 +62,7 @@ export default function SliderView(
   }
 
   return (
-    <ScrollAreaHorizontalSnap className='flex gap-4 p-4 snap-x snap-mandatory'
+    <ScrollAreaHorizontalSnap className='flex gap-4 p-4'
       ref={containerRef}
     >
       <div className='w-screen shrink-0'></div>

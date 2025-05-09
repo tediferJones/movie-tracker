@@ -35,27 +35,9 @@ export default function Searchbar() {
       queryTerm: 's', 
       queryType: 'type',
     }).then(data => {
-        console.log('search result', data)
         setSearchResult(data);
         setIsSearching(false);
       });
-
-
-    // const delaySetState: NodeJS.Timeout | undefined = setTimeout(() => {
-    //   easyFetch<OmdbSearch>('/api/search', 'GET', { 
-    //     // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
-    //     searchTerm: searchTerm.trim(), 
-    //     searchType, 
-    //     queryTerm: 's', 
-    //     queryType: 'type',
-    //   }).then(data => {
-    //       console.log('search result', data)
-    //       setSearchResult(data)
-    //       setIsSearching(false);
-    //     })
-    // }, 250);
-
-    // return () => clearTimeout(delaySetState);
   }, [searchTerm, searchType]);
 
   function getSearchUrl() {
@@ -110,7 +92,7 @@ export default function Searchbar() {
           inputProps={{
             placeholder: 'Search...',
             onFocus: () => setDisplaySearchResult(true),
-            onBlur: () => setDisplaySearchResult(false),
+            onBlur: (e) => e.stopPropagation(),
             className: 'text-lg',
           }}
           autoFillParam={'searchTerm'}

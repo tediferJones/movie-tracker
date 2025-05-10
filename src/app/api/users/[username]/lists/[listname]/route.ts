@@ -3,7 +3,7 @@ import { listnames, lists, media } from '@/drizzle/schema';
 import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 import { isValid } from '@/lib/inputValidation';
 import { currentUser } from '@clerk/nextjs';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
 
@@ -21,7 +21,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
           eq(lists.username, username),
           eq(lists.listname, listname),
         )
-      );
+      ).orderBy(desc(lists.date));
 
       const listData = await getManyExistingMedia(listRecords.map(rec => rec.imdbId));
       cache.set(cacheStr, listData);
@@ -57,7 +57,12 @@ export async function POST(req: Request, { params }: { params: Params }) {
 
     if (!alreadyExists) {
       // if list doesnt exist, create it
-      await db.insert(listnames).values({ username, listname, defaultList: false });
+      await db.insert(listnames).values({
+        username,
+        listname,
+        defaultList: false,
+        date: Date.now(),
+      });
       cache.delete(`${username},lists`);
     }
 
@@ -79,7 +84,12 @@ export async function POST(req: Request, { params }: { params: Params }) {
         )
       ).get();
       if (!alreadyInList) {
-        await db.insert(lists).values({ username, listname, imdbId });
+        await db.insert(lists).values({
+          username,
+          listname,
+          imdbId,
+          date: Date.now(),
+        });
         cache.delete(`${username},${imdbId},lists`);
         cache.delete(`${username},${listname}`);
       }

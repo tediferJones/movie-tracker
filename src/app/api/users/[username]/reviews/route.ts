@@ -9,7 +9,7 @@ import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 
 type Params = { username: string }
 type Review = typeof reviews.$inferInsert
-type ReviewBody = Omit<Omit<Review, 'username'>, 'imdbId'>
+type ReviewBody = Omit<Omit<Omit<Review, 'username'>, 'imdbId'>, 'date'>
 
 export async function GET(req: Request, { params }: { params: Params }) {
   // if req has imdbId param, return single review for given imdbId
@@ -84,7 +84,12 @@ export async function POST(req: Request, { params }: { params: Params }) {
       return NextResponse.json('Review already exists', { status: 400 });
     }
 
-    await db.insert(reviews).values({ username, imdbId, ...review });
+    await db.insert(reviews).values({
+      username,
+      imdbId,
+      date: Date.now(),
+      ...review
+    });
     cache.delete(`${username},${imdbId},review`);
     cache.delete(`${username},reviews`);
     cache.delete(`${imdbId},reviews`);

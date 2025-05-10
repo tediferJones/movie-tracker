@@ -46,7 +46,6 @@ export default function MyTable(
     useScrollArea?: boolean,
   }
 ) {
-  data = data.map((_, i, arr) => arr[arr.length - 1 - i]);
   const searchCache: Record<string, ExistingMediaInfo[]> = {};
 
   const [sortType, setSortType] = useState<SortType>('asc');

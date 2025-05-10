@@ -33,6 +33,7 @@ export default function MultiTable({ username }: { username: string }) {
           method: 'GET',
         }),
       ]).then(([listnames, defaultList]) => {
+          console.log({ listnames, defaultList })
           setListnames(listnames);
           setCurrentList(defaultList || listnames[0]);
           if (!listnames.length) setListData([]);

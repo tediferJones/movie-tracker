@@ -9,10 +9,16 @@ function getNextDate() {
 }
 
 export async function GET() {
+  console.log('FIX DB ROUTE')
   const allWatched = await db.select().from(watched);
   const allReviews = await db.select().from(reviews);
   const allListRecs = await db.select().from(lists);
   const allListnameRecs = await db.select().from(listnames);
+
+  // console.log({ allReviews })
+  console.log(allReviews.length)
+  console.log(allListRecs.length)
+  console.log(allListnameRecs.length)
 
   // add time stamps to reviews, if watch record exists, just use that timestamp
   const fixedReviews = allReviews.map(review => {
@@ -41,6 +47,7 @@ export async function GET() {
 
   // avoid flooding db with requests
   // for (let i = 0; i < fixedReviews.length; i++) {
+  //   console.log(`reviews ${i + 1}/${fixedReviews.length}`)
   //   const review = fixedReviews[i];
   //   await db.update(reviews).set({
   //     date: review.date
@@ -53,6 +60,7 @@ export async function GET() {
   // }
 
   // for (let i = 0; i < fixedListRecs.length; i++) {
+  //   console.log(`listRecs ${i + 1}/${fixedListRecs.length}`)
   //   const listRec = fixedListRecs[i];
   //   if (!listRec.username) throw Error('no username');
   //   if (!listRec.listname) throw Error('no listname');
@@ -68,6 +76,7 @@ export async function GET() {
   // }
 
   // for (let i = 0; i < fixedListnameRecs.length; i++) {
+  //   console.log(`listnames ${i + 1}/${fixedListnameRecs.length}`)
   //   const listnameRec = fixedListnameRecs[i];
   //   await db.update(listnames).set({
   //     date: listnameRec.date,

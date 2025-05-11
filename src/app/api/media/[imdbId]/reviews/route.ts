@@ -1,8 +1,8 @@
 import { db } from '@/drizzle/db';
 import { reviews } from '@/drizzle/schema';
-import cache from '@/lib/cache';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import cache from '@/lib/cache';
 
 type Params = { imdbId: string }
 
@@ -13,7 +13,9 @@ export async function GET(req: Request, { params }: { params: Params }) {
   if (!cache.get(cacheStr)) {
     try {
       cache.set(cacheStr, 
-        await db.select().from(reviews).where(eq(reviews.imdbId, imdbId))
+        await db.select().from(reviews).where(
+          eq(reviews.imdbId, imdbId)
+        ).orderBy(desc(reviews.date))
       );
     } catch {
       return NextResponse.json('Failed to process request, database error', { status: 500 });

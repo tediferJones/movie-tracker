@@ -25,7 +25,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
               eq(watched.username, username),
               eq(watched.imdbId, imdbId),
             )
-          )
+          ).orderBy(desc(watched.date))
         );
       }
       return NextResponse.json(cache.get(cacheStr));

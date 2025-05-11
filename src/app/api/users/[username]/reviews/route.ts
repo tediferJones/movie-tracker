@@ -1,11 +1,11 @@
 import { db } from '@/drizzle/db';
 import { reviews } from '@/drizzle/schema';
-import { isValid } from '@/lib/inputValidation';
+import { and, desc, eq } from 'drizzle-orm';
 import { currentUser } from '@clerk/nextjs';
-import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
-import cache from '@/lib/cache';
+import { isValid } from '@/lib/inputValidation';
 import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
+import cache from '@/lib/cache';
 
 type Params = { username: string }
 type Review = typeof reviews.$inferInsert
@@ -36,7 +36,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
       if (!cache.get(cacheStr)) {
         const allReviews = await db.select().from(reviews).where(
           eq(reviews.username, username)
-        );
+        ).orderBy(desc(reviews.date));
 
         await getManyExistingMedia(allReviews.map(review => review.imdbId));
 
@@ -46,7 +46,21 @@ export async function GET(req: Request, { params }: { params: Params }) {
           return review;
         }));
       }
+      // WORKING
       return NextResponse.json(cache.get(cacheStr));
+
+      // TESTING
+      // const page = Number(searchParams.get('page'));
+      // const pageSize = Number(searchParams.get('pageSize'));
+      // const results = cache.get(cacheStr)
+      // if (!page || !pageSize) return NextResponse.json(results)
+      // const start = (page - 1) * pageSize;
+      // const end = (page * pageSize)
+      // console.log({ start, end })
+      // return NextResponse.json([
+      //   ...results.slice(start, end),
+      //   results.length
+      // ])
     }
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

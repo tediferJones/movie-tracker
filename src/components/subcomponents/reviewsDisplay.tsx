@@ -39,6 +39,20 @@ export default function ReviewsDisplay(
     }
   }, [extTrigger, username]);
 
+  // this should be extracted to its own component and made more modular
+  // also used in watchManager component
+  function getFormattedDateStr(unixTime: number) {
+    const date = new Date(unixTime);
+    const dateStr = date.toLocaleDateString(undefined, {
+      // weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    const timeStr = date.toLocaleTimeString();
+    return `${dateStr} at ${timeStr}`;
+  }
+
   return (
     <div className='showOutline flex flex-col p-4'>
       {!reviews ? <Loading /> :
@@ -70,6 +84,7 @@ export default function ReviewsDisplay(
                       : <span className='text-muted-foreground'>No Review Content</span>
                     }
                   </div>
+                  <div className='ml-auto text-muted-foreground'>{getFormattedDateStr(review.date)}</div>
                 </Link>
                 {i < reviews.length - 1 && <hr className='my-2' />}
               </>

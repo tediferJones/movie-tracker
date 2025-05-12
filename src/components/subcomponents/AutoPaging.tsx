@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useEffect, useRef } from 'react';
 import Loading from '@/components/subcomponents/loading';
 
-export default function usePaging(
+export default function AutoPaging(
   {
     page,
     setPage
@@ -26,7 +26,7 @@ export default function usePaging(
     );
     observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [page])
+  }, [page]);
 
   return <div ref={ref}><Loading /></div>
 }

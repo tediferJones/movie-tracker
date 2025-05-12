@@ -6,6 +6,7 @@ import easyFetchV3 from '@/lib/easyFetchV3';
 import { OmdbSearch } from '@/types';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import AutoPaging from '@/components/subcomponents/AutoPaging';
 
 export default function Search() {
   const observed = useRef(null);
@@ -71,6 +72,7 @@ export default function Search() {
             <span className='text-center'>Displaying {searchResult.Search.length} out of {searchResult.totalResults}</span>
             <SearchResults results={searchResult.Search} />
             {searchResult.Search.length < Number(searchResult.totalResults) &&
+              // <AutoPaging page={pageCount} setPage={setPageCount} />
               <div className='text-center' ref={observed}>
                 <Loading />
               </div>

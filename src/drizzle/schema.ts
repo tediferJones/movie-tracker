@@ -72,8 +72,7 @@ export const reviews = sqliteTable('reviews', {
   watchAgain: integer('watchAgain', { mode: 'boolean' }),
   rating: integer('rating'),
   review: text('review'),
-  // date: integer('date').notNull().default(1), // temp
-  date: integer('date').notNull(), // final
+  date: integer('date').notNull(),
 }, table => ({
     pk: primaryKey({ columns: [ table.username, table.imdbId ] })
   }));
@@ -82,8 +81,7 @@ export const listnames = sqliteTable('listnames', {
   username: text('username').notNull(),
   listname: text('listname').notNull(),
   defaultList: integer('defaultList', { mode: 'boolean' }).notNull(),
-  // date: integer('date').notNull().default(1), // temp
-  date: integer('date').notNull(), // final
+  date: integer('date').notNull(),
 }, table => ({
     pk: primaryKey({ columns: [ table.username, table.listname ] })
   }));
@@ -92,8 +90,7 @@ export const lists = sqliteTable('lists', {
   imdbId: text('imdbId').notNull().references(() => media.imdbId, { onDelete: 'cascade' }),
   username: text('username'),
   listname: text('listname'),
-  // date: integer('date').notNull().default(1), // temp
-  date: integer('date').notNull(), // final
+  date: integer('date').notNull(),
 }, table => ({
     pk: primaryKey({ columns: [ table.imdbId, table.username, table.listname ] }),
     fk: foreignKey({

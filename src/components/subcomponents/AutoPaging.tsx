@@ -3,30 +3,30 @@ import Loading from '@/components/subcomponents/loading';
 
 export default function AutoPaging(
   {
-    page,
-    setPage
+    setPage, // adding 'use client' causes this to throw warning, fix that
+    currentCount,
+    maxCount,
   }: {
-    page: number,
     setPage: Dispatch<SetStateAction<number>>
+    currentCount: number,
+    maxCount: number,
   }
 ) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log('running useEffect hook for paging')
     if (!ref.current) throw Error('cant find ref');
     const observer = new IntersectionObserver(
       ([ entry ]) => {
         if (entry.isIntersecting) {
-          console.log('seen, incrementing page')
-          setPage(prev => prev + 1)
+          setPage(prev => prev + 1);
         }
       },
       { threshold: 0.1 }
     );
     observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [page]);
+  }, []);
 
-  return <div ref={ref}><Loading /></div>
+  return currentCount < maxCount && <div ref={ref}><Loading /></div>
 }

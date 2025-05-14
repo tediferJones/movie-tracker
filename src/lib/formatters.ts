@@ -49,3 +49,18 @@ export const tableToCol : { [key: string]: string } = {
   people: 'name',
   users: 'username',
 }
+
+export function formatTimestamp(
+  ms: number,
+  opts: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }
+) {
+  const date = new Date(ms);
+  const dateStr = date.toLocaleDateString(undefined, opts);
+  const timeStr = date.toLocaleTimeString();
+  return `${dateStr} at ${timeStr}`;
+}

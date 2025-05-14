@@ -4,10 +4,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { watched } from '@/drizzle/schema';
-import Loading from '@/components/subcomponents/loading';
-import easyFetchV2 from '@/lib/easyFetchV2';
 import { useUser } from '@clerk/nextjs';
+import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
+import easyFetchV2 from '@/lib/easyFetchV2';
+import { formatTimestamp } from '@/lib/formatters';
 
 type WatchRecord = typeof watched.$inferSelect;
 
@@ -30,18 +31,6 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
     }
   }, [refreshTrigger, user?.username]);
 
-  function getFormattedDateStr(unixTime: number) {
-    const date = new Date(unixTime);
-    const dateStr = date.toLocaleDateString(undefined, {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-    const timeStr = date.toLocaleTimeString();
-    return `${dateStr} at ${timeStr}`;
-  }
-
   return (
     <div className='flex flex-col justify-between gap-4 p-4 text-center showOutline flex-1 max-h-96 min-w-72'>
       <h1 className='text-xl'>Watch Manager</h1>
@@ -52,7 +41,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
               return (
                 <span key={record.date} className='flex gap-4 items-center justify-center px-4'>
                   <span className='w-full p-2'>
-                    {getFormattedDateStr(record.date)}
+                    {formatTimestamp(record.date)}
                   </span>
                   <button type='button'
                     onClick={() => {
@@ -103,7 +92,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
       >
         <>
           <p>Are you sure you want to delete this record?</p>
-          <p>{getFormattedDateStr(record?.date || 0)}</p>
+          <p>{formatTimestamp(record?.date || 0)}</p>
         </>
       </ConfirmModal>
     </div>

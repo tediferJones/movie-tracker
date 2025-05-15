@@ -16,6 +16,7 @@ export default function AutoPaging(
 
   useEffect(() => {
     if (!ref.current) throw Error('cant find ref');
+    // if (!ref.current) return;
     const observer = new IntersectionObserver(
       ([ entry ]) => {
         if (entry.isIntersecting) {
@@ -26,7 +27,7 @@ export default function AutoPaging(
     );
     observer.observe(ref.current);
     return () => observer.disconnect();
-  }, []);
+  }, [ref.current]);
 
   return currentCount < maxCount && <div ref={ref}><Loading /></div>
 }

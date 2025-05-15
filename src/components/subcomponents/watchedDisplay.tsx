@@ -6,24 +6,48 @@ import { useEffect, useState } from 'react';
 import { watched } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
 import easyFetchV3 from '@/lib/easyFetchV3';
+import AutoPaging from './AutoPaging';
 
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 
+type PageRes<T> = {
+  total: number,
+  result: T,
+}
+
 export default function WatchedDisplay({ username }: { username: string }) {
   const [watched, setWatched] = useState<WatchedRec[]>();
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 25;
+
+  // useEffect(() => {
+  //   easyFetchV3<WatchedRec[]>({
+  //     route: `/api/users/${username}/watched`,
+  //     method: 'GET',
+  //   }).then(data => setWatched(data));
+  // }, []);
 
   useEffect(() => {
-    easyFetchV3<WatchedRec[]>({
+    console.log('fetching', page)
+    easyFetchV3<PageRes<WatchedRec[]>>({
       route: `/api/users/${username}/watched`,
       method: 'GET',
-    }).then(data => setWatched(data));
-  }, []);
+      params: new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      })
+    }).then(({ result, total }) => {
+        setWatched(watched?.concat(result) || result);
+        setTotal(total);
+      });
+  }, [page]);
 
   return (
     <div className='showOutline p-4 flex-1 flex flex-col gap-4 max-h-96 min-w-72'>
       {!watched ? <Loading/> :
         <>
-          <h3 className='text-center text-xl'>Recently Watched ({watched.length})</h3>
+          <h3 className='text-center text-xl'>Recently Watched ({total})</h3>
           <div className='h-full flex flex-col justify-center overflow-hidden'>
             <ScrollArea type='auto' className='flex flex-col'>
               {watched.length === 0
@@ -39,7 +63,12 @@ export default function WatchedDisplay({ username }: { username: string }) {
                       day: 'numeric',
                     })}</span>
                   </Link>
-                ))}
+                ))
+              }
+              <AutoPaging setPage={setPage}
+                maxCount={total}
+                currentCount={watched.length}
+              />
             </ScrollArea>
           </div>
         </>

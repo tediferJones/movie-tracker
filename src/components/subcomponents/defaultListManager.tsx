@@ -12,11 +12,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
-import { Trash2 } from 'lucide-react';
+import { Check, Menu, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
 import easyFetchV3 from '@/lib/easyFetchV3';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 
 export default function DefaultListManager() {
   const [listnames, setListnames] = useState<string[]>();
@@ -69,9 +70,37 @@ export default function DefaultListManager() {
             <ScrollArea type='auto' className='max-h-fit flex flex-col flex-1'>
               {listnames.map(listname => (
                 <span key={listname} className='flex gap-2 justify-center px-4'>
-                  <Link className='w-full text-center p-2 hover:underline hover:bg-secondary rounded-lg truncate'
+                  <Check className={`m-auto ${existingDefaultList === listname ? 'opacity-100' : 'opacity-0'}`} />
+                  <Link className='w-full text-center p-2 hover:underline hover:bg-secondary rounded-lg truncate m-auto'
                     href={`/users/${user.username}/${listname}`}
                   >{listname}</Link>
+                  {/*
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant='outline' className='m-1 p-2'>
+                        <Menu />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuLabel>Options</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <button className='w-full' onClick={() => {
+                          console.log('rename')
+                        }}>
+                          Rename
+                        </button>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>Set as Default</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>
+                        <button className='text-red-500 hover:text-red-500 w-full text-left'>
+                          Delete
+                        </button>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  */}
                   <button type='button'
                     onClick={() => {
                       setConfirmList(listname);

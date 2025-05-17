@@ -40,8 +40,9 @@ export default function ImageWithFallback({ src, alt, ...props }: ImageWithFallb
     )
   }
 
+  const { className, ...otherProps } = props;
   return (
-    <div className='my-auto rounded-lg overflow-hidden'
+    <div className='m-auto rounded-lg overflow-hidden aspect-[2/3]'
       key={`${alt}-${isVisible}-${isLoaded}`}
       ref={ref}
     >
@@ -52,7 +53,8 @@ export default function ImageWithFallback({ src, alt, ...props }: ImageWithFallb
             key={`${alt}-${retryCount}`}
             src={src}
             alt={alt}
-            {...props}
+            className={`${className || ''} h-full w-full`}
+            {...otherProps}
 
             onLoad={() => setIsLoaded(true)}
             onError={() => {

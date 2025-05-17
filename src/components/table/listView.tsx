@@ -10,6 +10,7 @@ import GetLinks from '@/components/subcomponents/getLinks';
 import { details } from '@/components/table/myTable';
 import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
+import ImageWithFallback from '../subcomponents/ImageWithFallback';
 
 export default function MobileView(
   {
@@ -47,26 +48,31 @@ export default function MobileView(
                     </div>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className='flex flex-col gap-2'>
-                  <div className='flex justify-between px-2'>
-                    {['imdbRating', 'tomatoRating', 'metaRating'].map(key => (
-                      <div className='flex flex-wrap gap-1 justify-center items-center'
-                        key={`${mediaInfo.imdbId}-${key}`}
-                      >
-                        <span>{fromCamelCase(key)}:</span>
-                        <span>{getKeyFormatter[key](mediaInfo[key])}</span>
+                <AccordionContent className='flex sm:flex-row flex-col gap-4 p-4 bg-secondary rounded-b-lg'>
+                  <ImageWithFallback 
+                    src={mediaInfo.poster || undefined}
+                    alt={`Poster for ${mediaInfo.title}`}
+                  />
+                  <div className='flex flex-col gap-4 w-full m-auto'>
+                    <div className='flex justify-evenly px-2'>
+                      {['imdbRating', 'tomatoRating', 'metaRating'].map(key => (
+                        <div className='flex flex-wrap gap-1 justify-center items-center'
+                          key={`${mediaInfo.imdbId}-${key}`}
+                        >
+                          <span>{fromCamelCase(key)}:</span>
+                          <span>{getKeyFormatter[key](mediaInfo[key])}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {details.map(key => (
+                      <div className='grid grid-cols-4' key={`${mediaInfo.imdbId}-${key}`}>
+                        <span className='col-span-1 text-center m-auto text-muted-foreground'>{fromCamelCase(key)}:</span>
+                        <div className='col-span-3 text-center'>
+                          <GetLinks type={key} arr={mediaInfo[key]}/>
+                        </div>
                       </div>
                     ))}
                   </div>
-                  <img src={mediaInfo.poster || undefined} />
-                  {details.map(key => (
-                    <div className='grid grid-cols-4' key={`${mediaInfo.imdbId}-${key}`}>
-                      <span className='col-span-1 text-center m-auto text-muted-foreground'>{fromCamelCase(key)}:</span>
-                      <div className='col-span-3 text-center'>
-                        <GetLinks type={key} arr={mediaInfo[key]}/>
-                      </div>
-                    </div>
-                  ))}
                 </AccordionContent>
               </AccordionItem>
             )

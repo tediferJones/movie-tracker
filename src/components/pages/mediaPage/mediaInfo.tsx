@@ -66,9 +66,6 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
 
   return !media ? <Loading /> : <>
     <div className='flex flex-wrap gap-4'>
-      {/*
-      {media.poster ? <img className='m-auto showOutline' alt={`Poster for ${media.title}`} src={media.poster}/> : []}
-      */}
       <ImageWithFallback src={media.poster || undefined} alt={`Poster for ${media.title}`} />
       <div className='showOutline flex-1 flex w-auto flex-col justify-around p-4 text-lg'>
         <h1 className='pb-4 text-center text-3xl flex flex-wrap justify-center gap-4'>

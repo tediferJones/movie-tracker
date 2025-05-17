@@ -5,6 +5,7 @@ import GetLinks from '@/components/subcomponents/getLinks';
 import { Button } from '@/components/ui/button';
 import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
+import ImageWithFallback from '../subcomponents/ImageWithFallback';
 
 export default function TableRow(
   {
@@ -47,8 +48,11 @@ export default function TableRow(
       <tr>
         <td colSpan={100} className='p-0'>
           <div className={`rounded-lg bg-primary-foreground flex gap-4 justify-center items-center overflow-hidden transition-all ${isOpen ? 'p-4 border-t max-h-[9999px]' : 'max-h-[0px]'}`}>
-            <img className={`h-48 ${isOpen ? 'opacity-100' : 'opacity-0'} transition-opacity`} src={mediaInfo.poster || undefined} />
-            <div className={`grid grid-cols-2 gap-4`}>
+            <ImageWithFallback className={`${isOpen ? 'opacity-100' : 'opacity-0'} transition-opacity`}
+              src={mediaInfo.poster || undefined}
+              alt={`Poster for ${mediaInfo.title}`}
+            />
+            <div className='grid grid-cols-2 gap-4'>
               {details.map(key => (
                 <div key={key} className='flex flex-wrap justify-center items-center gap-1'>
                   <span>{fromCamelCase(key)}:</span>

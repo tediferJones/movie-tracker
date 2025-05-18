@@ -106,7 +106,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
 export async function PUT(req: Request, { params }: { params: Params }) {
   // change listname
   const { username, listname } = params;
-  const newListname = await req.json();
+  const { newListname } = await req.json();
   
   if (!newListname) {
     return NextResponse.json('Bad Request', { status: 400 });

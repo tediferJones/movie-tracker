@@ -20,15 +20,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
-import { Check, Menu, Trash2 } from 'lucide-react';
+import { Check, Ellipsis, Menu, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
 import easyFetchV3 from '@/lib/easyFetchV3';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
+import { Checkbox } from '../ui/checkbox';
+import FancyInput from './fancyInput';
 
 export default function DefaultListManager() {
   const [listnames, setListnames] = useState<string[]>();
-  const [newDefaultListname, setNewDefaultListname] = useState<string>();
+  // const [newDefaultListname, setNewDefaultListname] = useState<string>();
   const [existingDefaultList, setExistingDefaultList] = useState<string>();
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [buttonText, setButtonText] = useState('Waiting...');
@@ -36,6 +38,7 @@ export default function DefaultListManager() {
   const [confirmList, setConfirmList] = useState('');
   const [renameList, setRenameList] = useState('');
   const [newListname, setNewListname] = useState('');
+  const [showNewListnameInput, setShowNewListnameInput] = useState(false);
 
   const { user } = useUser();
   useEffect(() => {
@@ -65,7 +68,23 @@ export default function DefaultListManager() {
           {!listnames.length ? <p className='text-center text-muted-foreground'>No Lists Found</p> :
             <ScrollArea type='auto' className='max-h-fit flex flex-col flex-1'>
               {listnames.map(listname => (
-                <span key={listname} className='flex gap-2 justify-center px-4'>
+                <span key={listname} className='flex gap-4 justify-center px-4'>
+                  <Checkbox className='m-auto'
+                    checked={listname === existingDefaultList}
+                    onCheckedChange={(e) => {
+                      const newDefaultListname = e ? listname : '';
+                      if (!user?.username) return;
+                      if (buttonText) return;
+                      setButtonText(`Setting default to ${listname}...`);
+                      easyFetchV3({
+                        route: `/api/users/${user.username}/defaultList`,
+                        method: 'POST',
+                        params: { newDefaultListname },
+                        skipJSON: true,
+                      }).then(() => setRefreshTrigger(!refreshTrigger));
+                    }}
+                  />
+                  {/*
                   <input type='checkbox'
                     checked={listname === existingDefaultList}
                     onChange={() => {
@@ -81,33 +100,60 @@ export default function DefaultListManager() {
                       }).then(() => setRefreshTrigger(!refreshTrigger));
                     }}
                   />
-                  {renameList === listname ? <input 
-                    onChange={(e) => setNewListname(e.currentTarget.value)}
-                    value={newListname}
-                    className='w-full m-2 showOutline'
-                    onBlur={() => {
-                      console.log('set new listname to', newListname)
-                      setButtonText(`Renaming ${listname} to ${newListname}`)
-                      easyFetchV3({
-                        route: `/api/users/${user.username}/lists/${listname}`,
-                        method: 'PUT',
-                        body: { newListname },
-                        skipJSON: true
-                      }).then(() => {
-                          setRefreshTrigger(!refreshTrigger);
-                          setRenameList('');
-                          setNewListname('');
-                        })
-                    }}
-                  /> :
+                  */}
+                  {renameList === listname ?
+                    <FancyInput className='w-full'
+                      inputState={[newListname, setNewListname]}
+                      notSearch
+                      inputProps={{
+                        id: `rename-${listname}`,
+                        onBlur: () => {
+                          console.log('set new listname to', newListname)
+                          setButtonText(`Renaming ${listname} to ${newListname}`)
+                          easyFetchV3({
+                            route: `/api/users/${user.username}/lists/${listname}`,
+                            method: 'PUT',
+                            body: { newListname },
+                            skipJSON: true
+                          }).then(() => {
+                              setRefreshTrigger(!refreshTrigger);
+                              setRenameList('');
+                              setNewListname('');
+                            })
+                        }
+                      }}
+                    />
+                    // <input 
+                    //   onChange={(e) => setNewListname(e.currentTarget.value)}
+                    //   value={newListname}
+                    //   className='w-full m-2 showOutline'
+                    //   onBlur={() => {
+                    //     console.log('set new listname to', newListname)
+                    //     setButtonText(`Renaming ${listname} to ${newListname}`)
+                    //     easyFetchV3({
+                    //       route: `/api/users/${user.username}/lists/${listname}`,
+                    //       method: 'PUT',
+                    //       body: { newListname },
+                    //       skipJSON: true
+                    //     }).then(() => {
+                    //         setRefreshTrigger(!refreshTrigger);
+                    //         setRenameList('');
+                    //         setNewListname('');
+                    //       })
+                    //   }}
+                    // />
+                    :
                     <Link className='w-full text-center p-2 hover:underline hover:bg-secondary transition-all duration-300 rounded-lg truncate m-auto'
                       href={`/users/${user.username}/${listname}`}
                     >{listname}</Link>
                   }
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant='outline' className='m-1 p-2'>
+                      <Button variant='outline' className='m-2 p-2 aspect-square'>
+                        {/*
                         <Menu />
+                        */}
+                        <Ellipsis />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -119,6 +165,7 @@ export default function DefaultListManager() {
                           setNewListname(listname);
                         }}>Rename</button>
                       </DropdownMenuItem>
+                      {/*
                       <DropdownMenuItem>
                         <button onClick={() => {
                           if (!user?.username) return;
@@ -134,6 +181,7 @@ export default function DefaultListManager() {
                           Set as Default
                         </button>
                       </DropdownMenuItem>
+                      */}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem>
                         <button className='text-red-500 hover:text-red-500 w-full text-left'
@@ -152,9 +200,22 @@ export default function DefaultListManager() {
             </ScrollArea>
           }
           <div className='flex'>
-            <input className='w-full showOutline mr-4 px-4' placeholder='New Listname' />
-            <Button className='w-full' type='button' onClick={() => {
+            {/*
+            <input className={`${showNewListnameInput ? 'min-w-full' : 'max-w-0 min-w-0'}`} placeholder='New Listname' />
+            <div className={`bg-red-500 h-full transition-all duration-1000 ${showNewListnameInput ? 'max-w-48 min-w-48' : 'max-w-0 min-w-0'}`}></div>
+            */}
+            <FancyInput className={`overflow-hidden transition-all duration-1000 ${showNewListnameInput ? 'w-full mr-4' : 'w-[0%] px-0 border-none'}`}
+              inputState={[newListname, setNewListname]}
+              notSearch
+              inputProps={{
+                autoFocus: showNewListnameInput,
+                placeholder: 'New Listname'
+              }}
+            />
+            <Button className={`transition-all duration-1000 w-full ${showNewListnameInput ? 'w-fit' : 'w-full'}`} type='button' onClick={() => {
               console.log('input should appear now')
+              console.log('toggle')
+              setShowNewListnameInput(!showNewListnameInput);
             }}>{buttonText || 'Create New List'}</Button>
           </div>
           <ConfirmModal

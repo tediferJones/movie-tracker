@@ -9,12 +9,14 @@ export default function FancyInput(
     className,
     inputProps,
     autoFillParam,
+    notSearch,
   }: {
     inputState: [string, Dispatch<SetStateAction<string>>],
     delay?: number,
     className?: string,
     inputProps?: React.InputHTMLAttributes<HTMLInputElement>,
     autoFillParam?: string,
+    notSearch?: boolean,
   }
 ) {
   const [inputData, setInputData] = inputState;
@@ -47,7 +49,7 @@ export default function FancyInput(
 
   return (
     <div className={`${className || ''} showOutline flex items-stretch px-2 gap-2 ring-offset-2 ring-offset-background focus-within:ring-2 focus-within:ring-ring transition duration-500`}>
-      <Search className='text-muted-foreground shrink-0 m-auto' />
+      {notSearch || <Search className='text-muted-foreground shrink-0 m-auto' />}
       <input className={`${inputClassName || ''} outline-none flex-1 min-w-24 w-full bg-transparent`}
         value={localValue}
         onChange={(e) => setLocalValue(e.currentTarget.value)}

@@ -1,74 +1,147 @@
 import { Search, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, forwardRef, useEffect, useState } from 'react';
 
-export default function FancyInput(
-  {
-    inputState,
-    delay,
-    className,
-    inputProps,
-    autoFillParam,
-    notSearch,
-  }: {
+export default forwardRef(function FancyInput({
+  inputState,
+  delay,
+  className,
+  inputProps,
+  autoFillParam,
+  notSearch,
+}: {
     inputState: [string, Dispatch<SetStateAction<string>>],
     delay?: number,
     className?: string,
     inputProps?: React.InputHTMLAttributes<HTMLInputElement>,
     autoFillParam?: string,
     notSearch?: boolean,
-  }
+  },
+  ref: React.Ref<HTMLInputElement>
 ) {
-  const [inputData, setInputData] = inputState;
-  const [showX, setShowX] = useState(false);
-  const [localValue, setLocalValue] = useState(inputData);
-  const params = useSearchParams();
+    const [inputData, setInputData] = inputState;
+    const [showX, setShowX] = useState(false);
+    const [localValue, setLocalValue] = useState(inputData);
+    const params = useSearchParams();
 
-  useEffect(() => {
-    if (delay) {
-      const timeout = setTimeout(() => setInputData(localValue), delay);
-      return () => clearTimeout(timeout);
-    } else {
-      setInputData(localValue);
-    }
-  }, [localValue]);
+    useEffect(() => {
+      if (delay) {
+        const timeout = setTimeout(() => setInputData(localValue), delay);
+        return () => clearTimeout(timeout);
+      } else {
+        setInputData(localValue);
+      }
+    }, [localValue]);
 
-  useEffect(() => {
-    if (autoFillParam) {
-      const searchTerm = params.get(autoFillParam);
-      if (searchTerm) setLocalValue(searchTerm);
-    }
-  }, []);
+    useEffect(() => {
+      if (autoFillParam) {
+        const searchTerm = params.get(autoFillParam);
+        if (searchTerm) setLocalValue(searchTerm);
+      }
+    }, []);
 
-  const {
-    onFocus,
-    onBlur,
-    className: inputClassName,
-    ...otherProps
-  } = inputProps || {};
+    const {
+      onFocus,
+      onBlur,
+      className: inputClassName,
+      ...otherProps
+    } = inputProps || {};
 
-  return (
-    <div className={`${className || ''} showOutline flex items-stretch px-2 gap-2 ring-offset-2 ring-offset-background focus-within:ring-2 focus-within:ring-ring transition duration-500`}>
-      {notSearch || <Search className='text-muted-foreground shrink-0 m-auto' />}
-      <input className={`${inputClassName || ''} outline-none flex-1 min-w-24 w-full bg-transparent`}
-        value={localValue}
-        onChange={(e) => setLocalValue(e.currentTarget.value)}
-        onFocus={(e) => {
-          setShowX(true);
-          onFocus?.(e);
-        }}
-        onBlur={(e) => {
-          setShowX(false);
-          onBlur?.(e);
-        }}
-        {...otherProps}
-      />
-      <X className={`text-muted-foreground cursor-pointer hover:ring-2 rounded-lg shrink-0 m-auto transition-opacity duration-500 ${showX ? 'opacity-100' : 'opacity-0'}`}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          setLocalValue('');
-        }}
-      />
-    </div>
-  )
-}
+    return (
+      <div className={`${className || ''} showOutline flex items-stretch px-2 gap-2 ring-offset-2 ring-offset-background focus-within:ring-2 focus-within:ring-ring transition duration-500`}>
+        {notSearch || <Search className='text-muted-foreground shrink-0 m-auto' />}
+        <input className={`${inputClassName || ''} outline-none flex-1 min-w-24 w-full bg-transparent`}
+          ref={ref}
+          value={localValue}
+          onChange={(e) => setLocalValue(e.currentTarget.value)}
+          onFocus={(e) => {
+            setShowX(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setShowX(false);
+            onBlur?.(e);
+          }}
+          {...otherProps}
+        />
+        <X className={`text-muted-foreground cursor-pointer hover:ring-2 rounded-lg shrink-0 m-auto transition-opacity duration-500 ${showX ? 'opacity-100' : 'opacity-0'}`}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            setLocalValue('');
+          }}
+        />
+      </div>
+    )
+  }
+)
+
+// export default function FancyInput(
+//   {
+//     inputState,
+//     delay,
+//     className,
+//     inputProps,
+//     autoFillParam,
+//     notSearch,
+//   }: {
+//     inputState: [string, Dispatch<SetStateAction<string>>],
+//     delay?: number,
+//     className?: string,
+//     inputProps?: React.InputHTMLAttributes<HTMLInputElement>,
+//     autoFillParam?: string,
+//     notSearch?: boolean,
+//   }
+// ) {
+//   const [inputData, setInputData] = inputState;
+//   const [showX, setShowX] = useState(false);
+//   const [localValue, setLocalValue] = useState(inputData);
+//   const params = useSearchParams();
+// 
+//   useEffect(() => {
+//     if (delay) {
+//       const timeout = setTimeout(() => setInputData(localValue), delay);
+//       return () => clearTimeout(timeout);
+//     } else {
+//       setInputData(localValue);
+//     }
+//   }, [localValue]);
+// 
+//   useEffect(() => {
+//     if (autoFillParam) {
+//       const searchTerm = params.get(autoFillParam);
+//       if (searchTerm) setLocalValue(searchTerm);
+//     }
+//   }, []);
+// 
+//   const {
+//     onFocus,
+//     onBlur,
+//     className: inputClassName,
+//     ...otherProps
+//   } = inputProps || {};
+// 
+//   return (
+//     <div className={`${className || ''} showOutline flex items-stretch px-2 gap-2 ring-offset-2 ring-offset-background focus-within:ring-2 focus-within:ring-ring transition duration-500`}>
+//       {notSearch || <Search className='text-muted-foreground shrink-0 m-auto' />}
+//       <input className={`${inputClassName || ''} outline-none flex-1 min-w-24 w-full bg-transparent`}
+//         value={localValue}
+//         onChange={(e) => setLocalValue(e.currentTarget.value)}
+//         onFocus={(e) => {
+//           setShowX(true);
+//           onFocus?.(e);
+//         }}
+//         onBlur={(e) => {
+//           setShowX(false);
+//           onBlur?.(e);
+//         }}
+//         {...otherProps}
+//       />
+//       <X className={`text-muted-foreground cursor-pointer hover:ring-2 rounded-lg shrink-0 m-auto transition-opacity duration-500 ${showX ? 'opacity-100' : 'opacity-0'}`}
+//         onMouseDown={(e) => {
+//           e.preventDefault();
+//           setLocalValue('');
+//         }}
+//       />
+//     </div>
+//   )
+// }

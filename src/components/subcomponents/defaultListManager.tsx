@@ -27,6 +27,7 @@ import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import easyFetchV3 from '@/lib/easyFetchV3';
+import { inputValidation } from '@/lib/inputValidation';
 
 export default function DefaultListManager() {
   const [listnames, setListnames] = useState<string[]>();
@@ -97,12 +98,29 @@ export default function DefaultListManager() {
                     <DropdownMenuContent>
                       <DropdownMenuLabel>Options</DropdownMenuLabel>
                       <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => {
+                        setNewListname(listname);
+                        setRenameList(listname);
+                        setTimeout(() => {
+                          setShowNewListnameInput(true);
+                          inputRef.current?.focus();
+                        }, 500);
+                      }}>
+                        Rename
+                      </DropdownMenuItem>
+                      {/*
                       <DropdownMenuItem asChild>
                         <button className='w-full' onClick={() => {
                           setRenameList(listname);
-                          // setNewListname(listname);
+                          setNewListname(listname);
+                          setShowNewListnameInput(true);
+                          // setTimeout(() => {
+                          //   if (!inputRef.current) throw Error('cannot find input ref');
+                          //   inputRef.current.focus();
+                          // }, 250)
                         }}>Rename</button>
                       </DropdownMenuItem>
+                      */}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem>
                         <button className='text-red-500 hover:text-red-500 w-full text-left'
@@ -120,23 +138,62 @@ export default function DefaultListManager() {
               ))}
             </ScrollArea>
           }
-          <div className='flex flex-col'>
-            <FancyInput className={`overflow-hidden transition-all duration-1000 ${showNewListnameInput ? 'scale-100 h-10 mb-4' : 'h-0 scale-0 border-none mb-0'}`}
+          <form className='flex flex-col' noValidate={!newListname} onSubmit={(e) => {
+            e.preventDefault();
+            if (!inputRef.current) throw Error('cannot find input ref');
+            if (showNewListnameInput) {
+              if (!newListname) {
+                console.log('no new listname, do nothing')
+              } else if (renameList) {
+                console.log('rename list')
+              } else {
+                console.log('create new list')
+              }
+              setShowNewListnameInput(false);
+              setRenameList('');
+              setNewListname('');
+            } else {
+              setShowNewListnameInput(true);
+              inputRef.current.focus();
+            }
+          }}>
+            <FancyInput className={`overflow-hidden transition-all duration-500 ${showNewListnameInput ? 'scale-100 h-10 mb-4' : 'h-0 scale-0 border-none mb-0'}`}
+              key={newListname}
               inputState={[newListname, setNewListname]}
               notSearch
               ref={inputRef}
               inputProps={{
                 autoFocus: showNewListnameInput,
                 placeholder: 'New Listname',
-                className: 'h-[40px]'
+                ...inputValidation.listname,
               }}
             />
-            <Button className={`transition-all duration-1000 w-full`} type='button' onClick={() => {
-              if (!inputRef.current) throw Error('cannot find input ref')
-              setShowNewListnameInput(!showNewListnameInput);
-              inputRef.current.focus();
-            }}>{buttonText || 'Create New List'}</Button>
-          </div>
+            <Button className='transition-all duration-1000 w-full'
+              type='submit'
+              // onClick={() => {
+              //   if (!inputRef.current) throw Error('cannot find input ref');
+              //   if (showNewListnameInput) {
+              //     if (renameList) {
+              //       console.log('rename list')
+              //     } else {
+              //       console.log('create new list')
+              //     }
+              //     setShowNewListnameInput(false);
+              //     setRenameList('');
+              //     setNewListname('');
+              //   } else {
+              //     setShowNewListnameInput(true);
+              //     inputRef.current.focus();
+              //   }
+              // }}
+            >
+              {buttonText ? buttonText :
+                renameList && !newListname ? 'Cancel Rename' :
+                  renameList ? `Rename ${renameList}` :
+                    'Create New List'
+              }
+            </Button>
+          </form>
           <ConfirmModal
             visible={modalVisible}
             setVisible={setModalVisible}
@@ -148,6 +205,7 @@ export default function DefaultListManager() {
                 route: `/api/users/${user.username}/lists/${confirmList}`,
                 method: 'DELETE',
               }).then(() => setRefreshTrigger(!refreshTrigger));
+              setConfirmList('');
             }}
           >
             <p>Are you sure you want to delete this list?  All of its contents will be lost.</p>

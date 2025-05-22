@@ -105,58 +105,53 @@ export default function DefaultListManager() {
                           setShowNewListnameInput(true);
                           inputRef.current?.focus();
                         }, 500);
-                      }}>
-                        Rename
-                      </DropdownMenuItem>
-                      {/*
-                      <DropdownMenuItem asChild>
-                        <button className='w-full' onClick={() => {
-                          setRenameList(listname);
-                          setNewListname(listname);
-                          setShowNewListnameInput(true);
-                          // setTimeout(() => {
-                          //   if (!inputRef.current) throw Error('cannot find input ref');
-                          //   inputRef.current.focus();
-                          // }, 250)
-                        }}>Rename</button>
-                      </DropdownMenuItem>
-                      */}
+                      }}>Rename</DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <button className='text-red-500 hover:text-red-500 w-full text-left'
-                          onClick={() => {
-                            setConfirmList(listname);
-                            setModalVisible(true);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </DropdownMenuItem>
+                      <DropdownMenuItem className='text-red-500 focus:text-red-500'
+                        onClick={() => {
+                          setConfirmList(listname);
+                          setModalVisible(true);
+                        }}
+                      >Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </span>
               ))}
             </ScrollArea>
           }
-          <form className='flex flex-col' noValidate={!newListname} onSubmit={(e) => {
-            e.preventDefault();
-            if (!inputRef.current) throw Error('cannot find input ref');
-            if (showNewListnameInput) {
-              if (!newListname) {
-                console.log('no new listname, do nothing')
-              } else if (renameList) {
-                console.log('rename list')
-              } else {
-                console.log('create new list')
+          <form className='flex flex-col'
+            noValidate={!newListname}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!inputRef.current) throw Error('cannot find input ref');
+              if (!showNewListnameInput) {
+                setShowNewListnameInput(true);
+                inputRef.current.focus();
+                return;
+              }
+              if (newListname) {
+                if (renameList) {
+                  console.log('rename', renameList, 'to', newListname)
+                  easyFetchV3({
+                    route: `/api/users/${user.username}/lists/${renameList}`,
+                    method: 'PUT',
+                    body: { newListname },
+                    skipJSON: true,
+                  }).then(() => setRefreshTrigger(!refreshTrigger));
+                } else {
+                  console.log('create new list named', newListname)
+                  easyFetchV3({
+                    route: `/api/users/${user.username}/lists/${newListname}`,
+                    method: 'POST',
+                    skipJSON: true,
+                  }).then(() => setRefreshTrigger(!refreshTrigger));
+                }
               }
               setShowNewListnameInput(false);
               setRenameList('');
               setNewListname('');
-            } else {
-              setShowNewListnameInput(true);
-              inputRef.current.focus();
-            }
-          }}>
+            }}
+          >
             <FancyInput className={`overflow-hidden transition-all duration-500 ${showNewListnameInput ? 'scale-100 h-10 mb-4' : 'h-0 scale-0 border-none mb-0'}`}
               key={newListname}
               inputState={[newListname, setNewListname]}
@@ -170,26 +165,11 @@ export default function DefaultListManager() {
             />
             <Button className='transition-all duration-1000 w-full'
               type='submit'
-              // onClick={() => {
-              //   if (!inputRef.current) throw Error('cannot find input ref');
-              //   if (showNewListnameInput) {
-              //     if (renameList) {
-              //       console.log('rename list')
-              //     } else {
-              //       console.log('create new list')
-              //     }
-              //     setShowNewListnameInput(false);
-              //     setRenameList('');
-              //     setNewListname('');
-              //   } else {
-              //     setShowNewListnameInput(true);
-              //     inputRef.current.focus();
-              //   }
-              // }}
             >
               {buttonText ? buttonText :
                 renameList && !newListname ? 'Cancel Rename' :
                   renameList ? `Rename ${renameList}` :
+                    showNewListnameInput && !newListname ? 'Cancel New List' :
                     'Create New List'
               }
             </Button>
@@ -204,6 +184,7 @@ export default function DefaultListManager() {
               easyFetchV3({
                 route: `/api/users/${user.username}/lists/${confirmList}`,
                 method: 'DELETE',
+                skipJSON: true,
               }).then(() => setRefreshTrigger(!refreshTrigger));
               setConfirmList('');
             }}

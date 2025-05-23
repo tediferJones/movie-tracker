@@ -140,6 +140,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
     );
     cache.set(`${username},${newListname}`, cache.get(`${username},${listname}`));
     cache.delete(`${username},${listname}`);
+    cache.delete(`${username},lists`);
 
     return new NextResponse();
   } catch {

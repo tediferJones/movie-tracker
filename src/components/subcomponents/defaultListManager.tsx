@@ -12,8 +12,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 
-import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
 import { Ellipsis } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
@@ -33,6 +33,7 @@ export default function DefaultListManager() {
   const [newListname, setNewListname] = useState('');
   const [showNewListnameInput, setShowNewListnameInput] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const blurTimeout = useRef<NodeJS.Timeout>();
 
   const { user } = useUser();
   useEffect(() => {
@@ -53,6 +54,25 @@ export default function DefaultListManager() {
         setConfirmList('');
       })
   }, [refreshTrigger, user?.username]);
+
+  function resetInput() {
+    if (blurTimeout.current) {
+      console.log('clearing timeout')
+      clearTimeout(blurTimeout.current);
+    }
+    blurTimeout.current = setTimeout(() => {
+      if (!showNewListnameInput) {
+        if (renameList) {
+          console.log('reset renameList')
+          setRenameList('');
+        }
+        if (newListname) {
+          console.log('reset newListname')
+          setNewListname('');
+        }
+      }
+    });
+  }
 
   return (
     <div className='showOutline flex flex-col justify-between gap-4 p-4 flex-1 max-h-96 min-w-72'>
@@ -78,7 +98,7 @@ export default function DefaultListManager() {
                       }).then(() => setRefreshTrigger(!refreshTrigger));
                     }}
                   />
-                  <Link className='w-full text-center p-2 hover:underline hover:bg-secondary transition-all duration-300 rounded-lg truncate m-auto'
+                  <Link className='w-full text-center p-2 hover:underline hover:bg-secondary transition-all duration-500 rounded-lg truncate m-auto'
                     href={`/users/${user.username}/${listname}`}
                   >{listname}</Link>
                   <DropdownMenu>
@@ -94,9 +114,10 @@ export default function DefaultListManager() {
                         setNewListname(listname);
                         setRenameList(listname);
                         setTimeout(() => {
+                          if (!inputRef.current) throw Error('cannot find input ref');
                           setShowNewListnameInput(true);
-                          inputRef.current?.focus();
-                        }, 500);
+                          inputRef.current.focus();
+                        }, 250);
                       }}>Rename</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className='text-red-500 focus:text-red-500'
@@ -140,8 +161,11 @@ export default function DefaultListManager() {
                 }
               }
               setShowNewListnameInput(false);
-              setRenameList('');
-              setNewListname('');
+            }}
+            onBlurCapture={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget)) {
+                setShowNewListnameInput(false);
+              }
             }}
           >
             <FancyInput className={`overflow-hidden transition-all duration-500 ${showNewListnameInput ? 'scale-100 h-10 mb-4' : 'h-0 scale-0 border-none mb-0'}`}
@@ -154,6 +178,7 @@ export default function DefaultListManager() {
                 placeholder: 'New Listname',
                 ...inputValidation.listname,
               }}
+              onTransitionEnd={() => resetInput()}
             />
             <Button className='w-full' type='submit'>
               {buttonText ? buttonText :

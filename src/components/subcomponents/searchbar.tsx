@@ -58,6 +58,11 @@ export default function Searchbar() {
         router.push(getSearchUrl());
         setDisplaySearchResult(false);
       }}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          setDisplaySearchResult(false);
+        }
+      }}
     >
       {/* Pop-up backdrop */}
       <div className={`-z-10 fixed left-0 top-0 h-[100vh] w-[100vw] transition-all duration-300 ${displaySearchResult ? 'opacity-100 backdrop-blur-md' : 'opacity-0 backdrop-blur-none pointer-events-none'}`}

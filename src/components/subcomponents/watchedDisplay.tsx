@@ -1,12 +1,13 @@
 'use client';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
+
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { watched } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
+import AutoPaging from '@/components/subcomponents/AutoPaging';
 import easyFetchV3 from '@/lib/easyFetchV3';
-import AutoPaging from './AutoPaging';
 
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 

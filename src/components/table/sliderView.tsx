@@ -69,7 +69,7 @@ export default function SliderView(
       {totalLength === 0 ? <div className='text-center text-muted-foreground snap-item snap-center'>No Data Found</div> :
         sorted.length === 0 ? <div className='text-center text-muted-foreground snap-item snap-center'>No Results Found</div> :
           sorted.map((mediaInfo, i) => {
-            return <div className={`sm:max-w-max max-w-36 max-h-[90vh] snap-item flex-shrink-0 flex flex-col items-center justify-center gap-4 snap-center cursor-pointer transition-transform duration-500 ${i === viewIndex ? '' : 'scale-50 opacity-50'}`}
+            return <div className={`sm:max-w-max max-w-36 max-h-[80vh] snap-item flex-shrink-0 flex flex-col items-center justify-center gap-4 snap-center cursor-pointer transition-transform duration-500 ${i === viewIndex ? '' : 'scale-50 opacity-50'}`}
               onClick={(e) => {
                 if (i === viewIndex) {
                   setShowDialog(true);

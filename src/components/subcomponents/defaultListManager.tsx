@@ -56,20 +56,11 @@ export default function DefaultListManager() {
   }, [refreshTrigger, user?.username]);
 
   function resetInput() {
-    if (blurTimeout.current) {
-      console.log('clearing timeout')
-      clearTimeout(blurTimeout.current);
-    }
+    if (blurTimeout.current) clearTimeout(blurTimeout.current);
     blurTimeout.current = setTimeout(() => {
       if (!showNewListnameInput) {
-        if (renameList) {
-          console.log('reset renameList')
-          setRenameList('');
-        }
-        if (newListname) {
-          console.log('reset newListname')
-          setNewListname('');
-        }
+        if (renameList) setRenameList('');
+        if (newListname) setNewListname('');
       }
     });
   }

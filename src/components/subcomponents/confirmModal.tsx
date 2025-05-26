@@ -28,7 +28,7 @@ export default function confirmModal(
     acceptButton,
   }: ConfirmModalProps
 ) {
-  const toggleClass = visible ? 'opacity-100 z-10 backdrop-blur-lg' : 'pointer-events-none opacity-0 backdrop-blur-none';
+  const toggleClass = visible ? 'opacity-100 z-30 backdrop-blur-lg' : 'pointer-events-none opacity-0 backdrop-blur-none';
   return (
     <div className={`${toggleClass} transition-all duration-300 fixed top-0 left-0 w-screen h-screen flex justify-center items-center`}
       onClick={() => setVisible(false)}

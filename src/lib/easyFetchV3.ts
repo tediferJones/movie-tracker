@@ -1,4 +1,4 @@
-type Methods = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD'
+type Methods = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD' | 'PATCH'
 type Args = {
   route: string,
   method: Methods,

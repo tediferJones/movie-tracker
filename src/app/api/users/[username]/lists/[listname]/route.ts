@@ -69,30 +69,56 @@ export async function POST(req: Request, { params }: { params: Params }) {
     if (searchParams.has('imdbId')) {
       const imdbId = searchParams.get('imdbId')!;
 
-      const imdbIdExists = await db.select().from(media).where(
-        eq(media.imdbId, imdbId)
-      ).get();
-      if (!imdbIdExists) {
-        return NextResponse.json('ImdbId does not exist in media table', { status: 400 });
-      }
+      // this should probably just be handled by foreign keys
+      // const imdbIdExists = await db.select().from(media).where(
+      //   eq(media.imdbId, imdbId)
+      // ).get();
+      // if (!imdbIdExists) {
+      //   return NextResponse.json('ImdbId does not exist in media table', { status: 400 });
+      // }
 
-      const alreadyInList = await db.select().from(lists).where(
-        and(
-          eq(lists.username, username),
-          eq(lists.listname, listname),
-          eq(lists.imdbId, imdbId),
-        )
-      ).get();
-      if (!alreadyInList) {
-        await db.insert(lists).values({
-          username,
-          listname,
-          imdbId,
-          date: Date.now(),
-        });
-        cache.delete(`${username},${imdbId},lists`);
-        cache.delete(`${username},${listname}`);
-      }
+      // Probably dont need this either
+      // const alreadyInList = await db.select().from(lists).where(
+      //   and(
+      //     eq(lists.username, username),
+      //     eq(lists.listname, listname),
+      //     eq(lists.imdbId, imdbId),
+      //   )
+      // ).get();
+      // if (!alreadyInList) {
+      //   await db.insert(lists).values({
+      //     username,
+      //     listname,
+      //     imdbId,
+      //     date: Date.now(),
+      //   });
+      //   // cache.delete(`${username},${imdbId},lists`);
+      //   // cache.delete(`${username},${listname}`);
+      // } else {
+      //   // if imdbID already exists in list, then we "bump" the list item by updating the record's date column
+      //   // It might make more sense to move this to a different route
+      //   // maybe create a new route like /api/users/${username}/lists/${listname}/items/${imdbId}
+      //   // POST could add records
+      //   // PUT/PATCH could bump records
+      //   await db.update(lists).set({ date: Date.now() }).where(
+      //     and(
+      //       eq(lists.username, username),
+      //       eq(lists.listname, listname),
+      //       eq(lists.imdbId, imdbId)
+      //     )
+      //   );
+      //   // cache.delete(`${username},${imdbId},lists`);
+      //   // cache.delete(`${username},${listname}`);
+      // }
+
+      await db.insert(lists).values({
+        username,
+        listname,
+        imdbId,
+        date: Date.now(),
+      });
+      cache.delete(`${username},${imdbId},lists`);
+      cache.delete(`${username},${listname}`);
     }
 
     return new NextResponse();
@@ -187,6 +213,40 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
       cache.delete(`${username},lists`);
       cache.delete(`${username},${listname}`);
     }
+    return new NextResponse();
+  } catch {
+    return NextResponse.json('Failed to process request, database error', { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request, { params }: { params: Params }) {
+  const { username, listname } = params;
+  const { searchParams } = new URL(req.url);
+
+  const user = await currentUser();
+  if (!user?.username || user.username !== username) {
+    return NextResponse.json('Unauthorized', { status: 401 });
+  }
+
+  const valid = isValid({ listname });
+  if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
+  
+  if (!searchParams.has('imdbId')) {
+    return NextResponse.json('Bad Request', { status: 400 });
+  }
+  const imdbId = searchParams.get('imdbId')!;
+
+  try {
+    await db.update(lists).set({ date: Date.now() }).where(
+      and(
+        eq(lists.username, username),
+        eq(lists.listname, listname),
+        eq(lists.imdbId, imdbId)
+      )
+    );
+    cache.delete(`${username},${imdbId},lists`);
+    cache.delete(`${username},${listname}`);
+
     return new NextResponse();
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

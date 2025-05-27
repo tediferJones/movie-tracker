@@ -10,13 +10,13 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 import Link from 'next/link';
-import { Trash2 } from 'lucide-react';
+import { ChevronUp, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Loading from '@/components/subcomponents/loading';
+import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { inputValidation } from '@/lib/inputValidation';
 import easyFetchV3 from '@/lib/easyFetchV3';
-import ConfirmModal from '@/components/subcomponents/confirmModal';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname';
@@ -77,7 +77,23 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         !matchingLists.length ? <p className='text-center text-muted-foreground'>No Lists Found</p> :
           <ScrollArea type='auto' className='flex flex-col'>
             {matchingLists.map(listname => (
-              <span key={listname} className='px-4 flex items-center gap-4'>
+              <span key={listname} className='px-4 flex items-center gap-4 py-1'>
+                <button className='relative hover:ring-ring hover:ring-2 rounded-lg p-2'
+                  type='button'
+                  onClick={() => {
+                    console.log(`bumping ${imdbId} in ${listname}`)
+                    setButtonText(`Bumping ${listname}...`);
+                    easyFetchV3({
+                      route: `/api/users/${user.username}/lists/${listname}`,
+                      method: 'PATCH',
+                      params: { imdbId },
+                      skipJSON: true,
+                    }).then(() => setRefreshTrigger(!refreshTrigger));
+                  }}
+                >
+                  <span className='sr-only'>Bump {listname}</span>
+                  <ChevronUp className='h-6 w-6' />
+                </button>
                 <Link className='flex-1 text-center hover:underline truncate p-2 hover:bg-secondary rounded-lg'
                   href={`/users/${user.username}/${listname}`}
                 >{listname}</Link>

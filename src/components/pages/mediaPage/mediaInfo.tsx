@@ -6,7 +6,7 @@ import GetLinks from '@/components/subcomponents/getLinks';
 import Loading from '@/components/subcomponents/loading';
 import SeasonDisplay from '@/components/pages/mediaPage/seasonDisplay';
 import { formatRuntime, fromCamelCase } from '@/lib/formatters';
-import easyFetch from '@/lib/easyFetch';
+import easyFetchV3 from '@/lib/easyFetchV3';
 import { ExistingMediaInfo, StrIdxRawMedia } from '@/types';
 import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
 
@@ -16,18 +16,24 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   useEffect(() => {
-    easyFetch<ExistingMediaInfo>('/api/media', 'GET', { imdbId })
-      .then(data => {
-        setMedia(data)
+    easyFetchV3<ExistingMediaInfo>({
+      route: `/api/media/${imdbId}`,
+      method: 'GET',
+    }).then(data => {
+        setMedia(data);
         if (data.seriesId) {
-          easyFetch<StrIdxRawMedia>('/api/search', 'GET', { 
-            searchTerm: data.seriesId, 
-            searchType: 'series', 
-            queryTerm: 'i', 
-            queryType: 'type',
-          }).then(data => setSeriesTitle(data.Title))
+          easyFetchV3<StrIdxRawMedia>({
+            route: '/api/search',
+            method: 'GET',
+            params: { 
+              searchTerm: data.seriesId, 
+              searchType: 'series', 
+              queryTerm: 'i', 
+              queryType: 'type',
+            }
+          }).then(data => setSeriesTitle(data.Title));
         }
-      })
+      });
   }, [refreshTrigger]);
 
   function formatSeason(n: number) {
@@ -142,8 +148,11 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
       <div className='grid grid-cols-3 gap-4 px-8 py-4'>
         <h3 className='col-span-3 flex justify-between text-xl'>Details: 
           <Button variant='outline' onClick={() => {
-            easyFetch('/api/media', 'PUT', { imdbId }, true)
-              .then(() => setRefreshTrigger(!refreshTrigger))
+            easyFetchV3({
+              route: `/api/media/${imdbId}`,
+              method: 'PUT',
+              skipJSON: true,
+            }).then(() => setRefreshTrigger(!refreshTrigger));
           }}>Update</Button>
         </h3>
         {[

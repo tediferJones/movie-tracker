@@ -3,9 +3,9 @@ import { countries, genres, languages, media, people } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
-import easyFetch from '@/lib/easyFetch';
-import { StrIdxRawMedia } from '@/types';
+import easyFetchV3 from '@/lib/easyFetchV3';
 import formatMediaInfo from '@/lib/formatMediaInfo';
+import { StrIdxRawMedia } from '@/types';
 
 type Params = { imdbId: string }
 
@@ -30,10 +30,14 @@ export async function GET(req: Request, { params }: { params: Params }) {
 export async function POST(req: Request, { params }: { params: Params }) {
   const { imdbId } = params;
   cache.delete(imdbId);
-  const omdbResult = await easyFetch<StrIdxRawMedia>('https://www.omdbapi.com/', 'GET', {
-    apikey: process.env.OMDBAPI_KEY,
-    i: imdbId,
-  });
+  const omdbResult = await easyFetchV3<StrIdxRawMedia>({
+    route: 'https://www.omdbapi.com/',
+    method: 'GET',
+    params: {
+      apikey: process.env.OMDBAPI_KEY,
+      i: imdbId,
+    }
+  })
   if (omdbResult?.Response !== 'True') return NextResponse.json('Not found', { status: 404 });
   const formattedMedia = formatMediaInfo(omdbResult);
   try {

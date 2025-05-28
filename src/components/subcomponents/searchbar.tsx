@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import SearchResults from '@/components/subcomponents/searchResults';
 import Loading from '@/components/subcomponents/loading';
-import easyFetch from '@/lib/easyFetch';
+import easyFetchV3 from '@/lib/easyFetchV3';
 import { OmdbSearch } from '@/types';
 
 export default function Searchbar() {
@@ -28,12 +28,16 @@ export default function Searchbar() {
   useEffect(() => {
     if (!searchTerm) return setSearchResult(undefined);
     setIsSearching(true);
-    easyFetch<OmdbSearch>('/api/search', 'GET', { 
-      // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
-      searchTerm: searchTerm.trim(), 
-      searchType, 
-      queryTerm: 's', 
-      queryType: 'type',
+    easyFetchV3<OmdbSearch>({
+      route: '/api/search',
+      method: 'GET',
+      params: { 
+        // use .trim(), because if you add a space after searchTerm, omdbAPI returns nothing
+        searchTerm: searchTerm.trim(), 
+        searchType, 
+        queryTerm: 's', 
+        queryType: 'type',
+      }
     }).then(data => {
         setSearchResult(data);
         setIsSearching(false);

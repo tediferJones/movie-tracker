@@ -1,6 +1,6 @@
 'use client'
 
-import easyFetch from '@/lib/easyFetch';
+import easyFetchV3 from '@/lib/easyFetchV3';
 import { useState } from 'react';
 
 export default function CheatWatch() {
@@ -17,8 +17,12 @@ export default function CheatWatch() {
             return setError('Cant use a date in the future')
           }
 
-          easyFetch<Response>('/api/cheatwatch', 'POST', { date, imdbId }, true)
-            .then(res => setError(res.ok ? 'Success' : 'Failed'))
+          easyFetchV3<Response>({
+            route: '/api/cheatwatch',
+            method: 'POST',
+            body: { date, imdbId },
+            skipJSON: true,
+          }).then(res => setError(res.ok ? 'Success' : 'Failed'));
         }}
       >
         Cheat your watch records

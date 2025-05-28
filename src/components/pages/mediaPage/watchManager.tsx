@@ -7,10 +7,10 @@ import { watched } from '@/drizzle/schema';
 import { useUser } from '@clerk/nextjs';
 import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
-import easyFetchV2 from '@/lib/easyFetchV2';
 import { formatTimestamp } from '@/lib/formatters';
+import easyFetchV3 from '@/lib/easyFetchV3';
 
-type WatchRecord = typeof watched.$inferSelect;
+type WatchRecord = typeof watched.$inferSelect
 
 export default function WatchManger({ imdbId }: { imdbId: string }) {
   const [watched, setWatched] = useState<WatchRecord[]>();
@@ -22,10 +22,10 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
 
   useEffect(() => {
     if (user?.username) {
-      easyFetchV2<WatchRecord[]>({
+      easyFetchV3<WatchRecord[]>({
         route: `/api/users/${user.username}/watched`,
         method: 'GET',
-        data: { imdbId },
+        params: { imdbId },
       }).then(data => setWatched(data));
       setButtonText('');
     }
@@ -61,10 +61,10 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
         if (buttonText) return console.log('BUTTON DISABLED');
         if (user?.username) {
           setButtonText('Adding...');
-          easyFetchV2({
+          easyFetchV3({
             route: `/api/users/${user.username}/watched`,
             method: 'POST',
-            data: { imdbId },
+            params: { imdbId },
             skipJSON: true,
           }).then(() => {
               setButtonText('');
@@ -78,10 +78,10 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
         action={() => {
           if (record) {
             setButtonText('Deleting...');
-            easyFetchV2({
+            easyFetchV3({
               route: `/api/users/${user?.username}/watched`,
               method: 'DELETE',
-              data: { id: record.id, imdbId },
+              params: { id: record.id, imdbId },
               skipJSON: true,
             }).then(() => {
                 setButtonText('');

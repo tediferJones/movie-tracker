@@ -8,7 +8,7 @@ import {
 import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Loading from '@/components/subcomponents/loading';
-import easyFetch from '@/lib/easyFetch';
+import easyFetchV3 from '@/lib/easyFetchV3';
 import { SeasonResponse } from '@/types';
 
 export default function SeasonDisplay({
@@ -26,14 +26,18 @@ export default function SeasonDisplay({
     Promise.all(
       (isEpisode ? [ seasons ] : [...Array(seasons).keys()].map(i => i + 1))
         .map(seasonNum => {
-          return easyFetch<SeasonResponse>('/api/search', 'GET', { 
-            queryTerm: 'i', 
-            searchTerm: imdbId, 
-            queryType: 'season', 
-            searchType: seasonNum, 
-          })
+          return easyFetchV3<SeasonResponse>({
+            route: '/api/search',
+            method: 'GET',
+            params: { 
+              queryTerm: 'i', 
+              searchTerm: imdbId, 
+              queryType: 'season', 
+              searchType: seasonNum, 
+            },
+          });
         })
-    ).then(seasons => setSeasonsInfo(seasons))
+    ).then(seasons => setSeasonsInfo(seasons));
   }, [])
 
   function getAccordion(seasonInfo: SeasonResponse) {

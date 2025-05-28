@@ -10,7 +10,7 @@ import {
 import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
 import Loading from '@/components/subcomponents/loading';
 import MyTable from '@/components/table/myTable';
-import easyFetch from '@/lib/easyFetch';
+import easyFetchV3 from '@/lib/easyFetchV3';
 import { fromCamelCase } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 import { useEffect, useState } from 'react';
@@ -22,8 +22,11 @@ export default function Person({ params }: { params: { name: string } }) {
   const [peopleMedia, setPeopleMedia] = useState<PersonMedia>();
 
   useEffect(() => {
-    easyFetch<PersonMedia>('/api/people', 'GET', { name })
-      .then(data => setPeopleMedia(data));
+    easyFetchV3<PersonMedia>({
+      route: '/api/people',
+      method: 'GET',
+      params: { name }
+    }).then(data => setPeopleMedia(data));
   }, []);
 
   return (

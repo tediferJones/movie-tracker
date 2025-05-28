@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import easyFetch from '@/lib/easyFetch';
+import easyFetchV3 from '@/lib/easyFetchV3';
 import { OmdbSearch } from '@/types';
 
 export async function GET(req: Request) {
@@ -35,19 +35,20 @@ export async function GET(req: Request) {
     return NextResponse.json(`URL parameter 'queryTerm' is required, options: ${acceptableQueryTerms.join(', ')}`, { status: 400 });
   }
 
-  if (queryType !== 'type') {
-    return NextResponse.json(`URL parameter 'queryTerm' must be set to 'type'`, { status: 400 });
-  }
+  // FIX ME
+  // if (queryType !== 'type' && queryType !== 'season') {
+  //   return NextResponse.json(`URL parameter 'queryType' must be set to 'type'`, { status: 400 });
+  // }
 
-  const acceptableSearchTypes = ['movie', 'series', 'epside'];
-  if (!searchType || !acceptableSearchTypes.includes(searchType)) {
-    return NextResponse.json(`URL parameter 'searchType' is required, options: ${acceptableSearchTypes.join(', ')}`, { status: 400 });
-  }
+  // const acceptableSearchTypes = ['movie', 'series', 'episode'];
+  // if (!searchType || !acceptableSearchTypes.includes(searchType)) {
+  //   return NextResponse.json(`URL parameter 'searchType' is required, options: ${acceptableSearchTypes.join(', ')}`, { status: 400 });
+  // }
 
   const params = { 
     apikey: process.env.OMDBAPI_KEY, 
     // This type is ignored for Season/Episode queries, so no need to override it
-    [queryType]: searchType,
+    [queryType as any]: searchType,
     [queryTerm]: searchTerm, 
   }
   if (page) params.page = page;
@@ -57,6 +58,11 @@ export async function GET(req: Request) {
   // return NextResponse.json(omdbResult);
 
   return NextResponse.json(
-    await easyFetch<OmdbSearch>('https://www.omdbapi.com/', 'GET', params)
+    // await easyFetch<OmdbSearch>('https://www.omdbapi.com/', 'GET', params)
+    await easyFetchV3<OmdbSearch>({
+      route: 'https://www.omdbapi.com/',
+      method: 'GET',
+      params,
+    })
   );
 }

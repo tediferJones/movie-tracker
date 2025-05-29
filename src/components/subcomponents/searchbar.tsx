@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import SearchResults from '@/components/subcomponents/searchResults';
 import Loading from '@/components/subcomponents/loading';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { OmdbSearch } from '@/types';
 
 export default function Searchbar() {
@@ -28,7 +28,7 @@ export default function Searchbar() {
   useEffect(() => {
     if (!searchTerm) return setSearchResult(undefined);
     setIsSearching(true);
-    easyFetchV3<OmdbSearch>({
+    easyFetch<OmdbSearch>({
       route: '/api/search',
       method: 'GET',
       params: { 

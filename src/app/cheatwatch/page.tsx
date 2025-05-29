@@ -1,6 +1,6 @@
 'use client'
 
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { useState } from 'react';
 
 export default function CheatWatch() {
@@ -17,7 +17,7 @@ export default function CheatWatch() {
             return setError('Cant use a date in the future')
           }
 
-          easyFetchV3<Response>({
+          easyFetch<Response>({
             route: '/api/cheatwatch',
             method: 'POST',
             body: { date, imdbId },

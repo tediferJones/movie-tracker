@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { reviews } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp } from '@/lib/formatters';
 
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
@@ -26,12 +26,12 @@ export default function ReviewsDisplay(
     // if imdbId exists, only fetch records related to imdbId
     // if no imdbId, fetch all records for user
     if (username) {
-      easyFetchV3<ExistingReview[]>({
+      easyFetch<ExistingReview[]>({
         route: `/api/users/${username}/reviews`,
         method: 'GET',
       }).then(data => setReviews(data));
     } else if (imdbId) {
-      easyFetchV3<ExistingReview[]>({
+      easyFetch<ExistingReview[]>({
         route: `/api/media/${imdbId}/reviews`,
         method: 'GET',
       }).then(data => setReviews(data));

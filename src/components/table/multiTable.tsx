@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
 import MyTable from '@/components/table/myTable';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { ExistingMediaInfo } from '@/types';
 
 export default function MultiTable({ username }: { username: string }) {
@@ -24,11 +24,11 @@ export default function MultiTable({ username }: { username: string }) {
   useEffect(() => {
     if (!listnames) {
       Promise.all([
-        easyFetchV3<string[]>({
+        easyFetch<string[]>({
           route: `/api/users/${username}/lists`,
           method: 'GET',
         }),
-        easyFetchV3<string>({
+        easyFetch<string>({
           route: `/api/users/${username}/defaultList`,
           method: 'GET',
         }),
@@ -39,7 +39,7 @@ export default function MultiTable({ username }: { username: string }) {
           if (!listnames.length) setListData([]);
         });
     } else {
-      easyFetchV3<ExistingMediaInfo[]>({
+      easyFetch<ExistingMediaInfo[]>({
         route: `/api/users/${username}/lists/${currentList}`,
         method: 'GET',
       }).then(data => {

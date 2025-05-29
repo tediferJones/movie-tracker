@@ -2,13 +2,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 
 export default function ListsDisplay({ username }: { username: string }) {
   const [listnames, setListnames] = useState<string[]>();
 
   useEffect(() => {
-    easyFetchV3<string[]>({
+    easyFetch<string[]>({
       route: `/api/users/${username}/lists`,
       method: 'GET'
     }).then(data => setListnames(data));

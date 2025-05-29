@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { watched } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 
@@ -23,7 +23,7 @@ export default function WatchedDisplay({ username }: { username: string }) {
   const limit = 25;
 
   // useEffect(() => {
-  //   easyFetchV3<WatchedRec[]>({
+  //   easyFetch<WatchedRec[]>({
   //     route: `/api/users/${username}/watched`,
   //     method: 'GET',
   //   }).then(data => setWatched(data));
@@ -31,7 +31,7 @@ export default function WatchedDisplay({ username }: { username: string }) {
 
   useEffect(() => {
     console.log('fetching', page)
-    easyFetchV3<PageRes<WatchedRec[]>>({
+    easyFetch<PageRes<WatchedRec[]>>({
       route: `/api/users/${username}/watched`,
       method: 'GET',
       params: new URLSearchParams({

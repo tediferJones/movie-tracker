@@ -5,7 +5,7 @@ import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
 import Loading from '@/components/subcomponents/loading';
 import MyTable from '@/components/table/myTable';
 import { ExistingMediaInfo } from '@/types';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 
 export default function UserList({ params }: { params: { username: string, listname: string } }) {
   const username = decodeURIComponent(params.username);
@@ -14,7 +14,7 @@ export default function UserList({ params }: { params: { username: string, listn
   const [listContents, setListContents] = useState<ExistingMediaInfo[]>();
 
   useEffect(() => {
-    easyFetchV3<ExistingMediaInfo[]>({
+    easyFetch<ExistingMediaInfo[]>({
       route: `/api/users/${username}/lists/${listname}`,
       method: 'GET'
     }).then(data => setListContents(data));

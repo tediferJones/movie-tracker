@@ -3,7 +3,7 @@ import { countries, genres, languages, media, people } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import formatMediaInfo from '@/lib/formatMediaInfo';
 import { StrIdxRawMedia } from '@/types';
 
@@ -30,7 +30,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
 export async function POST(req: Request, { params }: { params: Params }) {
   const { imdbId } = params;
   cache.delete(imdbId);
-  const omdbResult = await easyFetchV3<StrIdxRawMedia>({
+  const omdbResult = await easyFetch<StrIdxRawMedia>({
     route: 'https://www.omdbapi.com/',
     method: 'GET',
     params: {

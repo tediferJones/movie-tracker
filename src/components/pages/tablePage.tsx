@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
 import Loading from '@/components/subcomponents/loading';
 import MyTable from '@/components/table/myTable';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { fromCamelCase, tableToCol } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 
@@ -13,7 +13,7 @@ export default function TablePage({ route, propName }: { route: string, propName
   propName = decodeURIComponent(propName);
 
   useEffect(() => {
-    easyFetchV3<ExistingMediaInfo[]>({
+    easyFetch<ExistingMediaInfo[]>({
       route: `/api/${route}`,
       method: 'GET',
       params: { [tableToCol[route]]: propName },

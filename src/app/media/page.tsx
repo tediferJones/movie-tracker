@@ -3,7 +3,7 @@
 import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
 import Loading from '@/components/subcomponents/loading';
 import MyTable from '@/components/table/myTable';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { ExistingMediaInfo } from '@/types';
 import { useEffect, useState } from 'react';
 
@@ -11,7 +11,7 @@ export default function Media() {
   const [media, setMedia] = useState<ExistingMediaInfo[]>();
 
   useEffect(() => {
-    easyFetchV3<ExistingMediaInfo[]>({
+    easyFetch<ExistingMediaInfo[]>({
       route: 'api/media',
       method: 'GET'
     }).then(data => setMedia(data));

@@ -8,7 +8,7 @@ import { useUser } from '@clerk/nextjs';
 import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { formatTimestamp } from '@/lib/formatters';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 
 type WatchRecord = typeof watched.$inferSelect
 
@@ -22,7 +22,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
 
   useEffect(() => {
     if (user?.username) {
-      easyFetchV3<WatchRecord[]>({
+      easyFetch<WatchRecord[]>({
         route: `/api/users/${user.username}/watched`,
         method: 'GET',
         params: { imdbId },
@@ -61,7 +61,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
         if (buttonText) return console.log('BUTTON DISABLED');
         if (user?.username) {
           setButtonText('Adding...');
-          easyFetchV3({
+          easyFetch({
             route: `/api/users/${user.username}/watched`,
             method: 'POST',
             params: { imdbId },
@@ -78,7 +78,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
         action={() => {
           if (record) {
             setButtonText('Deleting...');
-            easyFetchV3({
+            easyFetch({
               route: `/api/users/${user?.username}/watched`,
               method: 'DELETE',
               params: { id: record.id, imdbId },

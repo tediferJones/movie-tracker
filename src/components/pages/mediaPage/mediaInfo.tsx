@@ -6,7 +6,7 @@ import GetLinks from '@/components/subcomponents/getLinks';
 import Loading from '@/components/subcomponents/loading';
 import SeasonDisplay from '@/components/pages/mediaPage/seasonDisplay';
 import { formatRuntime, fromCamelCase } from '@/lib/formatters';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { ExistingMediaInfo, StrIdxRawMedia } from '@/types';
 import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
 
@@ -16,13 +16,13 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   useEffect(() => {
-    easyFetchV3<ExistingMediaInfo>({
+    easyFetch<ExistingMediaInfo>({
       route: `/api/media/${imdbId}`,
       method: 'GET',
     }).then(data => {
         setMedia(data);
         if (data.seriesId) {
-          easyFetchV3<StrIdxRawMedia>({
+          easyFetch<StrIdxRawMedia>({
             route: '/api/search',
             method: 'GET',
             params: { 
@@ -148,7 +148,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
       <div className='grid grid-cols-3 gap-4 px-8 py-4'>
         <h3 className='col-span-3 flex justify-between text-xl'>Details: 
           <Button variant='outline' onClick={() => {
-            easyFetchV3({
+            easyFetch({
               route: `/api/media/${imdbId}`,
               method: 'PUT',
               skipJSON: true,

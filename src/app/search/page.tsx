@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Loading from '@/components/subcomponents/loading';
 import SearchResults from '@/components/subcomponents/searchResults';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { OmdbSearch } from '@/types';
 
 export default function Search() {
@@ -26,7 +26,7 @@ export default function Search() {
     const newParams = new URLSearchParams(params.toString());
     newParams.set('page', pageCount.toString());
 
-    easyFetchV3<OmdbSearch>({
+    easyFetch<OmdbSearch>({
       route: '/api/search',
       method: 'GET',
       params: newParams,

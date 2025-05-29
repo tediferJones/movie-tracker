@@ -1,7 +1,7 @@
 'use client';
 import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
 import { useEffect, useState } from 'react';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import Loading from '@/components/subcomponents/loading';
 import MediaPage from '@/components/pages/mediaPage';
 
@@ -10,7 +10,7 @@ export default function Media({ params }: { params: { imdbId: string } }) {
   const [title, setTitle] = useState('');
 
   useEffect(() => {
-    easyFetchV3<string>({
+    easyFetch<string>({
       route: `/api/media/${imdbId}/title`,
       method: 'GET',
     }).then(data => {

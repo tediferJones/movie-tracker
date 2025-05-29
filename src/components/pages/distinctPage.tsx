@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
 import Loading from '@/components/subcomponents/loading';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { fromCamelCase, tableToCol } from '@/lib/formatters';
 
 export default function DistinctPage({ route }: { route: string }) {
@@ -14,7 +14,7 @@ export default function DistinctPage({ route }: { route: string }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    easyFetchV3<any>({
+    easyFetch<any>({
       route: `/api/${route}`,
       method: 'GET',
     }).then(data => setDistinct(data));

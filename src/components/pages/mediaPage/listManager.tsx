@@ -16,7 +16,7 @@ import { useUser } from '@clerk/nextjs';
 import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { inputValidation } from '@/lib/inputValidation';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname';
@@ -32,16 +32,16 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   useEffect(() => {
     if (!user?.username) return;
     Promise.all([
-      easyFetchV3<string[]>({
+      easyFetch<string[]>({
         route: `/api/users/${user.username}/lists`,
         method: 'GET',
         params: { imdbId },
       }),
-      easyFetchV3<string[]>({
+      easyFetch<string[]>({
         route: `/api/users/${user.username}/lists`,
         method: 'GET'
       }),
-      easyFetchV3<string>({
+      easyFetch<string>({
         route: `/api/users/${user.username}/defaultList`,
         method: 'GET'
       })
@@ -63,7 +63,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         if (buttonText) return console.log('early return');
         const listname = e.currentTarget?.newListname?.value || currentList;
         setButtonText(`Adding to ${listname}...`);
-        easyFetchV3({
+        easyFetch({
           route: `/api/users/${user.username}/lists/${listname}`,
           method: 'POST',
           params: { imdbId },
@@ -83,7 +83,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
                   onClick={() => {
                     console.log(`bumping ${imdbId} in ${listname}`)
                     setButtonText(`Bumping ${listname}...`);
-                    easyFetchV3({
+                    easyFetch({
                       route: `/api/users/${user.username}/lists/${listname}`,
                       method: 'PATCH',
                       params: { imdbId },
@@ -146,7 +146,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
           if (!user?.username) return;
           if (buttonText) return;
           setButtonText(`Deleting from ${confirmList}...`);
-          easyFetchV3({
+          easyFetch({
             route: `/api/users/${user.username}/lists/${confirmList}`,
             method: 'DELETE',
             params: { imdbId },

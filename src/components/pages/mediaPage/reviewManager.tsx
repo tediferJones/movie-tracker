@@ -11,7 +11,7 @@ import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { inputValidation } from '@/lib/inputValidation';
 import { useUser } from '@clerk/nextjs';
 import { reviews } from '@/drizzle/schema';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 
 type ExistingReview = typeof reviews.$inferSelect
 type EmptyReview = {
@@ -39,7 +39,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   const { user } = useUser();
   useEffect(() => {
     if (user?.username) {
-      easyFetchV3<ExistingReview | undefined>({
+      easyFetch<ExistingReview | undefined>({
         route: `/api/users/${user.username}/reviews`,
         method: 'GET',
         params: { imdbId },
@@ -140,7 +140,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
         <Button onClick={() => {
           if (user?.username) {
             setButtonText(existingReview.username ? 'Updating Review...' : 'Adding Review...');
-            easyFetchV3({
+            easyFetch({
               route: `/api/users/${user.username}/reviews`,
               method: existingReview.username ? 'PUT' : 'POST',
               params: { imdbId },
@@ -156,7 +156,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
         action={() => {
           if (user?.username) {
             setButtonText('Deleting Review...');
-            easyFetchV3({
+            easyFetch({
               route: `/api/users/${user.username}/reviews`,
               method: 'DELETE',
               params: { imdbId },

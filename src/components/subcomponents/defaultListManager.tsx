@@ -19,7 +19,7 @@ import { useEffect, useRef, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import FancyInput from '@/components/subcomponents/fancyInput';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { inputValidation } from '@/lib/inputValidation';
 
 export default function DefaultListManager() {
@@ -39,11 +39,11 @@ export default function DefaultListManager() {
   useEffect(() => {
     if (!user?.username) return;
     Promise.all([
-      easyFetchV3<string[]>({
+      easyFetch<string[]>({
         route: `/api/users/${user.username}/lists`,
         method: 'GET',
       }),
-      easyFetchV3<string>({
+      easyFetch<string>({
         route: `/api/users/${user.username}/defaultList`,
         method: 'GET',
       })
@@ -81,7 +81,7 @@ export default function DefaultListManager() {
                       if (!user?.username) return;
                       if (buttonText) return;
                       setButtonText(`Setting default to ${listname}...`);
-                      easyFetchV3({
+                      easyFetch({
                         route: `/api/users/${user.username}/defaultList`,
                         method: 'POST',
                         params: { newDefaultListname },
@@ -136,7 +136,7 @@ export default function DefaultListManager() {
               if (newListname) {
                 if (renameList) {
                   setButtonText(`Renaming ${renameList}...`);
-                  easyFetchV3({
+                  easyFetch({
                     route: `/api/users/${user.username}/lists/${renameList}`,
                     method: 'PUT',
                     body: { newListname },
@@ -144,7 +144,7 @@ export default function DefaultListManager() {
                   }).then(() => setRefreshTrigger(!refreshTrigger));
                 } else {
                   setButtonText(`Creating ${newListname}...`);
-                  easyFetchV3({
+                  easyFetch({
                     route: `/api/users/${user.username}/lists/${newListname}`,
                     method: 'POST',
                     skipJSON: true,
@@ -187,7 +187,7 @@ export default function DefaultListManager() {
               if (buttonText) return;
               if (!confirmList) return;
               setButtonText(`Deleting ${confirmList}...`);
-              easyFetchV3({
+              easyFetch({
                 route: `/api/users/${user.username}/lists/${confirmList}`,
                 method: 'DELETE',
                 skipJSON: true,

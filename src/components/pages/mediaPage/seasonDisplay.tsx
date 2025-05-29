@@ -8,7 +8,7 @@ import {
 import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Loading from '@/components/subcomponents/loading';
-import easyFetchV3 from '@/lib/easyFetchV3';
+import easyFetch from '@/lib/easyFetch';
 import { SeasonResponse } from '@/types';
 
 export default function SeasonDisplay({
@@ -26,7 +26,7 @@ export default function SeasonDisplay({
     Promise.all(
       (isEpisode ? [ seasons ] : [...Array(seasons).keys()].map(i => i + 1))
         .map(seasonNum => {
-          return easyFetchV3<SeasonResponse>({
+          return easyFetch<SeasonResponse>({
             route: '/api/search',
             method: 'GET',
             params: { 

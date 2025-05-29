@@ -1,23 +1,36 @@
-type Methods = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD'
-
-export default function easyFetch<T>(
+type Methods = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD' | 'PATCH'
+type Args = {
   route: string,
   method: Methods,
+  params?: Record<string, any>,
   body?: any,
   skipJSON?: boolean,
-  retryCount = 0,
-): Promise<T> {
-  const useUrlParams = ['GET'].includes(method) ;
-  const params = useUrlParams ? `?${new URLSearchParams(body)}` : '';
-  const finalRoute = route + params;
-  return fetch(finalRoute, {
+  retryCount?: number,
+}
+
+export default function easyFetch<T>({
+  route,
+  method,
+  params,
+  body,
+  skipJSON,
+  retryCount = 0
+}: Args): Promise<T> {
+  return fetch(params ? route + `?${new URLSearchParams(params)}` : route, {
     method,
-    headers: { 'content-type': 'application/json' },
-    body: body && !useUrlParams ? JSON.stringify(body) : undefined,
+    headers: body ? { 'content-type': 'application/json' } : undefined, 
+    body: body ? JSON.stringify(body) : undefined,
   }).then(res => skipJSON ? res : res.json())
     .catch((err) => {
-      // throw Error(`failed to fetch: ${route}`)
+      console.log(err)
       console.log('fetch failed, attempt', retryCount)
-      if(retryCount < 5) return easyFetch(route, method, body, skipJSON, retryCount + 1)
+      if(retryCount < 5) return easyFetch({
+        route,
+        method,
+        params,
+        body,
+        skipJSON,
+        retryCount: retryCount + 1
+      })
     });
 }

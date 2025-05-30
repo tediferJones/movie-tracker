@@ -15,11 +15,12 @@ export default function AutoPaging(
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!ref.current) throw Error('cant find ref');
-    // if (!ref.current) return;
+    // if (!ref.current) throw Error('cant find ref');
+    if (!ref.current) return console.log(ref.current);
     const observer = new IntersectionObserver(
       ([ entry ]) => {
         if (entry.isIntersecting) {
+          // console.log('increment page')
           setPage(prev => prev + 1);
         }
       },
@@ -29,5 +30,5 @@ export default function AutoPaging(
     return () => observer.disconnect();
   }, [ref.current]);
 
-  return currentCount < maxCount && <div ref={ref}><Loading /></div>
+  return currentCount < maxCount && <Loading ref={ref} />
 }

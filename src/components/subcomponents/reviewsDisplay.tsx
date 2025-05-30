@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { reviews } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
 import easyFetch from '@/lib/easyFetch';
@@ -20,6 +20,13 @@ export default function ReviewsDisplay(
     extTrigger?: boolean,
   }
 ) {
+  // FIX ME
+  // Add max container height (similar to table)
+  // Add searchbar (similar to table)
+  //  - sort by Date, review value, watchAgain value, title/username depending on presence of username/imdbId 
+  //  - search by review min/max, watchAgain value, title/username depending on presence of username/imdbId
+  //  - consider using checkboxes for filtering, that way users can do something like:
+  //    - show reviews with review content, watchAgain true or null, and rating greater than 2 but less than 4
   const [reviews, setReviews] = useState<ExistingReview[]>();
 
   useEffect(() => {

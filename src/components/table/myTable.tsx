@@ -59,6 +59,9 @@ export default function MyTable(
     desc: 'descending',
   }
 
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
+
   const [viewType, setViewType] = useState<ViewTypes>('table');
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -137,9 +140,10 @@ export default function MyTable(
   }
 
   const tableData = {
-    sorted: sortedAndFiltered,
-    totalLength: data.length,
+    sorted: sortedAndFiltered.slice(0, page * pageSize),
+    totalLength: sortedAndFiltered.length,
     linkPrefix,
+    setPage,
   }
 
   return (
@@ -153,17 +157,6 @@ export default function MyTable(
             placeholder: `Search by ${searchCol}`
           }}
         />
-        {/*
-        <Input placeholder={`Search by ${searchCol}`} 
-          onChange={e => {
-            if (searchTimeout) clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-              setSearchTerm(e.target.value);
-            }, 250);
-          }}
-          className='flex-1 min-w-48'
-        />
-        */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='outline' className='sm:w-auto w-full'>
@@ -242,6 +235,8 @@ export default function MyTable(
       <OptionalScrollArea className='max-h-[90vh] m-2 pr-2'
         orientation='vertical'
         scrollEnabled={useScrollArea}
+        // FIX ME
+        key={JSON.stringify({ searchTerm, searchCol, sortCol, sortType })}
       >
         {loadingText ? <div className='text-center h-full'>{loadingText}</div> : {
           table: <TableView {...tableData} sortCol={sortCol} />,

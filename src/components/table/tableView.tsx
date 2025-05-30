@@ -1,5 +1,7 @@
+import { Dispatch, SetStateAction } from 'react';
 import { ColumnType, columns, details } from '@/components/table/myTable';
 import TableRow from '@/components/table/tableRow';
+import AutoPaging from '@/components/subcomponents/AutoPaging';
 import { fromCamelCase } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 
@@ -9,11 +11,13 @@ export default function DesktopView(
     linkPrefix,
     totalLength,
     sortCol,
+    setPage,
   }: {
     sorted: ExistingMediaInfo[],
     linkPrefix: string,
     totalLength: number,
     sortCol: ColumnType,
+    setPage: Dispatch<SetStateAction<number>>,
   }
 ) {
   return (
@@ -45,6 +49,11 @@ export default function DesktopView(
           }
         </tbody>
       </table>
+      <AutoPaging
+        setPage={setPage}
+        currentCount={sorted.length}
+        maxCount={totalLength}
+      />
     </div>
   )
 }

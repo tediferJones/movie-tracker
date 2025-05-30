@@ -1,11 +1,12 @@
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import MediaInfo from '@/components/pages/mediaPage/mediaInfo';
 import ScrollAreaHorizontalSnap from '@/components/subcomponents/ScrollAreaHorizontalSnap';
 import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
+import AutoPaging from '@/components/subcomponents/AutoPaging';
 import useCenteredItem from '@/hooks/useCenteredItem';
 import { getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
@@ -15,27 +16,31 @@ export default function SliderView(
     sorted,
     linkPrefix,
     totalLength,
+    setPage,
   }: {
     sorted: ExistingMediaInfo[],
     linkPrefix: string,
     totalLength: number,
+    setPage: Dispatch<SetStateAction<number>>
   }
 ) {
   const [showDialog, setShowDialog] = useState(false);
-  const [viewIndex, setViewIndex] = useState(0);
+  // const [viewIndex, setViewIndex] = useState(0);
 
   const { containerRef, centeredElement } = useCenteredItem<HTMLDivElement>();
 
-  useEffect(() => {
-    setViewIndex(Number(centeredElement?.dataset.index));
-  }, [centeredElement?.dataset.index]);
+  const viewIndex = Number(centeredElement?.dataset.index);
+  // FIX ME, possibly deprecated by key on optionalScrollArea
+  // useEffect(() => {
+  //   setViewIndex(Number(centeredElement?.dataset.index));
+  // }, [centeredElement?.dataset.index]);
 
-  useEffect(() => {
-    setViewIndex(0);
-    const firstItem = document.querySelector<HTMLDivElement>(`[data-index='0']`);
-    if (!firstItem || !containerRef.current) return;
-    scrollToCenter(firstItem, containerRef.current);
-  }, [sorted]);
+  // useEffect(() => {
+  //   setViewIndex(0);
+  //   const firstItem = document.querySelector<HTMLDivElement>(`[data-index='0']`);
+  //   if (!firstItem || !containerRef.current) return;
+  //   scrollToCenter(firstItem, containerRef.current);
+  // }, [sorted]);
 
   function scrollToCenter(item: HTMLElement, container: HTMLElement) {
     const itemCenter = item.offsetLeft + item.offsetWidth / 2;
@@ -110,6 +115,11 @@ export default function SliderView(
               </div>
             </div>
           })}
+      <AutoPaging
+        setPage={setPage}
+        currentCount={sorted.length}
+        maxCount={totalLength}
+      />
       <div className='w-screen shrink-0'></div>
       <ConfirmModal visible={showDialog} setVisible={setShowDialog}
         key={`${viewIndex},${sorted[viewIndex]?.imdbId}`}

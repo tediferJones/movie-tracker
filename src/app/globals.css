@@ -20,6 +20,20 @@ a {
   }
 }
 
+*::-webkit-scrollbar {
+  @apply w-2;
+  @apply h-2;
+}
+
+*::-webkit-scrollbar-thumb {
+  @apply bg-secondary;
+  @apply rounded-full;
+}
+
+*::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

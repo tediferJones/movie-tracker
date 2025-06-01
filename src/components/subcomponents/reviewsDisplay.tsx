@@ -1,17 +1,32 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ChevronUp } from 'lucide-react';
 import { reviews } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
+import AutoPaging from '@/components/subcomponents/AutoPaging';
+import FancyInput from '@/components/subcomponents/fancyInput';
 import easyFetch from '@/lib/easyFetch';
-import { formatTimestamp } from '@/lib/formatters';
-import AutoPaging from './AutoPaging';
-import FancyInput from './fancyInput';
-import { ChevronUp } from 'lucide-react';
-import { Button } from '../ui/button';
+import { formatTimestamp, fromCamelCase } from '@/lib/formatters';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { inputValidation } from '@/lib/inputValidation';
+import { Input } from '../ui/input';
 
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
+
+type SearchParams = {
+  minRating: number,
+  maxRating: number,
+  searchType: keyof Omit<Omit<Omit<Omit<ExistingReview, 'imdbId'>, 'rating'>, 'date'>, 'watchAgain'>
+  // searchType: StringKeys<ExistingReview>,
+}
+
+// type StringKeys<T> = {
+//   [K in keyof T]: T[K] extends string ? K : never;
+// }[keyof T]
 
 export default function ReviewsDisplay(
   {
@@ -56,6 +71,29 @@ export default function ReviewsDisplay(
     }
   }, [extTrigger, username]);
 
+
+  const displayType = username ? 'title' : 'username'
+  const [searchType, setSearchType] = useState('review');
+  const searchable = [displayType, 'review'];
+  const [sortBy, setSortBy] = useState<string>();
+  const sortable = ['date', 'rating', 'watchAgain', displayType]
+  const [minRating, setMinRating] = useState(0);
+  const [maxRating, setMaxRating] = useState(100);
+  useEffect(() => {
+    if (!reviews) return;
+    console.log({
+      searchTerm,
+      searchType,
+      sortBy,
+      minRating,
+      maxRating,
+    })
+    // let results = reviews;
+    // if (searchTerm && searchParams.searchType) {
+    //   results = results.filter(review => review[searchParams.searchType]?.includes(searchTerm))
+    // }
+  }, [searchTerm, searchType, sortBy, minRating, maxRating]);
+
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[480px]'>
       <div className='flex justify-center items-stretch gap-4 min-h-[40px]'>
@@ -63,24 +101,81 @@ export default function ReviewsDisplay(
         <FancyInput inputState={[searchTerm, setSearchTerm]}
           className='flex-shrink-0 flex-1 items-stretch'
           inputProps={{
-            placeholder: 'Search Reviews...'
+            placeholder: `Search by ${searchType}...`
           }}
         />
         <Button variant='outline' onClick={() => setShowDropDown(!showDropDown)}>
           <ChevronUp className={`transition-all ${showDropDown ? '-rotate-180' : '-rotate-90'}`} />
         </Button>
       </div>
-      <div className={`flex gap-4 transition-[max-height] ${showDropDown ? 'max-h-[999px]' : 'max-h-[0px] overflow-hidden'}`}>
-        <div>HELLO</div>
-        <Button>Click Me</Button>
+      <div className={`flex justify-center gap-4 transition-all duration-1000 ${showDropDown ? 'scale-100 max-h-40' : 'scale-0 max-h-0'}`}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant='outline'>Search by</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuLabel>Search by</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup value={searchType} onValueChange={setSearchType}>
+              {searchable.map(searchType => (
+                <DropdownMenuRadioItem key={`reviewSearch-${searchType}`} value={searchType}>
+                  {fromCamelCase(searchType)}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant='outline'>Sort by</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuLabel>Sory by</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup value={sortBy}
+              onValueChange={(val) => setSortBy(sortBy === val ? undefined : val)}
+            >
+              {sortable.map(sortTerm => (
+                <DropdownMenuRadioItem key={`reviewSort-${sortTerm}`} value={sortTerm}>
+                  {fromCamelCase(sortTerm)}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <label className='flex gap-4 items-center'>
+          <span className='text-nowrap'>Rating Range</span>
+          <Input className='max-w-24'
+            value={minRating / 20}
+            onChange={(e) => setMinRating(Number(e.currentTarget.value) * 20)}
+            type='number'
+            placeholder='Min'
+            min={0}
+            max={5}
+            step={0.05}
+          />
+          <span className=''>-</span>
+          <Input className='max-w-24'
+            value={maxRating / 20}
+            onChange={(e) => setMaxRating(Number(e.currentTarget.value) * 20)}
+            type='number'
+            placeholder='Max'
+            min={0}
+            max={5}
+            step={0.05}
+          />
+        </label>
       </div>
+      {/*
       <hr className='my-2' />
+      */}
       <div className='overflow-y-scroll pr-2'>
         {!reviews ? <Loading /> :
           reviews.length === 0 ? <div className='p-4 text-center text-muted-foreground'>No Reviews Found</div> : 
             reviews.slice(0, page * pageSize).map((review, i) => {
               return (
                 <>
+                  <hr className='my-2' />
                   <Link className='text-foreground group flex flex-col gap-4 p-4 hover:bg-secondary rounded-lg'
                     key={`review-${i}`}
                     href={imdbId ? `/users/${review.username}` : `/media/${review.imdbId}`}
@@ -112,7 +207,9 @@ export default function ReviewsDisplay(
                       )}
                     </div>
                   </Link>
+                  {/*
                   {i < reviews.length - 1 && <hr className='my-2' />}
+                  */}
                 </>
               )
             })

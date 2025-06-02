@@ -1,6 +1,17 @@
 'use client';
 
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -11,22 +22,32 @@ import AutoPaging from '@/components/subcomponents/AutoPaging';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp, fromCamelCase } from '@/lib/formatters';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { inputValidation } from '@/lib/inputValidation';
-import { Input } from '../ui/input';
+// import { inputValidation } from '@/lib/inputValidation';
 
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
 
-type SearchParams = {
-  minRating: number,
-  maxRating: number,
-  searchType: keyof Omit<Omit<Omit<Omit<ExistingReview, 'imdbId'>, 'rating'>, 'date'>, 'watchAgain'>
-  // searchType: StringKeys<ExistingReview>,
-}
+// type SearchParams = {
+//   minRating: number,
+//   maxRating: number,
+//   searchType: keyof Omit<Omit<Omit<Omit<ExistingReview, 'imdbId'>, 'rating'>, 'date'>, 'watchAgain'>
+//   // searchType: StringKeys<ExistingReview>,
+// }
 
 // type StringKeys<T> = {
 //   [K in keyof T]: T[K] extends string ? K : never;
 // }[keyof T]
+
+class TwoWayMap<K, V> {
+  keyToVal: Map<K, V>;
+  valToKey: Map<V, K>;
+
+  constructor(map: Map<K, V>) {
+    this.keyToVal = map;
+    this.valToKey = new Map(
+      [ ...map.keys() ].map(key => [ map.get(key)!, key ])
+    );
+  }
+}
 
 export default function ReviewsDisplay(
   {
@@ -71,14 +92,21 @@ export default function ReviewsDisplay(
     }
   }, [extTrigger, username]);
 
-
-  const displayType = username ? 'title' : 'username'
+  const displayType = username ? 'title' : 'username';
   const [searchType, setSearchType] = useState('review');
   const searchable = [displayType, 'review'];
   const [sortBy, setSortBy] = useState<string>();
-  const sortable = ['date', 'rating', 'watchAgain', displayType]
+  const sortable = ['date', 'rating', 'watchAgain', displayType];
   const [minRating, setMinRating] = useState(0);
   const [maxRating, setMaxRating] = useState(100);
+  const [watchAgainFilter, setWatchAgainFilter] = useState<ExistingReview['watchAgain'][]>([]);
+  const watchAgainConverter = new TwoWayMap<ExistingReview['watchAgain'], string>(
+    new Map([
+      [true, 'Would watch again'],
+      [null, 'No Opinion'],
+      [false, 'Would NOT watch again'],
+    ])
+  );
   useEffect(() => {
     if (!reviews) return;
     console.log({
@@ -87,12 +115,9 @@ export default function ReviewsDisplay(
       sortBy,
       minRating,
       maxRating,
+      watchAgainFilter,
     })
-    // let results = reviews;
-    // if (searchTerm && searchParams.searchType) {
-    //   results = results.filter(review => review[searchParams.searchType]?.includes(searchTerm))
-    // }
-  }, [searchTerm, searchType, sortBy, minRating, maxRating]);
+  }, [searchTerm, searchType, sortBy, minRating, maxRating, watchAgainFilter]);
 
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[480px]'>
@@ -165,6 +190,31 @@ export default function ReviewsDisplay(
             step={0.05}
           />
         </label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant='outline'>Watch Again Filter</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuLabel>Watch Again Filter</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {[ ...watchAgainConverter.keyToVal.values() ].map(watchAgainType => (
+              <DropdownMenuCheckboxItem key={`reviewsWatchAgain-${watchAgainType}`}
+                checked={watchAgainFilter.includes(watchAgainConverter.valToKey.get(watchAgainType)!)}
+                onCheckedChange={(e) => {
+                  const key = watchAgainConverter.valToKey.get(watchAgainType);
+                  if (key === undefined) throw Error('cannot find key');
+                  if (e) {
+                    setWatchAgainFilter(watchAgainFilter.concat(key));
+                  } else {
+                    setWatchAgainFilter(watchAgainFilter.filter(filter => filter !== key));
+                  }
+                }}
+              >
+                {watchAgainType}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       {/*
       <hr className='my-2' />

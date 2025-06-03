@@ -67,6 +67,7 @@ export default function ReviewsDisplay(
   //  - consider using checkboxes for filtering, that way users can do something like:
   //    - show reviews with review content, watchAgain true or null, and rating greater than 2 but less than 4
   const [reviews, setReviews] = useState<ExistingReview[]>();
+  const [allReviews, setAllReviews] = useState<ExistingReview[]>();
 
   const [page, setPage] = useState(1);
   const pageSize = 5;
@@ -81,22 +82,30 @@ export default function ReviewsDisplay(
       easyFetch<ExistingReview[]>({
         route: `/api/users/${username}/reviews`,
         method: 'GET',
-      }).then(data => setReviews(data));
+      }).then(data => {
+          setReviews(data);
+          setAllReviews(data);
+        });
     } else if (imdbId) {
       easyFetch<ExistingReview[]>({
         route: `/api/media/${imdbId}/reviews`,
         method: 'GET',
-      }).then(data => setReviews(data));
+      }).then(data => {
+          setReviews(data);
+          setAllReviews(data);
+        });
     } else {
       throw Error('reviewsDisplay requires an imdbId or a username');
     }
   }, [extTrigger, username]);
 
   const displayType = username ? 'title' : 'username';
-  const [searchType, setSearchType] = useState('review');
-  const searchable = [displayType, 'review'];
-  const [sortBy, setSortBy] = useState<string>();
-  const sortable = ['date', 'rating', 'watchAgain', displayType];
+  const searchable = [displayType, 'review'] as const;
+  type Searchable = typeof searchable[number];
+  const sortable = ['date', 'rating', 'watchAgain', displayType] as const;
+  type Sortable = typeof sortable[number];
+  const [searchType, setSearchType] = useState<Searchable>('review');
+  const [sortBy, setSortBy] = useState<Sortable>();
   const [minRating, setMinRating] = useState(0);
   const [maxRating, setMaxRating] = useState(100);
   const [watchAgainFilter, setWatchAgainFilter] = useState<ExistingReview['watchAgain'][]>([]);
@@ -108,7 +117,7 @@ export default function ReviewsDisplay(
     ])
   );
   useEffect(() => {
-    if (!reviews) return;
+    if (!reviews || !allReviews) return;
     console.log({
       searchTerm,
       searchType,
@@ -117,6 +126,24 @@ export default function ReviewsDisplay(
       maxRating,
       watchAgainFilter,
     })
+    let result = allReviews.filter(review => {
+      const rating = Number(review.rating);
+      return minRating <= rating && rating <= maxRating;
+    });
+    if (searchTerm && searchType) {
+      result = result.filter(review => 
+        review[searchType]?.toLowerCase()?.includes(searchTerm.toLowerCase())
+      );
+    }
+    if (watchAgainFilter.length) {
+      result = result.filter(review => watchAgainFilter.includes(review.watchAgain));
+    }
+    if (sortBy) {
+      result = result.sort((a, b) => {
+        return `${a[sortBy]}`.toLowerCase().localeCompare(`${b[sortBy]}`.toLowerCase())
+      })
+    }
+    setReviews(result);
   }, [searchTerm, searchType, sortBy, minRating, maxRating, watchAgainFilter]);
 
   return (
@@ -133,15 +160,15 @@ export default function ReviewsDisplay(
           <ChevronUp className={`transition-all ${showDropDown ? '-rotate-180' : '-rotate-90'}`} />
         </Button>
       </div>
-      <div className={`flex justify-center gap-4 transition-all duration-1000 ${showDropDown ? 'scale-100 max-h-40' : 'scale-0 max-h-0'}`}>
+      <div className={`flex flex-wrap justify-center gap-4 transition-all duration-1000 ${showDropDown ? 'scale-100 max-h-40' : 'scale-0 max-h-0'}`}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant='outline'>Search by</Button>
+            <Button variant='outline' className='flex-1'>Search by</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuLabel>Search by</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup value={searchType} onValueChange={setSearchType}>
+            <DropdownMenuRadioGroup value={searchType} onValueChange={(val) => setSearchType(val as Searchable)}>
               {searchable.map(searchType => (
                 <DropdownMenuRadioItem key={`reviewSearch-${searchType}`} value={searchType}>
                   {fromCamelCase(searchType)}
@@ -152,13 +179,13 @@ export default function ReviewsDisplay(
         </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant='outline'>Sort by</Button>
+            <Button variant='outline' className='flex-1'>Sort by</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuLabel>Sory by</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup value={sortBy}
-              onValueChange={(val) => setSortBy(sortBy === val ? undefined : val)}
+              onValueChange={(val) => setSortBy(sortBy === val ? undefined : val as Sortable)}
             >
               {sortable.map(sortTerm => (
                 <DropdownMenuRadioItem key={`reviewSort-${sortTerm}`} value={sortTerm}>
@@ -168,31 +195,33 @@ export default function ReviewsDisplay(
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        <label className='flex gap-4 items-center'>
-          <span className='text-nowrap'>Rating Range</span>
-          <Input className='max-w-24'
-            value={minRating / 20}
-            onChange={(e) => setMinRating(Number(e.currentTarget.value) * 20)}
-            type='number'
-            placeholder='Min'
-            min={0}
-            max={5}
-            step={0.05}
-          />
-          <span className=''>-</span>
-          <Input className='max-w-24'
-            value={maxRating / 20}
-            onChange={(e) => setMaxRating(Number(e.currentTarget.value) * 20)}
-            type='number'
-            placeholder='Max'
-            min={0}
-            max={5}
-            step={0.05}
-          />
+        <label className='flex-1 flex gap-4 items-center'>
+          <span className='flex-1 text-nowrap text-center'>Rating Range</span>
+          <div className='flex-1 flex gap-4'>
+            <Input className='w-20'
+              value={(minRating / 20).toFixed(2)}
+              onChange={(e) => setMinRating(Number(e.currentTarget.value) * 20)}
+              type='number'
+              placeholder='Min'
+              min={0}
+              max={5}
+              step={0.05}
+            />
+            <span className=''>-</span>
+            <Input className='w-20'
+              value={(maxRating / 20).toFixed(2)}
+              onChange={(e) => setMaxRating(Number(e.currentTarget.value) * 20)}
+              type='number'
+              placeholder='Max'
+              min={0}
+              max={5}
+              step={0.05}
+            />
+          </div>
         </label>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant='outline'>Watch Again Filter</Button>
+            <Button variant='outline' className='flex-1'>Watch Again Filter</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuLabel>Watch Again Filter</DropdownMenuLabel>

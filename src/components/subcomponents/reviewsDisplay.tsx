@@ -22,6 +22,7 @@ import AutoPaging from '@/components/subcomponents/AutoPaging';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp, fromCamelCase } from '@/lib/formatters';
+import SortAndFilter from './SortAndFilter';
 // import { inputValidation } from '@/lib/inputValidation';
 
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
@@ -148,6 +149,24 @@ export default function ReviewsDisplay(
 
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[480px]'>
+      {!reviews || !allReviews ? <div>borked</div> :
+        <SortAndFilter<ExistingReview> 
+          allDataState={[allReviews, setAllReviews]}
+          sortedAndFilteredState={[reviews, setReviews]}
+          searchable={['review', username ? 'title' : 'username']}
+          sortable={['date', 'rating']}
+          filterable={{
+            'watchAgain': [true, false, null]
+          }}
+          prefix={
+            <h3 className='text-xl my-auto'>
+              Reviews {reviews?.length ? `(${reviews.length})` : ''}
+            </h3>
+          }
+          keyPrefix='reviews'
+        />
+      }
+      {/*
       <div className='flex justify-center items-stretch gap-4 min-h-[40px]'>
         <h3 className='text-xl my-auto'>Reviews {reviews?.length ? `(${reviews.length})` : ''}</h3>
         <FancyInput inputState={[searchTerm, setSearchTerm]}
@@ -245,6 +264,7 @@ export default function ReviewsDisplay(
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      */}
       {/*
       <hr className='my-2' />
       */}

@@ -1,28 +1,28 @@
 'use client';
 
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+// import {
+//   DropdownMenu,
+//   DropdownMenuCheckboxItem,
+//   DropdownMenuContent,
+//   DropdownMenuLabel,
+//   DropdownMenuRadioGroup,
+//   DropdownMenuRadioItem,
+//   DropdownMenuSeparator,
+//   DropdownMenuTrigger
+// } from '@/components/ui/dropdown-menu';
+// import { Button } from '@/components/ui/button';
+// import { Input } from '@/components/ui/input';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ChevronUp } from 'lucide-react';
+// import { ChevronUp } from 'lucide-react';
 import { reviews } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
-import FancyInput from '@/components/subcomponents/fancyInput';
+// import FancyInput from '@/components/subcomponents/fancyInput';
 import easyFetch from '@/lib/easyFetch';
-import { formatTimestamp, fromCamelCase } from '@/lib/formatters';
-import SortAndFilter from './SortAndFilter';
+import { formatTimestamp/*, fromCamelCase*/ } from '@/lib/formatters';
+import SortAndFilter from '@/components/subcomponents/SortAndFilter';
 // import { inputValidation } from '@/lib/inputValidation';
 
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
@@ -38,17 +38,17 @@ type ExistingReview = typeof reviews.$inferSelect & { title?: string }
 //   [K in keyof T]: T[K] extends string ? K : never;
 // }[keyof T]
 
-class TwoWayMap<K, V> {
-  keyToVal: Map<K, V>;
-  valToKey: Map<V, K>;
-
-  constructor(map: Map<K, V>) {
-    this.keyToVal = map;
-    this.valToKey = new Map(
-      [ ...map.keys() ].map(key => [ map.get(key)!, key ])
-    );
-  }
-}
+// class TwoWayMap<K, V> {
+//   keyToVal: Map<K, V>;
+//   valToKey: Map<V, K>;
+// 
+//   constructor(map: Map<K, V>) {
+//     this.keyToVal = map;
+//     this.valToKey = new Map(
+//       [ ...map.keys() ].map(key => [ map.get(key)!, key ])
+//     );
+//   }
+// }
 
 export default function ReviewsDisplay(
   {
@@ -73,8 +73,8 @@ export default function ReviewsDisplay(
   const [page, setPage] = useState(1);
   const pageSize = 5;
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showDropDown, setShowDropDown] = useState(false);
+  // const [searchTerm, setSearchTerm] = useState('');
+  // const [showDropDown, setShowDropDown] = useState(false);
 
   useEffect(() => {
     // if imdbId exists, only fetch records related to imdbId
@@ -101,62 +101,65 @@ export default function ReviewsDisplay(
   }, [extTrigger, username]);
 
   const displayType = username ? 'title' : 'username';
-  const searchable = [displayType, 'review'] as const;
-  type Searchable = typeof searchable[number];
-  const sortable = ['date', 'rating', 'watchAgain', displayType] as const;
-  type Sortable = typeof sortable[number];
-  const [searchType, setSearchType] = useState<Searchable>('review');
-  const [sortBy, setSortBy] = useState<Sortable>();
-  const [minRating, setMinRating] = useState(0);
-  const [maxRating, setMaxRating] = useState(100);
-  const [watchAgainFilter, setWatchAgainFilter] = useState<ExistingReview['watchAgain'][]>([]);
-  const watchAgainConverter = new TwoWayMap<ExistingReview['watchAgain'], string>(
-    new Map([
-      [true, 'Would watch again'],
-      [null, 'No Opinion'],
-      [false, 'Would NOT watch again'],
-    ])
-  );
-  useEffect(() => {
-    if (!reviews || !allReviews) return;
-    console.log({
-      searchTerm,
-      searchType,
-      sortBy,
-      minRating,
-      maxRating,
-      watchAgainFilter,
-    })
-    let result = allReviews.filter(review => {
-      const rating = Number(review.rating);
-      return minRating <= rating && rating <= maxRating;
-    });
-    if (searchTerm && searchType) {
-      result = result.filter(review => 
-        review[searchType]?.toLowerCase()?.includes(searchTerm.toLowerCase())
-      );
-    }
-    if (watchAgainFilter.length) {
-      result = result.filter(review => watchAgainFilter.includes(review.watchAgain));
-    }
-    if (sortBy) {
-      result = result.sort((a, b) => {
-        return `${a[sortBy]}`.toLowerCase().localeCompare(`${b[sortBy]}`.toLowerCase())
-      })
-    }
-    setReviews(result);
-  }, [searchTerm, searchType, sortBy, minRating, maxRating, watchAgainFilter]);
+  // const searchable = [displayType, 'review'] as const;
+  // type Searchable = typeof searchable[number];
+  // const sortable = ['date', 'rating', 'watchAgain', displayType] as const;
+  // type Sortable = typeof sortable[number];
+  // const [searchType, setSearchType] = useState<Searchable>('review');
+  // const [sortBy, setSortBy] = useState<Sortable>();
+  // const [minRating, setMinRating] = useState(0);
+  // const [maxRating, setMaxRating] = useState(100);
+  // const [watchAgainFilter, setWatchAgainFilter] = useState<ExistingReview['watchAgain'][]>([]);
+  // const watchAgainConverter = new TwoWayMap<ExistingReview['watchAgain'], string>(
+  //   new Map([
+  //     [true, 'Would watch again'],
+  //     [null, 'No Opinion'],
+  //     [false, 'Would NOT watch again'],
+  //   ])
+  // );
+  // useEffect(() => {
+  //   if (!reviews || !allReviews) return;
+  //   console.log({
+  //     searchTerm,
+  //     searchType,
+  //     sortBy,
+  //     minRating,
+  //     maxRating,
+  //     watchAgainFilter,
+  //   })
+  //   let result = allReviews.filter(review => {
+  //     const rating = Number(review.rating);
+  //     return minRating <= rating && rating <= maxRating;
+  //   });
+  //   if (searchTerm && searchType) {
+  //     result = result.filter(review => 
+  //       review[searchType]?.toLowerCase()?.includes(searchTerm.toLowerCase())
+  //     );
+  //   }
+  //   if (watchAgainFilter.length) {
+  //     result = result.filter(review => watchAgainFilter.includes(review.watchAgain));
+  //   }
+  //   if (sortBy) {
+  //     result = result.sort((a, b) => {
+  //       return `${a[sortBy]}`.toLowerCase().localeCompare(`${b[sortBy]}`.toLowerCase())
+  //     })
+  //   }
+  //   setReviews(result);
+  // }, [searchTerm, searchType, sortBy, minRating, maxRating, watchAgainFilter]);
 
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[480px]'>
       {!reviews || !allReviews ? <div>borked</div> :
         <SortAndFilter<ExistingReview> 
           allDataState={[allReviews, setAllReviews]}
-          sortedAndFilteredState={[reviews, setReviews]}
-          searchable={['review', username ? 'title' : 'username']}
-          sortable={['date', 'rating']}
+          subsetState={[reviews, setReviews]}
+          searchable={['review', displayType]}
+          sortable={['date', 'rating', 'watchAgain', displayType]}
           filterable={{
-            'watchAgain': [true, false, null]
+            'watchAgain': {
+              values: [true, null, false],
+              names: ['Would watch again', 'No Opinion', 'Would NOT watch again']
+            }
           }}
           prefix={
             <h3 className='text-xl my-auto'>

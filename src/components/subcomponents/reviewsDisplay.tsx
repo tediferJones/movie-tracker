@@ -63,10 +63,9 @@ export default function ReviewsDisplay(
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[480px]'>
       {!reviews || !allReviews ? <div>borked</div> :
         <SortAndFilter<ExistingReview> 
-          allDataState={[allReviews, setAllReviews]}
+          allData={allReviews}
           subsetState={[reviews, setReviews]}
           searchable={['review', displayType]}
-          // sortable={['date', 'rating', 'watchAgain', displayType]}
           sortable={{
             date: (a, b) => a - b,
             rating: (a, b) => (a || 0) - (b || 0),
@@ -80,17 +79,17 @@ export default function ReviewsDisplay(
           }}
           filterable={{
             'watchAgain': {
-              type: 'select',
               values: [true, null, false],
               names: ['Would watch again', 'No Opinion', 'Would NOT watch again']
             },
+          }}
+          rangeable={{
             'rating': {
-              type: 'number',
               min: 0,
               max: 100,
               step: 0.05,
               factor: 20,
-              // formatFunc: (n) => Math.round(n) / 20
+              format: (n: number) => n.toFixed(2),
             }
           }}
           prefix={<h3 className='text-xl my-auto'>Reviews</h3>}

@@ -3,6 +3,9 @@ import Loading from '@/components/subcomponents/loading';
 
 export default function AutoPaging(
   {
+    // FIX ME
+    // also consider making this component increment when scrolled to bottom of container
+    // shouldn't necessarily need to be visible
     setPage, // adding 'use client' causes this to throw warning, fix that
     currentCount,
     maxCount,

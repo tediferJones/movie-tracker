@@ -13,24 +13,25 @@ import { Input } from '@/components/ui/input';
 
 import {
   Dispatch,
-  HTMLAttributes,
   InputHTMLAttributes,
   ReactNode,
   SetStateAction,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from 'react';
-import { ArrowDownAz, ArrowDownZa, ChevronUp, ListRestart, Lock } from 'lucide-react';
+import {
+  ArrowDownAz,
+  ArrowDownZa,
+  ChevronUp,
+  ListRestart,
+  Lock
+} from 'lucide-react';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import { fromCamelCase } from '@/lib/formatters';
 
 type ReactState<T> = [T, Dispatch<SetStateAction<T | undefined>>]
-
-// FIX ME
-// also rename 'searchable', 'sortable' and 'filterable' to 'search', 'sort', and 'filter'
-// figure out whats up with Filter by watch again, select a filter then unselect and no results are shown
-// - either all should be checked by default (makes the most sense) or when none are checked no filter is applied
 
 type Range = {
   min: number,
@@ -50,6 +51,11 @@ type DefaultStates<T> = {
   filters: { [K in keyof T]?: T[K][] },
   ranges: { [K in keyof T]?: { min: number, max: number } },
 }
+
+// FIX ME
+// also rename 'searchable', 'sortable' and 'filterable' to 'search', 'sort', and 'filter'
+// figure out whats up with Filter by watch again, select a filter then unselect and no results are shown
+// - either all should be checked by default (makes the most sense) or when none are checked no filter is applied
 
 export default function SortAndFilter<T>(
   {
@@ -89,6 +95,7 @@ export default function SortAndFilter<T>(
       return state;
     }, {} as { [K in keyof T]?: { min: number, max: number } }),
   }), []);
+  const cache = useRef<{ [key: string]: T[] }>({})
 
   const [showDropDown, setShowDropDown] = useState(false);
   const [searchTerm, setSearchTerm] = useState(defaultStates.searchTerm);
@@ -99,7 +106,18 @@ export default function SortAndFilter<T>(
   const [ranges, setRanges] = useState<DefaultStates<T>['ranges']>(defaultStates.ranges);
 
   useEffect(() => {
-    console.log(searchTerm)
+    const cacheStr = JSON.stringify({
+      searchTerm,
+      searchType,
+      sortBy,
+      sortType,
+      filters,
+      ranges
+    });
+    if (cache.current[cacheStr]) {
+      setSubsetData(cache.current[cacheStr]);
+      return;
+    }
     let result = [ ...allData ];
     if (searchTerm && searchType) {
       const typedKey = searchType as keyof T;
@@ -128,6 +146,7 @@ export default function SortAndFilter<T>(
       result.sort((a, b) => sortable[sortBy]!(a[sortBy], b[sortBy]));
     }
     if (sortType === 'desc') result.reverse();
+    cache.current[cacheStr] = result;
     setSubsetData(result);
   }, [searchTerm, searchType, sortBy, sortType, filters, ranges]);
 
@@ -151,6 +170,7 @@ export default function SortAndFilter<T>(
             inputProps={{
               placeholder: `Search by ${fromCamelCase(searchType)}...`
             }}
+            delay={250}
           />
         }
         <div className='flex gap-4'>

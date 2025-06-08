@@ -14,7 +14,6 @@ type FancyInputProps = {
 export default forwardRef<HTMLInputElement, FancyInputProps>(function FancyInput({
   inputState,
   delay,
-  // className,
   inputProps,
   autoFillParam,
   notSearch,
@@ -42,6 +41,10 @@ export default forwardRef<HTMLInputElement, FancyInputProps>(function FancyInput
         if (searchTerm) setLocalValue(searchTerm);
       }
     }, []);
+
+    useEffect(() => {
+      setLocalValue(inputData);
+    }, [inputData]);
 
     const {
       onFocus,

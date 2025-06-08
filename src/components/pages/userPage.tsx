@@ -22,7 +22,10 @@ export default function UserPage(
         {useDefaultListManager ? <DefaultListManager /> : <ListsDisplay username={username} />}
       </div>
       <MultiTable username={username} />
+      {/*
+      // FIX ME
       <h3 className='text-xl px-4'>Your Reviews</h3>
+      */}
       <ReviewsDisplay username={username} />
     </div>
   )

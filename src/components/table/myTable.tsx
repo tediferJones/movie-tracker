@@ -16,6 +16,7 @@ import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
 import TableView from '@/components/table/tableView';
 import ListView from '@/components/table/listView';
 import SliderView from '@/components/table/sliderView';
+import SortAndFilter from '@/components/subcomponents/SortAndFilter';
 import { fromCamelCase } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 
@@ -146,8 +147,71 @@ export default function MyTable(
     setPage,
   }
 
+  const dataSets = useRef({
+    ratingOpts: [
+      ...data.reduce((set, item) => {
+        if (!set.has(item.rated)) set.add(item.rated);
+        return set;
+      }, new Set<string | null>())
+    ].sort()
+  })
+
+  // useEffect(() => {
+  //   console.log('checking for excluded')
+  //   const subset = new Set(sortedAndFiltered.map(item => item.imdbId));
+  //   data.forEach(item => {
+  //     if (!subset.has(item.imdbId)) console.log(item);
+  //   });
+  // }, [sortedAndFiltered]);
+
+  // these are pretty generic, might be worth trying to stuff them into SortAndFilter
+  // make sort func optional, if provided use it, otherwise determine type and use one of these generic functions
+  function sortChars(a: string | null, b: string | null) {
+    return (a || '').toLowerCase().localeCompare((b || '').toLowerCase());
+  }
+
+  function sortNums(a: number | null, b: number | null) {
+    return (a || 0) - (b || 0);
+  }
+
   return (
     <div className={`flex flex-col ${useScrollArea ? '' : 'gap-4'}`} ref={ref}>
+      {sortedAndFiltered && 
+        <SortAndFilter<ExistingMediaInfo>
+          allData={data}
+          searchable={[
+            'title',
+            'director',
+            'writer',
+            'actor',
+            'genre',
+            'country',
+            'language',
+          ]}
+          sortable={{
+            updatedAt: sortNums,
+            title: sortChars, 
+            rated: sortChars,
+            startYear: sortNums,
+            runtime: sortNums,
+            imdbRating: sortNums,
+            metaRating: sortNums,
+            tomatoRating: sortNums,
+          }}
+          filterable={{
+            rated: {
+              values: dataSets.current.ratingOpts,
+              names: dataSets.current.ratingOpts.with(
+                dataSets.current.ratingOpts.indexOf(null),
+                'N/A'
+              ).sort() as string[],
+            }
+          }}
+          subsetState={[sortedAndFiltered, setSortedAndFiltered as any]}
+          prefix={children}
+          keyPrefix={`mediaTable`}
+        />
+      }
       <div className={`flex justify-center gap-4 flex-wrap ${useScrollArea ? 'p-2' : ''}`}>
         {children}
         <FancyInput className='flex-1 min-w-48 w-fit'

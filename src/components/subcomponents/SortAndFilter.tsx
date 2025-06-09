@@ -56,6 +56,7 @@ type DefaultStates<T> = {
 // also rename 'searchable', 'sortable' and 'filterable' to 'search', 'sort', and 'filter'
 // figure out whats up with Filter by watch again, select a filter then unselect and no results are shown
 // - either all should be checked by default (makes the most sense) or when none are checked no filter is applied
+// Add ability to set loading text (if provided)
 
 export default function SortAndFilter<T>(
   {
@@ -120,21 +121,38 @@ export default function SortAndFilter<T>(
     }
     let result = [ ...allData ];
     if (searchTerm && searchType) {
+      console.log('filtering by searching term')
       const typedKey = searchType as keyof T;
       const searchTermLowerCase = searchTerm.toLowerCase();
+
       result = result.filter(item => {
-        if (!item[typedKey]) return;
-        if (typeof item[typedKey] !== 'string') throw Error('must be a string to search');
-        return (item[typedKey] as string).toLowerCase().includes(searchTermLowerCase);
+        // if (!item[typedKey]) return;
+        // if (typeof item[typedKey] !== 'string') throw Error('must be a string to search');
+        // return (item[typedKey] as string).toLowerCase().includes(searchTermLowerCase);
+
+        if (typeof item[typedKey] === 'string') {
+          return (item[typedKey] as string).toLowerCase().includes(searchTermLowerCase);
+        }
+        if (Array.isArray(item[typedKey])) {
+          if (!(item[typedKey] as any[]).every(item => typeof item === 'string')) {
+            throw Error('item of array is not string');
+          }
+          return (item[typedKey] as string[]).some(item => {
+            console.log('array searching', item.toLowerCase(), searchTermLowerCase)
+            return item.toLowerCase().includes(searchTermLowerCase)
+          });
+        }
       })
     }
     Object.keys(filters).forEach(filter => {
+      console.log('filtering by', filter)
       const typedKey = filter as keyof T;
       result = result.filter(item => {
         return filters[typedKey]?.includes(item[typedKey]);
       });
     });
     Object.keys(ranges).forEach(rangeKey => {
+      console.log('filtering by range', rangeKey)
       const typedKey = rangeKey as keyof T;
       result = result.filter(item => {
         const value = item[typedKey] as number || 0;
@@ -143,6 +161,7 @@ export default function SortAndFilter<T>(
       });
     });
     if (sortable && sortBy) {
+      console.log('sorting')
       result.sort((a, b) => sortable[sortBy]!(a[sortBy], b[sortBy]));
     }
     if (sortType === 'desc') result.reverse();

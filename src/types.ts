@@ -75,6 +75,7 @@ interface FormattedMediaInfo extends StrIdx {
 
 type MediaSelect = typeof media.$inferSelect
 interface ExistingMediaInfo extends MediaSelect {
+  // FIX ME, delete below line and address type issues, just use a typedKey like const typedKey = key as keyof TYPE
   [key: string]: any,
   genre: string[],
   country: string[],

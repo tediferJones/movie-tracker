@@ -36,7 +36,7 @@ type ReactState<T> = [T, Dispatch<SetStateAction<T | undefined>>]
 type Range = {
   min: number,
   max: number,
-  step: number,
+  step?: number,
   factor?: number,
   format?: (n: number) => InputHTMLAttributes<HTMLInputElement>['value'],
 }
@@ -96,7 +96,7 @@ export default function SortAndFilter<T>(
       return state;
     }, {} as { [K in keyof T]?: { min: number, max: number } }),
   }), []);
-  const cache = useRef<{ [key: string]: T[] }>({})
+  const cache = useRef<{ [key: string]: T[] }>({});
 
   const [showDropDown, setShowDropDown] = useState(false);
   const [searchTerm, setSearchTerm] = useState(defaultStates.searchTerm);
@@ -113,7 +113,7 @@ export default function SortAndFilter<T>(
       sortBy,
       sortType,
       filters,
-      ranges
+      ranges,
     });
     if (cache.current[cacheStr]) {
       setSubsetData(cache.current[cacheStr]);
@@ -180,28 +180,32 @@ export default function SortAndFilter<T>(
 
   return (
     <div>
-      <div className='flex sm:flex-row flex-col gap-4 items-stretch'>
+      <div className='flex flex-wrap gap-4 items-stretch'>
         {prefix}
         {!searchable ? <div className='flex-1'></div> :
           <FancyInput
             className='flex-1 shrink-0 items-stretch'
             inputState={[searchTerm, setSearchTerm]}
             inputProps={{
-              placeholder: `Search by ${fromCamelCase(searchType)}...`
+              placeholder: `Search by ${fromCamelCase(searchType)}...`,
+              className: 'h-[40px]'
             }}
             delay={250}
           />
         }
-        <div className='flex gap-4'>
-          <div className='my-auto text-nowrap text-muted-foreground'>
+        <div className='flex flex-1 md:flex-grow-0 gap-4'>
+          <div className='flex-1 my-auto text-nowrap text-muted-foreground text-center'>
             {subsetData.length} / {allData.length}
           </div>
-          <Button variant='outline' onClick={() => setShowDropDown(!showDropDown)}>
+          <Button className='flex-1'
+            variant='outline'
+            onClick={() => setShowDropDown(!showDropDown)}
+          >
             <ChevronUp className={`transition-all ${showDropDown ? '-rotate-180' : '-rotate-90'}`} />
           </Button>
         </div>
       </div>
-      <div className={`flex flex-wrap gap-4 transition-all duration-1000 ${showDropDown ? 'scale-100 max-h-96 mt-4' : 'scale-0 max-h-0 mt-0'}`}>
+      <div className={`showOutline flex flex-wrap gap-4 transition-all duration-1000 ${showDropDown ? 'scale-100 max-h-[9999px] mt-4 p-4' : 'scale-0 max-h-[0px] mt-0 p-0'}`}>
         <Button variant='outline' onClick={reset}>
           <ListRestart />
         </Button>
@@ -242,6 +246,7 @@ export default function SortAndFilter<T>(
               <DropdownMenuSeparator />
               {filterable[typedKey]!.values.map((val, i) => (
                 <DropdownMenuCheckboxItem
+                  onSelect={(e) => e.preventDefault()}
                   checked={filters[typedKey]?.includes(val)}
                   onCheckedChange={() => {
                     if (!filters[typedKey]) {

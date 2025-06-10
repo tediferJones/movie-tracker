@@ -16,7 +16,7 @@ export default function DesktopView(
     sorted: ExistingMediaInfo[],
     linkPrefix: string,
     totalLength: number,
-    sortCol: ColumnType,
+    sortCol?: ColumnType,
     setPage: Dispatch<SetStateAction<number>>,
   }
 ) {

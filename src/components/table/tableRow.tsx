@@ -1,11 +1,12 @@
-import { ChevronLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 import { useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import GetLinks from '@/components/subcomponents/getLinks';
-import { Button } from '@/components/ui/button';
+import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
 import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
-import ImageWithFallback from '../subcomponents/ImageWithFallback';
 
 export default function TableRow(
   {

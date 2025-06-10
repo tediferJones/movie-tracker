@@ -10,8 +10,9 @@ import {
 import { Button } from '@/components/ui/button';
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { ArrowDownAz,  ArrowUpZa, Lock } from 'lucide-react';
-import FancyInput from '@/components/subcomponents/fancyInput';
+// import { ArrowDownAz,  ArrowUpZa, Lock } from 'lucide-react';
+// import FancyInput from '@/components/subcomponents/fancyInput';
+import { Dices } from 'lucide-react';
 import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
 import TableView from '@/components/table/tableView';
 import ListView from '@/components/table/listView';
@@ -20,12 +21,12 @@ import SortAndFilter from '@/components/subcomponents/SortAndFilter';
 import { fromCamelCase } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 
-type SortType = 'asc' | 'desc';
-type SortFuncs = {
-  [key in 'string' | 'number']: {
-    [key in SortType]: (a: ExistingMediaInfo, b: ExistingMediaInfo) => number
-  }
-}
+// type SortType = 'asc' | 'desc';
+// type SortFuncs = {
+//   [key in 'string' | 'number']: {
+//     [key in SortType]: (a: ExistingMediaInfo, b: ExistingMediaInfo) => number
+//   }
+// }
 export type ColumnType = typeof columns[number]
 type ViewTypes = typeof views[number]
 type ScreenTypes = 'desktop' | 'mobile'
@@ -47,18 +48,18 @@ export default function MyTable(
     useScrollArea?: boolean,
   }
 ) {
-  const searchCache: Record<string, ExistingMediaInfo[]> = {};
+  // const searchCache: Record<string, ExistingMediaInfo[]> = {};
 
-  const [sortType, setSortType] = useState<SortType>('asc');
-  const [sortCol, setSortCol] = useState('');
-  const [searchCol, setSearchCol] = useState('title');
-  const [searchTerm, setSearchTerm] = useState('');
+  // const [sortType, setSortType] = useState<SortType>('asc');
+  // const [sortCol, setSortCol] = useState('');
+  // const [searchCol, setSearchCol] = useState('title');
+  // const [searchTerm, setSearchTerm] = useState('');
   const [sortedAndFiltered, setSortedAndFiltered] = useState(data);
   const [loadingText, setLoadingText] = useState('');
-  const fullSortType: Record<SortType, string> = {
-    asc: 'ascending',
-    desc: 'descending',
-  }
+  // const fullSortType: Record<SortType, string> = {
+  //   asc: 'ascending',
+  //   desc: 'descending',
+  // }
 
   const [page, setPage] = useState(1);
   const pageSize = 25;
@@ -88,57 +89,57 @@ export default function MyTable(
     return ref.current.clientWidth > 650 ? 'desktop' : 'mobile';
   }
 
-  useEffect(() => {
-    setLoadingText(`Searching ${fromCamelCase(searchCol)} for "${searchTerm}"`)
-    setSortedAndFiltered(shallowSort(data));
-    setLoadingText('');
-  }, [searchTerm, searchCol]);
+  // useEffect(() => {
+  //   setLoadingText(`Searching ${fromCamelCase(searchCol)} for "${searchTerm}"`)
+  //   setSortedAndFiltered(shallowSort(data));
+  //   setLoadingText('');
+  // }, [searchTerm, searchCol]);
 
-  useEffect(() => {
-    setLoadingText(`Sorting ${fromCamelCase(sortCol)} in ${fullSortType[sortType]} order`)
-    setSortedAndFiltered(shallowSort(data));
-    setLoadingText('');
-  }, [sortType, sortCol]);
+  // useEffect(() => {
+  //   setLoadingText(`Sorting ${fromCamelCase(sortCol)} in ${fullSortType[sortType]} order`)
+  //   setSortedAndFiltered(shallowSort(data));
+  //   setLoadingText('');
+  // }, [sortType, sortCol]);
 
-  function search(mediaInfo: ExistingMediaInfo) {
-    if (!searchTerm) return true;
-    if (!mediaInfo[searchCol]) return false;
-    if (typeof(mediaInfo[searchCol]) === 'string') {
-      return mediaInfo[searchCol].toLowerCase().includes(searchTerm.toLowerCase());
-    }
-    return mediaInfo[searchCol].some((str: string) => str.toLowerCase().includes(searchTerm.toLowerCase()));
-  }
+  // function search(mediaInfo: ExistingMediaInfo) {
+  //   if (!searchTerm) return true;
+  //   if (!mediaInfo[searchCol]) return false;
+  //   if (typeof(mediaInfo[searchCol]) === 'string') {
+  //     return mediaInfo[searchCol].toLowerCase().includes(searchTerm.toLowerCase());
+  //   }
+  //   return mediaInfo[searchCol].some((str: string) => str.toLowerCase().includes(searchTerm.toLowerCase()));
+  // }
 
-  function shallowSort(arr: ExistingMediaInfo[]): ExistingMediaInfo[] {
-    const cacheStr = `${searchCol},${searchTerm}`;
-    if (!searchCache[cacheStr]) {
-      searchCache[cacheStr] = arr.filter(search);
-    }
-    const filtered = searchCache[cacheStr];
-    if (!sortCol) return filtered;
+  // function shallowSort(arr: ExistingMediaInfo[]): ExistingMediaInfo[] {
+  //   const cacheStr = `${searchCol},${searchTerm}`;
+  //   if (!searchCache[cacheStr]) {
+  //     searchCache[cacheStr] = arr.filter(search);
+  //   }
+  //   const filtered = searchCache[cacheStr];
+  //   if (!sortCol) return filtered;
 
-    const sortFunc: SortFuncs = {
-      string: {
-        asc: (a, b) => {
-          if (!a[sortCol]) return -1;
-          if (!b[sortCol]) return 1;
-          return a[sortCol].toLowerCase()?.localeCompare(b[sortCol].toLowerCase());
-        },
-        desc: (a, b) => {
-          if (!b[sortCol]) return -1;
-          if (!a[sortCol]) return 1;
-          return b[sortCol].toLowerCase()?.localeCompare(a[sortCol].toLowerCase());
-        }
-      },
-      number: {
-        asc: (a, b) => a[sortCol] - b[sortCol],
-        desc: (a, b) => b[sortCol] - a[sortCol],
-      }
-    }
+  //   const sortFunc: SortFuncs = {
+  //     string: {
+  //       asc: (a, b) => {
+  //         if (!a[sortCol]) return -1;
+  //         if (!b[sortCol]) return 1;
+  //         return a[sortCol].toLowerCase()?.localeCompare(b[sortCol].toLowerCase());
+  //       },
+  //       desc: (a, b) => {
+  //         if (!b[sortCol]) return -1;
+  //         if (!a[sortCol]) return 1;
+  //         return b[sortCol].toLowerCase()?.localeCompare(a[sortCol].toLowerCase());
+  //       }
+  //     },
+  //     number: {
+  //       asc: (a, b) => a[sortCol] - b[sortCol],
+  //       desc: (a, b) => b[sortCol] - a[sortCol],
+  //     }
+  //   }
 
-    const dataType = ['title', 'rated'].includes(sortCol) ? 'string' : 'number';
-    return [...filtered].sort(sortFunc[dataType][sortType]);
-  }
+  //   const dataType = ['title', 'rated'].includes(sortCol) ? 'string' : 'number';
+  //   return [...filtered].sort(sortFunc[dataType][sortType]);
+  // }
 
   const tableData = {
     sorted: sortedAndFiltered.slice(0, page * pageSize),
@@ -147,14 +148,23 @@ export default function MyTable(
     setPage,
   }
 
-  const dataSets = useRef({
-    ratingOpts: [
-      ...data.reduce((set, item) => {
-        if (!set.has(item.rated)) set.add(item.rated);
-        return set;
-      }, new Set<string | null>())
-    ].sort()
-  })
+  const metadata = useRef(
+    data.reduce((metadata, item) => {
+      if (!metadata.ratingOpts.has(item.rated)) {
+        metadata.ratingOpts.add(item.rated);
+      }
+      if (item.runtime && item.runtime > metadata.maxRuntime) {
+        metadata.maxRuntime = item.runtime;
+      }
+      return metadata
+    }, {
+        ratingOpts: new Set(),
+        maxRuntime: 0,
+      } as {
+        ratingOpts: Set<string | null>
+        maxRuntime: number,
+      })
+  )
 
   // useEffect(() => {
   //   console.log('checking for excluded')
@@ -177,41 +187,85 @@ export default function MyTable(
   return (
     <div className={`flex flex-col ${useScrollArea ? '' : 'gap-4'}`} ref={ref}>
       {sortedAndFiltered && 
-        <SortAndFilter<ExistingMediaInfo>
-          allData={data}
-          searchable={[
-            'title',
-            'director',
-            'writer',
-            'actor',
-            'genre',
-            'country',
-            'language',
-          ]}
-          sortable={{
-            updatedAt: sortNums,
-            title: sortChars, 
-            rated: sortChars,
-            startYear: sortNums,
-            runtime: sortNums,
-            imdbRating: sortNums,
-            metaRating: sortNums,
-            tomatoRating: sortNums,
-          }}
-          filterable={{
-            rated: {
-              values: dataSets.current.ratingOpts,
-              names: dataSets.current.ratingOpts.with(
-                dataSets.current.ratingOpts.indexOf(null),
-                'N/A'
-              ).sort() as string[],
+        <div className={`${useScrollArea ? 'p-2' : ''}`}>
+          <SortAndFilter<ExistingMediaInfo>
+            allData={data}
+            searchable={[
+              'title',
+              'director',
+              'writer',
+              'actor',
+              'genre',
+              'country',
+              'language',
+            ]}
+            sortable={{
+              updatedAt: sortNums,
+              title: sortChars, 
+              rated: sortChars,
+              startYear: sortNums,
+              runtime: sortNums,
+              imdbRating: sortNums,
+              metaRating: sortNums,
+              tomatoRating: sortNums,
+            }}
+            filterable={{
+              rated: {
+                values: [ ...metadata.current.ratingOpts ],
+                names: [ ...metadata.current.ratingOpts ].with(
+                  [ ...metadata.current.ratingOpts ].indexOf(null),
+                  'N/A'
+                ) as string[],
+              }
+            }}
+            rangeable={{
+              runtime: { min: 0, max: metadata.current.maxRuntime },
+              imdbRating: { min: 0, max: 100, step: 0.1, factor: 10 },
+              metaRating: { min: 0, max: 100 },
+              tomatoRating: { min: 0, max: 100 },
+            }}
+            subsetState={[sortedAndFiltered, setSortedAndFiltered as any]}
+            prefix={
+              <>
+                {children}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant='outline' className='sm:w-auto w-full'>{`View: ${fromCamelCase(viewType)}`}</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Select View</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={viewType} onValueChange={(val) => {
+                      if ((views as readonly string[]).includes(val)) {
+                        const key = `${getScreenType()}View`
+                        localStorage.setItem(key, val)
+                        setViewType(val as ViewTypes)
+                      }
+                    }}>
+                      {views.map(view => (
+                        <DropdownMenuRadioItem key={view} value={view}>
+                          {fromCamelCase(view)}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button variant='outline' onClick={() => {
+                  // this should respect currently selected filters
+                  // currently doesnt work because of caching
+                  console.log('choose random movie')
+                  // const randomIndex = Math.floor(Math.random() * sortedAndFiltered.length);
+                  // setSortedAndFiltered([ sortedAndFiltered[randomIndex] ]);
+                }}>
+                  <Dices />
+                </Button>
+              </>
             }
-          }}
-          subsetState={[sortedAndFiltered, setSortedAndFiltered as any]}
-          prefix={children}
-          keyPrefix={`mediaTable`}
-        />
+            keyPrefix={`mediaTable`}
+          />
+        </div>
       }
+      {/*
       <div className={`flex justify-center gap-4 flex-wrap ${useScrollArea ? 'p-2' : ''}`}>
         {children}
         <FancyInput className='flex-1 min-w-48 w-fit'
@@ -296,14 +350,16 @@ export default function MyTable(
         </div>
         <div className='my-auto text-nowrap text-muted-foreground'>{sortedAndFiltered.length} / {data.length}</div>
       </div>
+      */}
       <OptionalScrollArea className='max-h-[90vh] m-2 pr-2'
         orientation='vertical'
         scrollEnabled={useScrollArea}
         // FIX ME
-        key={JSON.stringify({ searchTerm, searchCol, sortCol, sortType })}
+        // key={JSON.stringify({ searchTerm, searchCol, sortCol, sortType })}
+        key={sortedAndFiltered.map(item => item.imdbId).join(',')}
       >
         {loadingText ? <div className='text-center h-full'>{loadingText}</div> : {
-          table: <TableView {...tableData} sortCol={sortCol} />,
+          table: <TableView {...tableData} /*sortCol={sortCol}*/ />,
           list: <ListView {...tableData} />,
           slider: <SliderView {...tableData} />,
         }[viewType]}

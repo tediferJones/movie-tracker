@@ -25,6 +25,7 @@ import {
   ArrowDownAz,
   ArrowDownZa,
   ChevronUp,
+  Dices,
   ListRestart,
   Lock
 } from 'lucide-react';
@@ -68,6 +69,7 @@ export default function SortAndFilter<T>(
     rangeable,
     prefix,
     keyPrefix,
+    randomizer,
   }: {
     allData: T[],
     subsetState: ReactState<T[]>,
@@ -77,6 +79,7 @@ export default function SortAndFilter<T>(
     rangeable?: { [K in keyof T]?: Range },
     prefix?: ReactNode,
     keyPrefix: string,
+    randomizer?: boolean,
   }
 ) {
   const defaultStates = useMemo<DefaultStates<T>>(() => ({
@@ -107,19 +110,31 @@ export default function SortAndFilter<T>(
   const [ranges, setRanges] = useState<DefaultStates<T>['ranges']>(defaultStates.ranges);
 
   useEffect(() => {
-    const cacheStr = JSON.stringify({
-      searchTerm,
-      searchType,
-      sortBy,
-      sortType,
-      filters,
-      ranges,
-    });
-    if (cache.current[cacheStr]) {
-      setSubsetData(cache.current[cacheStr]);
-      return;
+    // const cacheStr = JSON.stringify({
+    //   searchTerm,
+    //   searchType,
+    //   sortBy,
+    //   sortType,
+    //   filters,
+    //   ranges,
+    // });
+    // if (cache.current[cacheStr]) {
+    //   console.log('using cache', cacheStr)
+    //   setSubsetData(cache.current[cacheStr]);
+    //   return;
+    // }
+    const { cacheStr, cacheVal } = checkCache();
+    if (cacheVal) {
+      setSubsetData(cacheVal)
+    } else {
+      const result = sortAndFilter(allData);
+      cache.current[cacheStr] = result;
+      setSubsetData(result);
     }
-    let result = [ ...allData ];
+  }, [searchTerm, searchType, sortBy, sortType, filters, ranges]);
+
+  function sortAndFilter(arr: T[]) {
+    let result = [ ...arr ];
     if (searchTerm && searchType) {
       console.log('filtering by searching term')
       const typedKey = searchType as keyof T;
@@ -165,17 +180,35 @@ export default function SortAndFilter<T>(
       result.sort((a, b) => sortable[sortBy]!(a[sortBy], b[sortBy]));
     }
     if (sortType === 'desc') result.reverse();
-    cache.current[cacheStr] = result;
-    setSubsetData(result);
-  }, [searchTerm, searchType, sortBy, sortType, filters, ranges]);
+    return result;
+  }
+
+  function checkCache() {
+    const cacheStr = JSON.stringify({
+      searchTerm,
+      searchType,
+      sortBy,
+      sortType,
+      filters,
+      ranges,
+    });
+    let cacheVal;
+    if (cache.current[cacheStr]) {
+      console.log('using cache', cacheStr)
+      cacheVal = cache.current[cacheStr];
+    }
+    return { cacheStr, cacheVal }
+  }
 
   function reset() {
+    console.log('resetting')
     setSearchTerm(defaultStates.searchTerm);
     setSearchType(defaultStates.searchType);
     setSortBy(defaultStates.sortBy);
     setSortType(defaultStates.sortType);
     setFilters(defaultStates.filters);
     setRanges(defaultStates.ranges);
+    setSubsetData(allData);
   }
 
   return (
@@ -192,6 +225,16 @@ export default function SortAndFilter<T>(
             }}
             delay={250}
           />
+        }
+        {randomizer && 
+          <Button variant='outline' onClick={() => {
+            const { cacheVal } = checkCache();
+            const options = cacheVal || sortAndFilter(allData);
+            const randomIndex = Math.floor(Math.random() * options.length);
+            setSubsetData([ options[randomIndex] ])
+          }}>
+            <Dices />
+          </Button>
         }
         <div className='flex flex-1 md:flex-grow-0 gap-4'>
           <div className='flex-1 my-auto text-nowrap text-muted-foreground text-center'>
@@ -223,7 +266,9 @@ export default function SortAndFilter<T>(
                 onValueChange={(val) => setSearchType(val as DefaultStates<T>['searchType'])}
               >
                 {searchable.map(searchType => (
-                  <DropdownMenuRadioItem value={searchType}>
+                  <DropdownMenuRadioItem value={searchType}
+                    key={`searchable-${searchType}`}
+                  >
                     {fromCamelCase(searchType)}
                   </DropdownMenuRadioItem>
                 ))}
@@ -233,7 +278,7 @@ export default function SortAndFilter<T>(
         }
         {filterable && Object.keys(filterable).map(filterType => {
           const typedKey = filterType as keyof T;
-          return <DropdownMenu>
+          return <DropdownMenu key={`filterable-${filterType}`}>
             <DropdownMenuTrigger asChild>
               <Button className='flex-1'
                 variant='outline'
@@ -246,6 +291,7 @@ export default function SortAndFilter<T>(
               <DropdownMenuSeparator />
               {filterable[typedKey]!.values.map((val, i) => (
                 <DropdownMenuCheckboxItem
+                  key={`filterable-${filterType}-${val}`}
                   onSelect={(e) => e.preventDefault()}
                   checked={filters[typedKey]?.includes(val)}
                   onCheckedChange={() => {
@@ -278,7 +324,9 @@ export default function SortAndFilter<T>(
             const minValue = ranges[typedKey]!.min / factor;
             const maxValue = ranges[typedKey]!.max / factor;
             return (
-              <label className='flex flex-1 gap-2 items-center'>
+              <label className='flex flex-1 gap-2 items-center'
+                key={`rangeable-${rangeKey}`}
+              >
                 <span>{fromCamelCase(rangeKey)}</span>
                 <Input className='w-20 flex-1'
                   {...inputProps}
@@ -332,7 +380,9 @@ export default function SortAndFilter<T>(
                   onValueChange={(val) => setSortBy(val as DefaultStates<T>['sortBy'])}
                 >
                   {Object.keys(sortable).map(sortType => (
-                    <DropdownMenuRadioItem value={sortType}>
+                    <DropdownMenuRadioItem value={sortType}
+                      key={`sortable-${sortType}`}
+                    >
                       {fromCamelCase(sortType)}
                     </DropdownMenuRadioItem>
                   ))}

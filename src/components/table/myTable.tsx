@@ -10,9 +10,6 @@ import {
 import { Button } from '@/components/ui/button';
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
-// import { ArrowDownAz,  ArrowUpZa, Lock } from 'lucide-react';
-// import FancyInput from '@/components/subcomponents/fancyInput';
-import { Dices } from 'lucide-react';
 import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
 import TableView from '@/components/table/tableView';
 import ListView from '@/components/table/listView';
@@ -21,12 +18,6 @@ import SortAndFilter from '@/components/subcomponents/SortAndFilter';
 import { fromCamelCase } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 
-// type SortType = 'asc' | 'desc';
-// type SortFuncs = {
-//   [key in 'string' | 'number']: {
-//     [key in SortType]: (a: ExistingMediaInfo, b: ExistingMediaInfo) => number
-//   }
-// }
 export type ColumnType = typeof columns[number]
 type ViewTypes = typeof views[number]
 type ScreenTypes = 'desktop' | 'mobile'
@@ -48,18 +39,8 @@ export default function MyTable(
     useScrollArea?: boolean,
   }
 ) {
-  // const searchCache: Record<string, ExistingMediaInfo[]> = {};
-
-  // const [sortType, setSortType] = useState<SortType>('asc');
-  // const [sortCol, setSortCol] = useState('');
-  // const [searchCol, setSearchCol] = useState('title');
-  // const [searchTerm, setSearchTerm] = useState('');
   const [sortedAndFiltered, setSortedAndFiltered] = useState(data);
-  const [loadingText, setLoadingText] = useState('');
-  // const fullSortType: Record<SortType, string> = {
-  //   asc: 'ascending',
-  //   desc: 'descending',
-  // }
+  // const [loadingText, setLoadingText] = useState('');
 
   const [page, setPage] = useState(1);
   const pageSize = 25;
@@ -184,6 +165,19 @@ export default function MyTable(
     return (a || 0) - (b || 0);
   }
 
+  // <OptionalScrollArea className='max-h-[90vh] m-2 pr-2'
+  //   orientation='vertical'
+  //   scrollEnabled={useScrollArea}
+  //   // FIX ME
+  //   key={sortedAndFiltered.map(item => item.imdbId).join(',')}
+  // >
+  //   {{
+  //     table: <TableView {...tableData} /*sortCol={sortCol}*/ />,
+  //     list: <ListView {...tableData} />,
+  //     slider: <SliderView {...tableData} />,
+  //   }[viewType]}
+  // </OptionalScrollArea>
+
   return (
     <div className={`flex flex-col ${useScrollArea ? '' : 'gap-4'}`} ref={ref}>
       {sortedAndFiltered && 
@@ -250,18 +244,10 @@ export default function MyTable(
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button variant='outline' onClick={() => {
-                  // this should respect currently selected filters
-                  // currently doesnt work because of caching
-                  console.log('choose random movie')
-                  // const randomIndex = Math.floor(Math.random() * sortedAndFiltered.length);
-                  // setSortedAndFiltered([ sortedAndFiltered[randomIndex] ]);
-                }}>
-                  <Dices />
-                </Button>
               </>
             }
             keyPrefix={`mediaTable`}
+            randomizer
           />
         </div>
       }
@@ -351,19 +337,13 @@ export default function MyTable(
         <div className='my-auto text-nowrap text-muted-foreground'>{sortedAndFiltered.length} / {data.length}</div>
       </div>
       */}
-      <OptionalScrollArea className='max-h-[90vh] m-2 pr-2'
-        orientation='vertical'
-        scrollEnabled={useScrollArea}
-        // FIX ME
-        // key={JSON.stringify({ searchTerm, searchCol, sortCol, sortType })}
-        key={sortedAndFiltered.map(item => item.imdbId).join(',')}
-      >
-        {loadingText ? <div className='text-center h-full'>{loadingText}</div> : {
+      <div className='overflow-auto max-h-[90vh] pr-2'>
+        {{
           table: <TableView {...tableData} /*sortCol={sortCol}*/ />,
           list: <ListView {...tableData} />,
           slider: <SliderView {...tableData} />,
         }[viewType]}
-      </OptionalScrollArea>
+      </div>
     </div>
   )
 }

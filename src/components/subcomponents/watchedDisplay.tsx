@@ -22,6 +22,8 @@ export default function WatchedDisplay({ username }: { username: string }) {
   const [total, setTotal] = useState(0);
   const limit = 25;
 
+  // FIX ME
+  // i.e. delete me
   // useEffect(() => {
   //   easyFetch<WatchedRec[]>({
   //     route: `/api/users/${username}/watched`,
@@ -53,9 +55,10 @@ export default function WatchedDisplay({ username }: { username: string }) {
             <ScrollArea type='auto' className='flex flex-col'>
               {watched.length === 0
                 ? <p className='text-center text-muted-foreground'>No Watch History Found</p>
-                : watched.map(watchRec => (
+                : watched.map((watchRec, i) => (
                   <Link className='flex-1 flex flex-col hover:bg-secondary rounded-lg p-2 mx-4 group text-center'
                     href={`/media/${watchRec.imdbId}`}
+                    key={`watchedDisplay-${i}`}
                   >
                     <span className='group-hover:underline'>{watchRec.title}</span>
                     <span className='text-foreground w-full text-center'>{new Date(watchRec.date).toLocaleTimeString(undefined, {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { reviews } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
@@ -97,7 +97,7 @@ export default function ReviewsDisplay(
               <div className='p-4 text-center text-muted-foreground'>No Reviews Found</div> : 
               reviews.slice(0, page * pageSize).map((review, i) => {
                 return (
-                  <>
+                  <Fragment key={`reviewsDisplay-${i}`}>
                     {i > 0 && <hr className='my-2' />}
                     <Link className='text-foreground group flex flex-col gap-4 p-4 hover:bg-secondary rounded-lg snap-center'
                       key={`review-${i}`}
@@ -130,7 +130,7 @@ export default function ReviewsDisplay(
                         )}
                       </div>
                     </Link>
-                  </>
+                  </Fragment>
                 )
               })
             }

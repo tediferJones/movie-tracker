@@ -1,10 +1,10 @@
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction/*, useEffect*/, useState } from 'react';
 import Link from 'next/link';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import MediaInfo from '@/components/pages/mediaPage/mediaInfo';
-import ScrollAreaHorizontalSnap from '@/components/subcomponents/ScrollAreaHorizontalSnap';
+// import ScrollAreaHorizontalSnap from '@/components/subcomponents/ScrollAreaHorizontalSnap';
 import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import useCenteredItem from '@/hooks/useCenteredItem';
@@ -67,7 +67,7 @@ export default function SliderView(
   }
 
   return (
-    <ScrollAreaHorizontalSnap className='flex gap-4 p-4'
+    <div className='flex gap-4 p-4 snap-mandatory snap-x w-full overflow-x-scroll'
       ref={containerRef}
     >
       <div className='w-screen shrink-0'></div>
@@ -129,6 +129,11 @@ export default function SliderView(
           >Go To Media Page</Link>
         }
       >
+        {/* // FIX ME, scrollbar too close to edge of ConfirmModal */}
+        <div className='flex flex-col gap-4'>
+          {sorted[viewIndex]?.imdbId && <MediaInfo imdbId={sorted[viewIndex].imdbId} />}
+        </div>
+        {/*
         <ScrollArea type='auto' className='flex flex-col gap-4 text-wrap'
           onClick={(e) => {
             e.preventDefault();
@@ -139,8 +144,9 @@ export default function SliderView(
             {sorted[viewIndex]?.imdbId && <MediaInfo imdbId={sorted[viewIndex].imdbId} />}
           </div>
         </ScrollArea>
+        */}
       </ConfirmModal>
       <ScrollBar orientation='horizontal' />
-    </ScrollAreaHorizontalSnap>
+    </div>
   )
 }

@@ -1,6 +1,8 @@
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
 import { forwardRef } from 'react';
 
+// FIX ME
+// can probably just be deleted
 export default forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Viewport>>(
   ({ children, ...props }, ref) => (
     <ScrollAreaPrimitive.Root className='w-full overflow-hidden' type='auto'>

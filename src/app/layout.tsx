@@ -4,7 +4,7 @@ import ThemeProvider from '@/components/subcomponents/theme-provider';
 import Footer from '@/components/subcomponents/footer';
 import Header from '@/components/subcomponents/header';
 import { ClerkProvider } from '@clerk/nextjs';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area';
 import '@/app/globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -24,13 +24,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         </head>
         <body className={inter.className}>
           <ThemeProvider attribute='class'>
-            <ScrollArea type='auto' className='h-screen'>
-              <div className='min-h-screen flex flex-col max-w-[100vw]'>
-                <Header />
-                {children}
-                <Footer />
-              </div>
-            </ScrollArea>
+            <Header />
+            {children}
+            <Footer />
           </ThemeProvider>
         </body>
       </html>

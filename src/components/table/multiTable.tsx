@@ -49,7 +49,7 @@ export default function MultiTable({ username }: { username: string }) {
     }
   }, [currentList]);
 
-  return <div className='showOutline p-2'>
+  return <div className='showOutline p-4'>
     {!listnames || !listData ? <Loading /> :
       <MyTable data={listData}
         linkPrefix={`/users/${username}/${currentList}`}

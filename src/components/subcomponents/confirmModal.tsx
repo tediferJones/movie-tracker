@@ -33,7 +33,7 @@ export default function confirmModal(
     <div className={`${toggleClass} transition-all duration-300 fixed top-0 left-0 w-screen h-screen flex justify-center items-center`}
       onClick={() => setVisible(false)}
     >
-      <div className='relative max-w-[90vw] max-h-[90vh] overflow-y-auto showOutline m-4 p-4 bg-background flex flex-col gap-4 h-min'>
+      <div className='relative max-w-[90vw] max-h-[90vh] showOutline m-4 p-4 bg-background flex flex-col gap-4 h-min'>
         <div className='hover:ring-2 rounded-lg p-1 ml-auto'>
           <X className='cursor-pointer' onClick={() => setVisible(false)} />
         </div>

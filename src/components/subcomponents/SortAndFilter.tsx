@@ -27,7 +27,8 @@ import {
   ChevronUp,
   Dices,
   ListRestart,
-  Lock
+  Lock,
+  X
 } from 'lucide-react';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import { fromCamelCase } from '@/lib/formatters';
@@ -105,9 +106,11 @@ export default function SortAndFilter<T>(
   const [searchTerm, setSearchTerm] = useState(defaultStates.searchTerm);
   const [searchType, setSearchType] = useState(defaultStates.searchType);
   const [sortBy, setSortBy] = useState<DefaultStates<T>['sortBy']>(defaultStates.sortBy);
+  // const [sortBy, setSortBy] = useState<DefaultStates<T>['sortBy']>();
   const [sortType, setSortType] = useState<DefaultStates<T>['sortType']>(defaultStates.sortType);
   const [filters, setFilters] = useState<DefaultStates<T>['filters']>(defaultStates.filters);
   const [ranges, setRanges] = useState<DefaultStates<T>['ranges']>(defaultStates.ranges);
+  const [isRandomized, setIsRandomized] = useState(false);
 
   useEffect(() => {
     // const cacheStr = JSON.stringify({
@@ -227,13 +230,28 @@ export default function SortAndFilter<T>(
           />
         }
         {randomizer && 
-          <Button variant='outline' onClick={() => {
-            const { cacheVal } = checkCache();
-            const options = cacheVal || sortAndFilter(allData);
-            const randomIndex = Math.floor(Math.random() * options.length);
-            setSubsetData([ options[randomIndex] ])
+          <Button variant='outline'
+            onClick={() => {
+            if (isRandomized) {
+              console.log('clear randomizer')
+              setIsRandomized(false);
+              const { cacheVal } = checkCache();
+              setSubsetData(cacheVal || sortAndFilter(allData));
+            } else {
+              setIsRandomized(true);
+              const { cacheVal } = checkCache();
+              const options = cacheVal || sortAndFilter(allData);
+              const randomIndex = Math.floor(Math.random() * options.length);
+              setSubsetData([ options[randomIndex] ]);
+            }
           }}>
-            <Dices />
+            <span className='relative px-4 py-2 inline-block'>
+              <X className={`absolute inset-0 m-auto duration-300 transition-opacity ${isRandomized ? 'opacity-0' : 'opacity-100'}`} />
+              <Dices className={`absolute inset-0 m-auto duration-300 transition-opacity ${isRandomized ? 'opacity-100' : 'opacity-0'}`} />
+            </span>
+            {/*
+            {isRandomized ? <X /> : <Dices />}
+            */}
           </Button>
         }
         <div className='flex flex-1 md:flex-grow-0 gap-4'>
@@ -248,7 +266,7 @@ export default function SortAndFilter<T>(
           </Button>
         </div>
       </div>
-      <div className={`showOutline flex flex-wrap gap-4 transition-all duration-1000 ${showDropDown ? 'scale-100 max-h-[9999px] mt-4 p-4' : 'scale-0 max-h-[0px] mt-0 p-0'}`}>
+      <div className={`showOutline flex flex-wrap gap-4 transition-all duration-300 ${showDropDown ? 'scale-100 max-h-[9999px] mt-4 p-4' : 'scale-0 max-h-[0px] mt-0 p-0'}`}>
         <Button variant='outline' onClick={reset}>
           <ListRestart />
         </Button>
@@ -389,16 +407,21 @@ export default function SortAndFilter<T>(
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <div className={`relative my-auto bg-secondary rounded-full h-8 min-w-16 max-w-16 transition-all duration-1000 ${sortBy ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+            <div className={`relative my-auto bg-secondary rounded-full h-8 min-w-16 max-w-16 ${sortBy ? 'cursor-pointer' : 'cursor-not-allowed'}`}
               onClick={() => {
                 if (!sortBy) return;
                 setSortType(sortType === 'asc' ? 'desc': 'asc');
               }}
             >
               <div className={`absolute flex items-center justify-center bg-primary h-full aspect-square rounded-full transition-all duration-1000 ${!sortBy ? 'left-4 right-4 opacity-50 cursor-none' : sortType === 'asc' ? 'left-0 right-8' : 'left-8 right-0'}`}>
+                {/*
                 <Lock className={`h-3/4 cursor-default ${!sortBy ? 'w-full' : 'w-0'}`} />
                 <ArrowDownAz className={`h-3/4 transition-all duration-1000 ${sortBy && sortType === 'asc' ? 'w-full' : 'w-0'}`} />
                 <ArrowDownZa className={`h-3/4 transition-all duration-1000 ${sortBy && sortType === 'desc' ? 'w-full' : 'w-0'}`} />
+                */}
+                <Lock className={`absolute h-3/4 transition-all duration-300 ${!sortBy ? 'opacity-100' : 'opacity-0'}`} />
+                <ArrowDownAz className={`absolute h-3/4 transition-all duration-300 ${sortBy && sortType === 'asc' ? 'opacity-100' : 'opacity-0'}`} />
+                <ArrowDownZa className={`absolute h-3/4 transition-all duration-300 ${sortBy && sortType === 'desc' ? 'opacity-100' : 'opacity-0'}`} />
               </div>
             </div>
           </>

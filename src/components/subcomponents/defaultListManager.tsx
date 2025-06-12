@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import Link from 'next/link';
@@ -71,7 +71,7 @@ export default function DefaultListManager() {
         <>
           <div className='text-center text-xl'>Default: {defaultList || 'No default list found'}</div>
           {!listnames.length ? <p className='text-center text-muted-foreground'>No Lists Found</p> :
-            <ScrollArea type='auto' className='max-h-fit flex flex-col flex-1'>
+            <div className='overflow-auto max-h-fit flex flex-col flex-1'>
               {listnames.map(listname => (
                 <span key={listname} className='flex gap-4 justify-center px-4'>
                   <Checkbox className='m-auto'
@@ -121,7 +121,7 @@ export default function DefaultListManager() {
                   </DropdownMenu>
                 </span>
               ))}
-            </ScrollArea>
+            </div>
           }
           <form className='flex flex-col'
             noValidate={!newListname}

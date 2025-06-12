@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -36,7 +36,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
       <h1 className='text-xl'>Watch Manager</h1>
       {!watched || !user?.username ? <Loading /> : 
         !watched.length ? <p className='text-muted-foreground'>No Watch History Found</p> :
-          <ScrollArea type='auto' className='flex flex-col'>
+          <div className='flex flex-col overflow-auto'>
             {watched.map(record => {
               return (
                 <span key={record.date} className='flex gap-4 items-center justify-center px-4'>
@@ -55,7 +55,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
                 </span>
               )
             })}
-          </ScrollArea>
+          </div>
       }
       <Button onClick={() => {
         if (buttonText) return console.log('BUTTON DISABLED');

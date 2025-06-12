@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
+// import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
 import TableView from '@/components/table/tableView';
 import ListView from '@/components/table/listView';
 import SliderView from '@/components/table/sliderView';
@@ -181,7 +181,7 @@ export default function MyTable(
   return (
     <div className={`flex flex-col ${useScrollArea ? '' : 'gap-4'}`} ref={ref}>
       {sortedAndFiltered && 
-        <div className={`${useScrollArea ? 'p-2' : ''}`}>
+        <div className={`${useScrollArea ? 'pb-4' : ''}`}>
           <SortAndFilter<ExistingMediaInfo>
             allData={data}
             searchable={[

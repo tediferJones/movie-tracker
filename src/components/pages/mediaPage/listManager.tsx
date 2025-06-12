@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area';
 
 import Link from 'next/link';
 import { ChevronUp, Trash2 } from 'lucide-react';
@@ -75,7 +75,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
       <h1 className='text-xl text-center'>List Manager</h1>
       {!matchingLists || !user?.username ? <Loading /> : 
         !matchingLists.length ? <p className='text-center text-muted-foreground'>No Lists Found</p> :
-          <ScrollArea type='auto' className='flex flex-col'>
+          <div className='flex flex-col overflow-auto'>
             {matchingLists.map(listname => (
               <span key={listname} className='px-4 flex items-center gap-4 py-1'>
                 <button className='relative hover:ring-ring hover:ring-2 rounded-lg p-2'
@@ -94,7 +94,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
                   <span className='sr-only'>Bump {listname}</span>
                   <ChevronUp className='h-6 w-6' />
                 </button>
-                <Link className='flex-1 text-center hover:underline truncate p-2 hover:bg-secondary rounded-lg'
+                <Link className='flex-1 text-center hover:underline truncate p-2 hover:bg-secondary rounded-lg transition-all duration-300'
                   href={`/users/${user.username}/${listname}`}
                 >{listname}</Link>
                 <button type='button'
@@ -108,7 +108,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
                 </button>
               </span>
             ))}
-          </ScrollArea>
+          </div>
       }
       <div className='flex flex-col gap-4' key={currentList}>
         <Select value={currentList}

@@ -1,10 +1,9 @@
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+// import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 import { Dispatch, SetStateAction/*, useEffect*/, useState } from 'react';
 import Link from 'next/link';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import MediaInfo from '@/components/pages/mediaPage/mediaInfo';
-// import ScrollAreaHorizontalSnap from '@/components/subcomponents/ScrollAreaHorizontalSnap';
 import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import useCenteredItem from '@/hooks/useCenteredItem';
@@ -130,7 +129,7 @@ export default function SliderView(
         }
       >
         {/* // FIX ME, scrollbar too close to edge of ConfirmModal */}
-        <div className='flex flex-col gap-4'>
+        <div className='flex flex-col gap-4 overflow-y-scroll pr-2'>
           {sorted[viewIndex]?.imdbId && <MediaInfo imdbId={sorted[viewIndex].imdbId} />}
         </div>
         {/*
@@ -146,7 +145,9 @@ export default function SliderView(
         </ScrollArea>
         */}
       </ConfirmModal>
+      {/*
       <ScrollBar orientation='horizontal' />
+      */}
     </div>
   )
 }

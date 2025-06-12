@@ -1,6 +1,6 @@
 'use client';
 
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -52,7 +52,7 @@ export default function WatchedDisplay({ username }: { username: string }) {
         <>
           <h3 className='text-center text-xl'>Recently Watched ({total})</h3>
           <div className='h-full flex flex-col justify-center overflow-hidden'>
-            <ScrollArea type='auto' className='flex flex-col'>
+            <div className='overflow-auto flex flex-col'>
               {watched.length === 0
                 ? <p className='text-center text-muted-foreground'>No Watch History Found</p>
                 : watched.map((watchRec, i) => (
@@ -73,7 +73,7 @@ export default function WatchedDisplay({ username }: { username: string }) {
                 maxCount={total}
                 currentCount={watched.length}
               />
-            </ScrollArea>
+            </div>
           </div>
         </>
       }

@@ -1,4 +1,4 @@
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
@@ -19,6 +19,19 @@ export default function ListsDisplay({ username }: { username: string }) {
       {!listnames ? <Loading /> : 
         <>
           <h3 className='text-center text-xl'>Lists ({listnames.length})</h3>
+          <div className='flex flex-col overflow-auto'>
+            {listnames.length === 0
+              ? <p className='text-center text-muted-foreground'>No Lists Found</p>
+              : listnames.map(listname => (
+                <Link className='hover:underline hover:bg-secondary p-2 mx-4 rounded-lg flex justify-center items-center'
+                  href={`/users/${username}/${listname}`}
+                  key={listname}
+                >
+                  <span className='truncate'>{listname}</span>
+                </Link>
+              ))}
+          </div>
+          {/*
           <div className='flex flex-col justify-center flex-1 overflow-hidden'>
             <ScrollArea type='auto' className='flex flex-col'>
               {listnames.length === 0
@@ -31,6 +44,7 @@ export default function ListsDisplay({ username }: { username: string }) {
                 ))}
             </ScrollArea>
           </div>
+          */}
         </>
       }
     </div>

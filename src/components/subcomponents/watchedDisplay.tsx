@@ -11,67 +11,71 @@ import easyFetch from '@/lib/easyFetch';
 
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 
-type PageRes<T> = {
-  total: number,
-  result: T,
-}
+// type PageRes<T> = {
+//   total: number,
+//   result: T,
+// }
 
 export default function WatchedDisplay({ username }: { username: string }) {
   const [watched, setWatched] = useState<WatchedRec[]>();
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const limit = 25;
+  // const [total, setTotal] = useState(0);
+  const pageSize = 25;
+  const displayCount = page * pageSize;
 
   // FIX ME
   // i.e. delete me
-  // useEffect(() => {
-  //   easyFetch<WatchedRec[]>({
-  //     route: `/api/users/${username}/watched`,
-  //     method: 'GET',
-  //   }).then(data => setWatched(data));
-  // }, []);
-
   useEffect(() => {
-    console.log('fetching', page)
-    easyFetch<PageRes<WatchedRec[]>>({
+    easyFetch<WatchedRec[]>({
       route: `/api/users/${username}/watched`,
       method: 'GET',
-      params: new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-      })
-    }).then(({ result, total }) => {
-        setWatched(watched?.concat(result) || result);
-        setTotal(total);
-      });
-  }, [page]);
+    }).then(data => setWatched(data));
+  }, []);
+
+  // useEffect(() => {
+  //   console.log('fetching', page)
+  //   easyFetch<PageRes<WatchedRec[]>>({
+  //     route: `/api/users/${username}/watched`,
+  //     method: 'GET',
+  //     params: new URLSearchParams({
+  //       page: page.toString(),
+  //       limit: limit.toString(),
+  //     })
+  //   }).then(({ result, total }) => {
+  //       setWatched(watched?.concat(result) || result);
+  //       setTotal(total);
+  //     });
+  // }, [page]);
 
   return (
     <div className='showOutline p-4 flex-1 flex flex-col gap-4 max-h-96 min-w-72'>
       {!watched ? <Loading/> :
         <>
-          <h3 className='text-center text-xl'>Recently Watched ({total})</h3>
+          <h3 className='text-center text-xl'>Recently Watched ({watched.length})</h3>
           <div className='h-full flex flex-col justify-center overflow-hidden'>
             <div className='overflow-auto flex flex-col'>
               {watched.length === 0
                 ? <p className='text-center text-muted-foreground'>No Watch History Found</p>
-                : watched.map((watchRec, i) => (
+                : watched.slice(0, displayCount).map((watchRec, i) => (
                   <Link className='flex-1 flex flex-col hover:bg-secondary rounded-lg p-2 mx-4 group text-center'
                     href={`/media/${watchRec.imdbId}`}
                     key={`watchedDisplay-${i}`}
                   >
                     <span className='group-hover:underline'>{watchRec.title}</span>
-                    <span className='text-foreground w-full text-center'>{new Date(watchRec.date).toLocaleTimeString(undefined, {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}</span>
+                    <span className='text-foreground w-full text-center'>
+                      {new Date(watchRec.date).toLocaleTimeString(undefined, {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </span>
                   </Link>
                 ))
               }
-              <AutoPaging setPage={setPage}
-                maxCount={total}
-                currentCount={watched.length}
+              <AutoPaging
+                setPage={setPage}
+                currentCount={displayCount}
+                maxCount={watched.length}
               />
             </div>
           </div>

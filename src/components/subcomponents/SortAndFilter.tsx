@@ -246,12 +246,9 @@ export default function SortAndFilter<T>(
             }
           }}>
             <span className='relative px-4 py-2 inline-block'>
-              <X className={`absolute inset-0 m-auto duration-300 transition-opacity ${isRandomized ? 'opacity-0' : 'opacity-100'}`} />
-              <Dices className={`absolute inset-0 m-auto duration-300 transition-opacity ${isRandomized ? 'opacity-100' : 'opacity-0'}`} />
+              <X className={`absolute inset-0 m-auto duration-300 transition-opacity ${isRandomized ? 'opacity-100' : 'opacity-0'}`} />
+              <Dices className={`absolute inset-0 m-auto duration-300 transition-opacity ${isRandomized ? 'opacity-0' : 'opacity-100'}`} />
             </span>
-            {/*
-            {isRandomized ? <X /> : <Dices />}
-            */}
           </Button>
         }
         <div className='flex flex-1 md:flex-grow-0 gap-4'>

@@ -2,12 +2,13 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { reviews } from '@/drizzle/schema';
+import { reviews, watched } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import SortAndFilter from '@/components/subcomponents/SortAndFilter';
 import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp } from '@/lib/formatters';
+import { Eye, EyeOff, Star } from 'lucide-react';
 
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
 
@@ -53,6 +54,20 @@ export default function ReviewsDisplay(
       throw Error('reviewsDisplay requires an imdbId or a username');
     }
   }, [extTrigger, username]);
+
+  function getFillPercentage(rating: number, star: number) {
+    let percent = 0;
+    const max = (star * 20)
+    const range = rating - max
+    console.log({ rating, max })
+    console.log('remainder', range, star)
+    if (rating > range) {
+      percent = 100
+    }
+    if (rating > star * 20 && rating < (star + 1) * 20) {
+    }
+    return `${percent}%`
+  }
 
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[90vh]'>
@@ -108,14 +123,44 @@ export default function ReviewsDisplay(
                           {imdbId ? review.username : review.title}
                         </span>
                         <div className='flex-1 text-center'>
+                          {/*
                           {review.watchAgain === null ? <span className='text-muted-foreground'>No Opinion</span>
                             : <span>{`Would ${review.watchAgain ? '' : 'NOT'} watch again`}</span>
                           }
+                          */}
+                          <div className='w-6 h-6'>
+                            <div className='overflow-clip w-[30%]'>
+                              <Star className='h-6 w-6'/>
+                            </div>
+                          </div>
                         </div>
-                        <div className='flex-1 text-center'>
+                        <div className='flex-1 text-center flex gap-4 justify-center'>
+                          {/*
                           {review.rating ? <span>{`${review.rating / 20} / 5`}</span>
                             : <span className='text-muted-foreground'>No Rating</span>
                           }
+                          */}
+                          {{
+                            true: <Eye className='text-green-500' />,
+                            false: <Eye className='text-red-500' />,
+                            null: <Eye className='text-muted-foreground' />,
+                          }[`${review.watchAgain}`]}
+                          <div className='relative'>
+                            <div className='flex gap-2'>
+                              {Array(5).fill(0).map((_, i) => (
+                                <Star key={`empty-star-${i}`} className='text-muted-foreground' />
+                              ))}
+                            </div>
+                            <div className='flex gap-2 absolute top-0 left-0'>
+                              {Array(5).fill(0).map((_, i) => (
+                                <div className='w-6 h-6'>
+                                  <div className={`overflow-clip`} style={{ width: getFillPercentage(review.rating || 0, i + 1) }}>
+                                    <Star key={`filled-star-${i}`} className='text-yellow-500 fill-yellow-500' />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className='text-center'>

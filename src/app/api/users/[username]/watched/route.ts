@@ -1,7 +1,7 @@
 import { db } from '@/drizzle/db';
 import { media, watched } from '@/drizzle/schema';
 import { currentUser } from '@clerk/nextjs';
-import { and, count, desc, eq } from 'drizzle-orm';
+import { and,/* count,*/ desc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
 import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
@@ -19,14 +19,15 @@ function addTitle(records: { imdbId: string }[]) {
   })
 }
 
-async function getCount(cacheStr: string, query: Function) {
-  // this is being added to the cache, so anytime watch records are modified, it needs to be cleared
-  const cacheStrCount = `${cacheStr},count`;
-  if (!cache.get(cacheStrCount)) {
-    cache.set(cacheStrCount, await query());
-  }
-  return cache.get(cacheStrCount);
-}
+// FIX ME
+// async function getCount(cacheStr: string, query: Function) {
+//   // this is being added to the cache, so anytime watch records are modified, it needs to be cleared
+//   const cacheStrCount = `${cacheStr},count`;
+//   if (!cache.get(cacheStrCount)) {
+//     cache.set(cacheStrCount, await query());
+//   }
+//   return cache.get(cacheStrCount);
+// }
 
 export async function GET(req: Request, { params }: { params: Params }) {
   // get all watched records for a given user
@@ -64,29 +65,30 @@ export async function GET(req: Request, { params }: { params: Params }) {
           return watchRec;
         }));
       }
-      // WORKING
-      // return NextResponse.json(cache.get(cacheStr));
+      return NextResponse.json(cache.get(cacheStr));
 
-      if (searchParams.has('page') && searchParams.has('limit')) {
-        const page = Number(searchParams.get('page'));
-        const limit = Number(searchParams.get('limit'));
-        const dbResult = (
-          await db.select().from(watched).where(eq(watched.username, username))
-          .orderBy(desc(watched.date))
-          .limit(limit)
-          .offset((page - 1) * limit)
-        );
-        return NextResponse.json({
-          result: addTitle(dbResult),
-          total: await getCount(cacheStr, async () => {
-            return (await db.select({ count: count() }).from(watched).where(
-              eq(watched.username, username)
-            ))[0].count;
-          })
-        })
-      } else {
-        return NextResponse.json(cache.get(cacheStr));
-      }
+      // FIX ME
+      // This was for paging, but if we go the route of stateManagement this can be deleted
+      // if (searchParams.has('page') && searchParams.has('limit')) {
+      //   const page = Number(searchParams.get('page'));
+      //   const limit = Number(searchParams.get('limit'));
+      //   const dbResult = (
+      //     await db.select().from(watched).where(eq(watched.username, username))
+      //     .orderBy(desc(watched.date))
+      //     .limit(limit)
+      //     .offset((page - 1) * limit)
+      //   );
+      //   return NextResponse.json({
+      //     result: addTitle(dbResult),
+      //     total: await getCount(cacheStr, async () => {
+      //       return (await db.select({ count: count() }).from(watched).where(
+      //         eq(watched.username, username)
+      //       ))[0].count;
+      //     })
+      //   })
+      // } else {
+      //   return NextResponse.json(cache.get(cacheStr));
+      // }
     }
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

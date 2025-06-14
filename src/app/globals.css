@@ -34,6 +34,10 @@ a {
   @apply bg-transparent;
 }
 
+*::-webkit-scrollbar-corner {
+  @apply bg-transparent;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

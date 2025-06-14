@@ -2,13 +2,13 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { reviews, watched } from '@/drizzle/schema';
+import { reviews } from '@/drizzle/schema';
+import { Eye, EyeOff, Star } from 'lucide-react';
 import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import SortAndFilter from '@/components/subcomponents/SortAndFilter';
 import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp } from '@/lib/formatters';
-import { Eye, EyeOff, Star } from 'lucide-react';
 
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
 
@@ -30,6 +30,9 @@ export default function ReviewsDisplay(
 
   const pageSize = 5;
   const displayType = username ? 'title' : 'username';
+
+  const starCount = 5;
+  const starValue = 20;
 
   useEffect(() => {
     // if imdbId exists, only fetch records related to imdbId
@@ -55,18 +58,33 @@ export default function ReviewsDisplay(
     }
   }, [extTrigger, username]);
 
-  function getFillPercentage(rating: number, star: number) {
-    let percent = 0;
-    const max = (star * 20)
-    const range = rating - max
-    console.log({ rating, max })
-    console.log('remainder', range, star)
-    if (rating > range) {
-      percent = 100
-    }
-    if (rating > star * 20 && rating < (star + 1) * 20) {
-    }
-    return `${percent}%`
+  function getStars(rating: number) {
+    return Array.from({ length: starCount }, () => {
+      let fillPercent = 0;
+      if (rating >= starValue) {
+        fillPercent = 100;
+      }
+      if (0 < rating && rating < starValue) {
+        fillPercent = Math.round(rating / starValue * 100);
+      }
+      rating -= starValue;
+      return fillPercent;
+    });
+  }
+
+  const watchAgainConverter = {
+    true: {
+      className: 'text-green-500',
+      description: 'Would watch again',
+    },
+    null: {
+      className: 'text-muted-foreground',
+      description: 'No Opinion',
+    },
+    false: {
+      className: 'text-red-500',
+      description: 'Would NOT watch again',
+    },
   }
 
   return (
@@ -111,6 +129,9 @@ export default function ReviewsDisplay(
             {reviews.length === 0 ?
               <div className='p-4 text-center text-muted-foreground'>No Reviews Found</div> : 
               reviews.slice(0, page * pageSize).map((review, i) => {
+                const { className, description } = watchAgainConverter[`${review.watchAgain}`];
+                const stars = getStars(review.rating || 0);
+                const hasRating = review.rating !== null;
                 return (
                   <Fragment key={`reviewsDisplay-${i}`}>
                     {i > 0 && <hr className='my-2' />}
@@ -127,34 +148,39 @@ export default function ReviewsDisplay(
                           {review.watchAgain === null ? <span className='text-muted-foreground'>No Opinion</span>
                             : <span>{`Would ${review.watchAgain ? '' : 'NOT'} watch again`}</span>
                           }
-                          */}
                           <div className='w-6 h-6'>
                             <div className='overflow-clip w-[30%]'>
                               <Star className='h-6 w-6'/>
                             </div>
                           </div>
+                          */}
                         </div>
                         <div className='flex-1 text-center flex gap-4 justify-center'>
                           {/*
                           {review.rating ? <span>{`${review.rating / 20} / 5`}</span>
                             : <span className='text-muted-foreground'>No Rating</span>
                           }
-                          */}
                           {{
-                            true: <Eye className='text-green-500' />,
+                            true: <Eye className='text-green-500' xlinkTitle={'Bello?'} />,
                             false: <Eye className='text-red-500' />,
                             null: <Eye className='text-muted-foreground' />,
                           }[`${review.watchAgain}`]}
-                          <div className='relative'>
-                            <div className='flex gap-2'>
-                              {Array(5).fill(0).map((_, i) => (
-                                <Star key={`empty-star-${i}`} className='text-muted-foreground' />
+                          */}
+                          <span title={description}>
+                            <Eye className={`${className} ${review.watchAgain !== null ? '' : 'opacity-50'}`} />
+                          </span>
+                          <div className='relative'
+                            title={review.rating !== null ? `Rating: ${(review.rating / starValue).toFixed(2)} / ${starCount}` : 'No Rating'}
+                          >
+                            <div className='flex'>
+                              {Array(starCount).fill(0).map((_, i) => (
+                                <Star key={`empty-star-${i}`} className={`text-muted-foreground ${hasRating ? '' : 'opacity-50'}`} />
                               ))}
                             </div>
-                            <div className='flex gap-2 absolute top-0 left-0'>
-                              {Array(5).fill(0).map((_, i) => (
+                            <div className='flex absolute top-0 left-0'>
+                              {Array(starCount).fill(0).map((_, i) => (
                                 <div className='w-6 h-6'>
-                                  <div className={`overflow-clip`} style={{ width: getFillPercentage(review.rating || 0, i + 1) }}>
+                                  <div className='overflow-clip' style={{ width: `${stars[i]}%` }}>
                                     <Star key={`filled-star-${i}`} className='text-yellow-500 fill-yellow-500' />
                                   </div>
                                 </div>

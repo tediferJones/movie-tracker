@@ -7,8 +7,10 @@ import { Eye, EyeOff, Star } from 'lucide-react';
 import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import SortAndFilter from '@/components/subcomponents/SortAndFilter';
+import StarRating from '@/components/subcomponents/StarRating';
 import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp } from '@/lib/formatters';
+import { watchAgainConfig, ratingConfig } from '@/lib/reviewHelpers';
 
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
 
@@ -31,8 +33,8 @@ export default function ReviewsDisplay(
   const pageSize = 5;
   const displayType = username ? 'title' : 'username';
 
-  const starCount = 5;
-  const starValue = 20;
+  // const starCount = 5;
+  // const starValue = 20;
 
   useEffect(() => {
     // if imdbId exists, only fetch records related to imdbId
@@ -58,34 +60,34 @@ export default function ReviewsDisplay(
     }
   }, [extTrigger, username]);
 
-  function getStars(rating: number) {
-    return Array.from({ length: starCount }, () => {
-      let fillPercent = 0;
-      if (rating >= starValue) {
-        fillPercent = 100;
-      }
-      if (0 < rating && rating < starValue) {
-        fillPercent = Math.round(rating / starValue * 100);
-      }
-      rating -= starValue;
-      return fillPercent;
-    });
-  }
+  // function getStars(rating: number) {
+  //   return Array.from({ length: starCount }, () => {
+  //     let fillPercent = 0;
+  //     if (rating >= starValue) {
+  //       fillPercent = 100;
+  //     }
+  //     if (0 < rating && rating < starValue) {
+  //       fillPercent = Math.round(rating / starValue * 100);
+  //     }
+  //     rating -= starValue;
+  //     return fillPercent;
+  //   });
+  // }
 
-  const watchAgainConverter = {
-    true: {
-      className: 'text-green-500',
-      description: 'Would watch again',
-    },
-    null: {
-      className: 'text-muted-foreground',
-      description: 'No Opinion',
-    },
-    false: {
-      className: 'text-red-500',
-      description: 'Would NOT watch again',
-    },
-  }
+  // const watchAgainConverter = {
+  //   true: {
+  //     className: 'text-green-500',
+  //     description: 'Would watch again',
+  //   },
+  //   null: {
+  //     className: 'text-muted-foreground',
+  //     description: 'No Opinion',
+  //   },
+  //   false: {
+  //     className: 'text-red-500',
+  //     description: 'Would NOT watch again',
+  //   },
+  // }
 
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[90vh]'>
@@ -108,16 +110,22 @@ export default function ReviewsDisplay(
             }}
             filterable={{
               'watchAgain': {
-                values: [true, null, false],
-                names: ['Would watch again', 'No Opinion', 'Would NOT watch again']
+                // values: [true, null, false],
+                // names: ['Would watch again', 'No Opinion', 'Would NOT watch again']
+                values: Object.values(watchAgainConfig).map(val => val.value),
+                names: Object.values(watchAgainConfig).map(val => val.description),
               },
             }}
             rangeable={{
               'rating': {
-                min: 0,
-                max: 100,
-                step: 0.05,
-                factor: 20,
+                // min: 0,
+                // max: 100,
+                // step: 0.05,
+                // factor: 20,
+                min: ratingConfig.minRating,
+                max: ratingConfig.maxRating,
+                step: ratingConfig.starCount / ratingConfig.maxRating,
+                factor: ratingConfig.starValue,
                 format: (n: number) => n.toFixed(2),
               }
             }}
@@ -129,9 +137,9 @@ export default function ReviewsDisplay(
             {reviews.length === 0 ?
               <div className='p-4 text-center text-muted-foreground'>No Reviews Found</div> : 
               reviews.slice(0, page * pageSize).map((review, i) => {
-                const { className, description } = watchAgainConverter[`${review.watchAgain}`];
-                const stars = getStars(review.rating || 0);
-                const hasRating = review.rating !== null;
+                const { className, description } = watchAgainConfig[`${review.watchAgain}`];
+                // const stars = getStars(review.rating || 0);
+                // const hasRating = review.rating !== null;
                 return (
                   <Fragment key={`reviewsDisplay-${i}`}>
                     {i > 0 && <hr className='my-2' />}
@@ -169,6 +177,10 @@ export default function ReviewsDisplay(
                           <span title={description}>
                             <Eye className={`${className} ${review.watchAgain !== null ? '' : 'opacity-50'}`} />
                           </span>
+                          <StarRating keyPrefix={review.title|| review.username}
+                            rating={review.rating}
+                          />
+                          {/*
                           <div className='relative'
                             title={review.rating !== null ? `Rating: ${(review.rating / starValue).toFixed(2)} / ${starCount}` : 'No Rating'}
                           >
@@ -187,6 +199,7 @@ export default function ReviewsDisplay(
                               ))}
                             </div>
                           </div>
+                          */}
                         </div>
                       </div>
                       <div className='text-center'>

@@ -5,14 +5,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 
 import { useEffect, useRef, useState } from 'react';
-import { Eye, Star, X } from 'lucide-react';
+import { reviews } from '@/drizzle/schema';
+import { useUser } from '@clerk/nextjs';
+import { Eye, /*Star,*/ X } from 'lucide-react';
 import Loading from '@/components/subcomponents/loading';
 import ReviewsDisplay from '@/components/subcomponents/reviewsDisplay';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
+import StarRating from '@/components/subcomponents/StarRating';
 import { inputValidation } from '@/lib/inputValidation';
-import { useUser } from '@clerk/nextjs';
-import { reviews } from '@/drizzle/schema';
 import easyFetch from '@/lib/easyFetch';
+import { ratingConfig, watchAgainConfig } from '@/lib/reviewHelpers';
 
 type ExistingReview = typeof reviews.$inferSelect
 type EmptyReview = {
@@ -23,7 +25,8 @@ type EmptyReview = {
 }
 
 export default function ReviewManager({ imdbId }: { imdbId: string }) {
-  const [existingReview, setExistingReview] = useState<ExistingReview | EmptyReview>();
+  const [currentReview, setCurrentReview] = useState<ExistingReview | EmptyReview>();
+  const [existingReview, setExistingReview] = useState<ExistingReview>();
   const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
   // const [lockRating, setLockRating] = useState<boolean>(false);
   // const [isHovering, setIsHovering] = useState<boolean>(false);
@@ -32,6 +35,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   const [changeRating, setChangeRating] = useState(false);
   const ratingContainer = useRef<HTMLDivElement>(null);
 
+  const { starCount, maxRating, minRating, starValue } = ratingConfig;
   const defaultReview = {
     review: null,
     rating: null,
@@ -42,27 +46,27 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   // FIX ME
   // consolidate shared values between this component and reviewsDisplay since many of these are shared
   // Update button should be disabled unless review has actually changed
-  //  - will probably need two state values for review, one for the existingReview and another for the edited review's state
+  //  - will probably need two state values for review, one for the currentReview and another for the edited review's state
   //  - this should also apply to new reviews, no point in posting an entirely empty review
   // Think more about how to display null ratings, right now we just turn down the opacity
   //  - might be worth removing null as a rating value, just use 0 by default, then a minimum review can be 0.05 stars
-  const starCount = 5;
-  const starValue = 20;
-  const maxRating = 100;
-  const stars = getStars(existingReview?.rating || 0)
-  function getStars(rating: number) {
-    return Array.from({ length: starCount }, () => {
-      let fillPercent = 0;
-      if (rating >= starValue) {
-        fillPercent = 100;
-      }
-      if (0 < rating && rating < starValue) {
-        fillPercent = Math.round(rating / starValue * 100);
-      }
-      rating -= starValue;
-      return fillPercent;
-    });
-  }
+  // const starCount = 5;
+  // const starValue = 20;
+  // const maxRating = 100;
+  // const stars = getStars(currentReview?.rating || 0)
+  // function getStars(rating: number) {
+  //   return Array.from({ length: starCount }, () => {
+  //     let fillPercent = 0;
+  //     if (rating >= starValue) {
+  //       fillPercent = 100;
+  //     }
+  //     if (0 < rating && rating < starValue) {
+  //       fillPercent = Math.round(rating / starValue * 100);
+  //     }
+  //     rating -= starValue;
+  //     return fillPercent;
+  //   });
+  // }
 
   function getRating(position: number, width: number) {
     width = width - 4; // provide a small buffer so its easier to set 0 or 100
@@ -73,13 +77,13 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   }
 
   function handleRatingChange(cursorPos: number, force?: boolean) {
-    if (!existingReview) return;
+    if (!currentReview) return;
     if (!ratingContainer.current) return;
     if (!force && !changeRating) return;
     const rect = ratingContainer.current.getBoundingClientRect();
     const position = cursorPos - rect.left;
     const rating = getRating(position, rect.width);
-    setExistingReview({ ...existingReview, rating });
+    setCurrentReview({ ...currentReview, rating });
   }
 
   const { user } = useUser();
@@ -90,18 +94,19 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
         method: 'GET',
         params: { imdbId },
       }).then(data => {
-          setExistingReview(data || defaultReview);
+          setCurrentReview(data || defaultReview);
+          setExistingReview(data);
           setButtonText(data ? 'Update Review' : 'Submit Review');
         });
     }
   }, [refreshTrigger, user?.username]);
 
-  return !existingReview ? <Loading /> :
+  return !currentReview ? <Loading /> :
     <>
       <div className='flex flex-col gap-4 p-4 showOutline'>
         <div className='flex justify-between'>
           <h1 className='text-xl my-auto'>My Review</h1>
-          {!existingReview.username ? [] : 
+          {!currentReview.username ? [] : 
             <Button variant='destructive'
               onClick={() => setModalVisible(true)}
             >Delete My Review</Button>
@@ -111,34 +116,34 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
         <div className='flex sm:flex-row flex-col items-center gap-4'>
           <div className='flex-1'>Watch Again?</div>
           <div className='flex-1 flex flex-wrap gap-4'>
+            {/*
             <Button variant='secondary'
-              className={`flex-1 ${existingReview.watchAgain === true ? 'bg-green-600 hover:bg-green-500' : ''}`}
-              onClick={() => setExistingReview({
-                ...existingReview,
-                watchAgain: [null, false].includes(existingReview.watchAgain) ? true : null,
+              className={`flex-1 ${currentReview.watchAgain === true ? 'bg-green-600 hover:bg-green-500' : ''}`}
+              onClick={() => setCurrentReview({
+                ...currentReview,
+                watchAgain: [null, false].includes(currentReview.watchAgain) ? true : null,
               })}
             >Watch Again</Button>
             <Button variant='secondary'
-              className={`flex-1 ${existingReview.watchAgain === false ? 'bg-red-600 hover:bg-red-500' : ''}`}
-              onClick={() => setExistingReview({
-                ...existingReview,
-                watchAgain: [null, true].includes(existingReview.watchAgain) ? false : null,
+              className={`flex-1 ${currentReview.watchAgain === false ? 'bg-red-600 hover:bg-red-500' : ''}`}
+              onClick={() => setCurrentReview({
+                ...currentReview,
+                watchAgain: [null, true].includes(currentReview.watchAgain) ? false : null,
               })}
             >Not Worth It</Button>
-            {/*
-            <Button className={`transition-colors duration-300 ${existingReview.watchAgain === true ? 'bg-green-500 hover:bg-green-600' : '!text-green-500'}`} 
+            <Button className={`transition-colors duration-300 ${currentReview.watchAgain === true ? 'bg-green-500 hover:bg-green-600' : '!text-green-500'}`} 
               variant='outline'
-              onClick={() => setExistingReview({
-                ...existingReview,
-                watchAgain: existingReview.watchAgain === true ? null : true,
+              onClick={() => setCurrentReview({
+                ...currentReview,
+                watchAgain: currentReview.watchAgain === true ? null : true,
               })}
             >
               <Eye />
             </Button>
             <Button className='text-muted-foreground' 
               variant='outline'
-              onClick={() => setExistingReview({
-                ...existingReview,
+              onClick={() => setCurrentReview({
+                ...currentReview,
                 watchAgain: null,
               })}
             >
@@ -148,27 +153,61 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
               <Eye className='text-red-500' />
             </Button>
             */}
+            {Object.values(watchAgainConfig).map(watchAgainType => {
+              const {
+                className,
+                activeClassName,
+                value,
+                description
+              } = watchAgainType;
+              return (
+                <Button className={`transition-colors duration-300 ${currentReview.watchAgain === value ? activeClassName : className}`}
+                  key={`userRating-${watchAgainType.description}`}
+                  variant='outline'
+                  title={description}
+                  onClick={() => setCurrentReview({
+                    ...currentReview,
+                    watchAgain: watchAgainType.value
+                  })}
+                >
+                  <Eye />
+                </Button>
+              )
+            })}
           </div>
         </div>
 
         <div className='flex flex-wrap justify-between items-center gap-4'>
-          <label className='my-auto'
-            htmlFor='myRating'
-          >Rating: </label>
+          <label className='my-auto' htmlFor='myRating'>Rating:</label>
           <Input className='p-2 showOutline w-min'
             name='myRating'
             id='myRating'
-            value={((existingReview.rating || 0) / starValue).toFixed(2)} 
-            onChange={e => setExistingReview({ 
-              ...existingReview,
+            value={((currentReview.rating || 0) / starValue).toFixed(2)} 
+            onChange={e => setCurrentReview({ 
+              ...currentReview,
               rating: Number(e.target.value) * starValue,
             })} 
-            type='number' min={0} max={starCount} step={starCount / maxRating} 
+            type='number' min={minRating} max={starCount} step={starCount / maxRating} 
           />
 
+          <StarRating 
+            className='touch-none cursor-pointer'
+            keyPrefix='userRating'
+            rating={currentReview.rating}
+            ref={ratingContainer}
+            onMouseDown={() => setChangeRating(true)}
+            onMouseUp={() => setChangeRating(false)}
+            onMouseLeave={() => setChangeRating(false)}
+            onMouseMove={(e) => handleRatingChange(e.clientX)}
+            onTouchStart={() => setChangeRating(true)}
+            onTouchEnd={() => setChangeRating(false)}
+            onTouchMove={(e) => handleRatingChange(e.touches[0].clientX)}
+            onClick={(e) => handleRatingChange(e.clientX, true)}
+          />
+          {/*
           <div className='relative touch-none'
             ref={ratingContainer}
-            title={existingReview.rating !== null ? `Rating: ${existingReview.rating / starValue} / ${starCount}` : 'No Rating'}
+            title={currentReview.rating !== null ? `Rating: ${currentReview.rating / starValue} / ${starCount}` : 'No Rating'}
             onMouseDown={() => setChangeRating(true)}
             onMouseUp={() => setChangeRating(false)}
             onMouseLeave={() => setChangeRating(false)}
@@ -193,21 +232,24 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
               ))}
             </div>
           </div>
-          <Button variant='outline'
-            onClick={() => setExistingReview({
-              ...existingReview,
-              rating: null
-            })}
-          >
-            <X />
-          </Button>
+          */}
+          {currentReview.rating !== null &&
+            <Button variant='outline'
+              onClick={() => setCurrentReview({
+                ...currentReview,
+                rating: null
+              })}
+            >
+              <X />
+            </Button>
+          }
 
           {/*
           <div className='flex-1 min-h-[2em] min-w-[8em] relative showOutline overflow-hidden'
             onMouseMove={e => {
-              if (lockRating && existingReview) {
-                setExistingReview({ 
-                  ...existingReview, 
+              if (lockRating && currentReview) {
+                setCurrentReview({ 
+                  ...currentReview, 
                   rating: Math.round(e.nativeEvent.offsetX / e.currentTarget.offsetWidth * 100),
                 })
               }
@@ -225,7 +267,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
             }
             <div className='h-full bg-yellow-500'
               style={{
-                width: `${existingReview.rating || 0}%`, 
+                width: `${currentReview.rating || 0}%`, 
                 pointerEvents: 'none'
               }}
             ></div>
@@ -234,9 +276,9 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
         </div>
 
         <Textarea name='myReview' 
-          value={existingReview.review || ''} 
-          onChange={(e) => setExistingReview({ 
-            ...existingReview, 
+          value={currentReview.review || ''} 
+          onChange={(e) => setCurrentReview({ 
+            ...currentReview, 
             review: e.target.value 
           })}
           rows={4}
@@ -244,18 +286,27 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
           {...inputValidation.review}
         />
 
-        <Button onClick={() => {
-          if (user?.username) {
-            setButtonText(existingReview.username ? 'Updating Review...' : 'Adding Review...');
-            easyFetch({
-              route: `/api/users/${user.username}/reviews`,
-              method: existingReview.username ? 'PUT' : 'POST',
-              params: { imdbId },
-              body: existingReview,
-              skipJSON: true,
-            }).then(() => setRefreshTrigger(!refreshTrigger));
+        {/*
+        // FIX ME
+        // Button should have 'cursor-not-allowed' when disabled
+        */}
+        <Button
+          disabled={
+            JSON.stringify(existingReview) === JSON.stringify(currentReview)
           }
-        }}>{buttonText}</Button>
+          onClick={() => {
+            if (user?.username) {
+              setButtonText(currentReview.username ? 'Updating Review...' : 'Adding Review...');
+              easyFetch({
+                route: `/api/users/${user.username}/reviews`,
+                method: currentReview.username ? 'PUT' : 'POST',
+                params: { imdbId },
+                body: currentReview,
+                skipJSON: true,
+              }).then(() => setRefreshTrigger(!refreshTrigger));
+            }
+          }}
+        >{buttonText}</Button>
       </div>
       <ConfirmModal
         visible={modalVisibile}

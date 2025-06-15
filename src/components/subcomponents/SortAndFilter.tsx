@@ -59,6 +59,9 @@ type DefaultStates<T> = {
 // figure out whats up with Filter by watch again, select a filter then unselect and no results are shown
 // - either all should be checked by default (makes the most sense) or when none are checked no filter is applied
 // Add ability to set loading text (if provided)
+// if keyPrefix isnt needed, delete it and delete it from all components that use this component
+//  - in theory keyPrefix should be required, on userPage we use this component twice, once in multiTable and once in reviewsDisplay
+//    - the keys should colide but no warning/error is thrown
 
 export default function SortAndFilter<T>(
   {

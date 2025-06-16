@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { reviews } from '@/drizzle/schema';
-import { Eye, EyeOff, Star } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import SortAndFilter from '@/components/subcomponents/SortAndFilter';
@@ -33,9 +33,6 @@ export default function ReviewsDisplay(
   const pageSize = 5;
   const displayType = username ? 'title' : 'username';
 
-  // const starCount = 5;
-  // const starValue = 20;
-
   useEffect(() => {
     // if imdbId exists, only fetch records related to imdbId
     // if no imdbId, fetch all records for user
@@ -60,35 +57,6 @@ export default function ReviewsDisplay(
     }
   }, [extTrigger, username]);
 
-  // function getStars(rating: number) {
-  //   return Array.from({ length: starCount }, () => {
-  //     let fillPercent = 0;
-  //     if (rating >= starValue) {
-  //       fillPercent = 100;
-  //     }
-  //     if (0 < rating && rating < starValue) {
-  //       fillPercent = Math.round(rating / starValue * 100);
-  //     }
-  //     rating -= starValue;
-  //     return fillPercent;
-  //   });
-  // }
-
-  // const watchAgainConverter = {
-  //   true: {
-  //     className: 'text-green-500',
-  //     description: 'Would watch again',
-  //   },
-  //   null: {
-  //     className: 'text-muted-foreground',
-  //     description: 'No Opinion',
-  //   },
-  //   false: {
-  //     className: 'text-red-500',
-  //     description: 'Would NOT watch again',
-  //   },
-  // }
-
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[90vh]'>
       {!reviews || !allReviews ? <Loading /> :
@@ -110,18 +78,12 @@ export default function ReviewsDisplay(
             }}
             filterable={{
               'watchAgain': {
-                // values: [true, null, false],
-                // names: ['Would watch again', 'No Opinion', 'Would NOT watch again']
                 values: Object.values(watchAgainConfig).map(val => val.value),
                 names: Object.values(watchAgainConfig).map(val => val.description),
               },
             }}
             rangeable={{
               'rating': {
-                // min: 0,
-                // max: 100,
-                // step: 0.05,
-                // factor: 20,
                 min: ratingConfig.minRating,
                 max: ratingConfig.maxRating,
                 step: ratingConfig.starCount / ratingConfig.maxRating,
@@ -137,9 +99,10 @@ export default function ReviewsDisplay(
             {reviews.length === 0 ?
               <div className='p-4 text-center text-muted-foreground'>No Reviews Found</div> : 
               reviews.slice(0, page * pageSize).map((review, i) => {
-                const { className, description } = watchAgainConfig[`${review.watchAgain}`];
-                // const stars = getStars(review.rating || 0);
-                // const hasRating = review.rating !== null;
+                const {
+                  className,
+                  description,
+                } = watchAgainConfig[`${review.watchAgain}`];
                 return (
                   <Fragment key={`reviewsDisplay-${i}`}>
                     {i > 0 && <hr className='my-2' />}
@@ -151,55 +114,14 @@ export default function ReviewsDisplay(
                         <span className='text-primary group-hover:underline flex-1 text-center'>
                           {imdbId ? review.username : review.title}
                         </span>
-                        <div className='flex-1 text-center'>
-                          {/*
-                          {review.watchAgain === null ? <span className='text-muted-foreground'>No Opinion</span>
-                            : <span>{`Would ${review.watchAgain ? '' : 'NOT'} watch again`}</span>
-                          }
-                          <div className='w-6 h-6'>
-                            <div className='overflow-clip w-[30%]'>
-                              <Star className='h-6 w-6'/>
-                            </div>
-                          </div>
-                          */}
-                        </div>
+                        <div className='flex-1 text-center'></div>
                         <div className='flex-1 text-center flex gap-4 justify-center'>
-                          {/*
-                          {review.rating ? <span>{`${review.rating / 20} / 5`}</span>
-                            : <span className='text-muted-foreground'>No Rating</span>
-                          }
-                          {{
-                            true: <Eye className='text-green-500' xlinkTitle={'Bello?'} />,
-                            false: <Eye className='text-red-500' />,
-                            null: <Eye className='text-muted-foreground' />,
-                          }[`${review.watchAgain}`]}
-                          */}
                           <span title={description}>
                             <Eye className={`${className} ${review.watchAgain !== null ? '' : 'opacity-50'}`} />
                           </span>
                           <StarRating keyPrefix={review.title|| review.username}
                             rating={review.rating}
                           />
-                          {/*
-                          <div className='relative'
-                            title={review.rating !== null ? `Rating: ${(review.rating / starValue).toFixed(2)} / ${starCount}` : 'No Rating'}
-                          >
-                            <div className='flex'>
-                              {Array(starCount).fill(0).map((_, i) => (
-                                <Star key={`empty-star-${i}`} className={`text-muted-foreground ${hasRating ? '' : 'opacity-50'}`} />
-                              ))}
-                            </div>
-                            <div className='flex absolute top-0 left-0'>
-                              {Array(starCount).fill(0).map((_, i) => (
-                                <div className='w-6 h-6'>
-                                  <div className='overflow-clip' style={{ width: `${stars[i]}%` }}>
-                                    <Star key={`filled-star-${i}`} className='text-yellow-500 fill-yellow-500' />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          */}
                         </div>
                       </div>
                       <div className='text-center'>

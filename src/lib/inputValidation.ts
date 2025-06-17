@@ -1,3 +1,11 @@
+// FIX ME
+// change how this entire thing works,
+// return undefined if valid, return error if not valid
+//  - will have to add checks to each validationTest
+// should also test for type match
+//  - typeof rating should be number
+//  - typeof listname should be string
+
 type Validators = {
   maxLength: number,
   required: boolean | undefined,
@@ -6,7 +14,6 @@ type Validators = {
   values: any[],
 }
 
-// type ValidatorObj = { [K in keyof Validators]?: Validators[K] }
 type ValidatorObj = Partial<Validators>
 
 type ValidationTests = {
@@ -24,7 +31,7 @@ export const inputValidation: InputValidation = {
 }
 
 const validationTests: ValidationTests = {
-  maxLength: (val, constraint) => !!val && val.toString().length <= constraint,
+  maxLength: (val, constraint) => val.toString().length <= constraint,
   min: (val, constraint) => Number(val) >= constraint,
   max: (val, constraint) => Number(val) <= constraint,
   values: (val, constraints) => constraints.includes(val),
@@ -40,20 +47,11 @@ export function isValid(inputObj: { [key: string]: any }) {
     return (Object.keys(validators) as (keyof ValidatorObj)[])
       .every(constraintType => {
         const testFn = validationTests[constraintType];
-        const constraint  = validators[constraintType];
+        const constraint = validators[constraintType];
+        if (constraint === undefined) return true;
         return testFn(inputObj[inputKey], constraint as never);
       });
   });
-
-  // return Object.entries(inputObj).every(([inputKey, inputVal]) => {
-  //   const validators = inputValidation[inputKey];
-  //   if (!validators) return true; // no validators then assume true
-  //   return (Object.entries(validators) as [keyof Validators, Validators[keyof Validators]][])
-  //     .every(([constraintKey, constraintVal]) => {
-  //       const testFn = validationTests[constraintKey]
-  //       return testFn(inputVal, constraintVal)
-  //     })
-  // })
 }
 
 // WORKING

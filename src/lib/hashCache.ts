@@ -83,7 +83,7 @@ const routes: Routes = {
   }
 }
 
-export default class ClientHashCache {
+export class ClientHashCache {
   username: string;
   // cache: {
   //   hash: string;
@@ -107,9 +107,9 @@ export default class ClientHashCache {
   constructor(username: string) {
     this.username = username;
     // this.fetch = makeFetchers(username);
-    this.cache = JSON.parse(localStorage.getItem('mediaTracker') || '')
+    this.cache = JSON.parse(localStorage.getItem('mediaTracker') || '');
     this.isSynced = false;
-    this.sync()
+    this.sync();
   }
 
   getHashes() {
@@ -123,8 +123,31 @@ export default class ClientHashCache {
     }
   }
 
-  getUserData() {
-    // const watched = 
+  async getUserData() {
+    const watched = await routes.watched.GET?.(this.username)!;
+    const reviews = await routes.reviews.GET?.(this.username)!;
+    this.cache = {
+      ...this.cache,
+      data: {
+        ...this.cache.data,
+        watched: {
+          hash: await this.hashData(watched),
+          data: watched,
+        },
+        reviews: {
+          hash: await this.hashData(reviews),
+          data: reviews,
+        }
+      }
+    }
+  }
+
+  async hashData(data: any) {
+    const encoder = new TextEncoder();
+    const encodedData = encoder.encode(JSON.stringify(data));
+    const buffer = await crypto.subtle.digest('SHA-256', encodedData);
+    const byteArray = Array.from(new Uint8Array(buffer));
+    return byteArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
   }
 
   async sync() {
@@ -167,4 +190,42 @@ const mockCache: Cache = {
       data: []
     }
   },
+}
+
+type Username = string
+type Hash = string
+type ServerCache = {
+  hash: string,
+  data: {
+    [K in UserResources]: {
+      hash: string,
+    }
+  }
+}
+type HashObj = { [K in UserResources | 'hash']: Hash }
+
+export class ServerHashCache {
+  cache: { [key: Username]: ServerCache }
+
+  constructor() {
+    this.cache = {}
+  }
+
+  checkSync(username: string, hashObj: HashObj) {
+    const serverHashes = this.cache[username];
+    const { hash, ...resources } = hashObj;
+    if (serverHashes.hash === hash) {
+      // full hash matches, all data is synced
+      return true;
+    }
+
+    // check which keys are out of sync
+    const outOfSync = (Object.keys(resources) as UserResources[]).filter(key => {
+      return serverHashes.data[key].hash === resources[key];
+    })
+
+    if (outOfSync.includes('lists')) {
+      // crawl lists to determine which ones are out of sync
+    }
+  }
 }

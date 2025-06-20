@@ -3,19 +3,19 @@ import easyFetch from '@/lib/easyFetch';
 
 type Hash = string
 type Username = string
-type Resources = 'watched' | 'reviews'
-type Hashes = {
+export type Resources = 'watched' | 'reviews'
+export type Hashes = {
   hash: Hash,
   resources: { [K in Resources]: Hash }
 }
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
-type UserDataTypes<T extends Resources> = {
+export type UserDataTypes<T extends Resources> = {
   watched: WatchedRec[],
   reviews: ExistingReview[],
 }[T]
 export type UserData = { [K in Resources]: UserDataTypes<K> }
-
+export type SyncResponse = { synced: boolean, needsSynced: Resources[] }
 
 export class ClientHashCache {
   hashes: Hashes;

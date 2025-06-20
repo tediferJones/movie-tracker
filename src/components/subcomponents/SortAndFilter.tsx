@@ -142,7 +142,7 @@ export default function SortAndFilter<T>(
   function sortAndFilter(arr: T[]) {
     let result = [ ...arr ];
     if (searchTerm && searchType) {
-      console.log('filtering by searching term')
+      // console.log('filtering by searching term')
       const typedKey = searchType as keyof T;
       const searchTermLowerCase = searchTerm.toLowerCase();
 
@@ -159,21 +159,21 @@ export default function SortAndFilter<T>(
             throw Error('item of array is not string');
           }
           return (item[typedKey] as string[]).some(item => {
-            console.log('array searching', item.toLowerCase(), searchTermLowerCase)
+            // console.log('array searching', item.toLowerCase(), searchTermLowerCase)
             return item.toLowerCase().includes(searchTermLowerCase)
           });
         }
       })
     }
     Object.keys(filters).forEach(filter => {
-      console.log('filtering by', filter)
+      // console.log('filtering by', filter)
       const typedKey = filter as keyof T;
       result = result.filter(item => {
         return filters[typedKey]?.includes(item[typedKey]);
       });
     });
     Object.keys(ranges).forEach(rangeKey => {
-      console.log('filtering by range', rangeKey)
+      // console.log('filtering by range', rangeKey)
       const typedKey = rangeKey as keyof T;
       result = result.filter(item => {
         const value = item[typedKey] as number || 0;
@@ -182,7 +182,7 @@ export default function SortAndFilter<T>(
       });
     });
     if (sortable && sortBy) {
-      console.log('sorting')
+      // console.log('sorting')
       result.sort((a, b) => sortable[sortBy]!(a[sortBy], b[sortBy]));
     }
     if (sortType === 'desc') result.reverse();
@@ -200,14 +200,14 @@ export default function SortAndFilter<T>(
     });
     let cacheVal;
     if (cache.current[cacheStr]) {
-      console.log('using cache', cacheStr)
+      // console.log('using cache', cacheStr)
       cacheVal = cache.current[cacheStr];
     }
     return { cacheStr, cacheVal }
   }
 
   function reset() {
-    console.log('resetting')
+    // console.log('resetting')
     setSearchTerm(defaultStates.searchTerm);
     setSearchType(defaultStates.searchType);
     setSortBy(defaultStates.sortBy);

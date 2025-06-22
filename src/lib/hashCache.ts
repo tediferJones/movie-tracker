@@ -17,6 +17,47 @@ export type UserDataTypes<T extends Resources> = {
 export type UserData = { [K in Resources]: UserDataTypes<K> }
 export type SyncResponse = { synced: boolean, needsSynced: Resources[] }
 
+export async function hash(data: string) {
+  const encoder = new TextEncoder();
+  const encodedData = encoder.encode(JSON.stringify(data));
+  const buffer = await crypto.subtle.digest('SHA-256', encodedData);
+  const byteArray = Array.from(new Uint8Array(buffer));
+  return byteArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+class HashTable {
+  cache: { [key: Username]: Hashes }
+  hash: (data: string) => Promise<string>
+
+  constructor() {
+    this.cache = {}
+    this.hash = hash;
+  }
+
+  async setResource<K extends Resources>(username: string, resource: K, val: UserDataTypes<K>) {
+    if (!this.cache[username]) this.cache[username] = {
+      hash: '',
+      resources: {
+        watched: '',
+        reviews: '',
+      }
+    };
+    
+    this.cache[username].resources[resource] = await this.hash(
+      JSON.stringify(val)
+    );
+    this.cache[username].hash = await this.hash(
+      JSON.stringify(this.cache[username].resources)
+    );
+  }
+}
+
+// export const hashTable: { [key: Username]: Hashes } = {}
+export const hashTable = new HashTable();
+if (!(globalThis as any).hashTable) {
+  (globalThis as any).hashTable = hashTable;
+}
+
 export class ClientHashCache {
   hashes: Hashes;
   userData: UserData;

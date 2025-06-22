@@ -5,6 +5,7 @@ import { and,/* count,*/ desc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
 import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
+import { hashTable } from '@/lib/hashCache';
 
 type Params = { username: string }
 
@@ -34,6 +35,24 @@ export async function GET(req: Request, { params }: { params: Params }) {
   // if urlParams has imdbId, only return records related to that imdbId
   const { username } = params;
   const { searchParams } = new URL(req.url);
+
+  // TESTING
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    const watchRecs = await db.select().from(watched).where(
+      eq(watched.username, username)
+    ).orderBy(desc(watched.date));
+
+    await getManyExistingMedia(watchRecs.map(watchRec => watchRec.imdbId));
+
+    const result = watchRecs.map((watchRec: typeof watchRecs[number] & { title?: string }) => {
+      watchRec.title = cache.get(watchRec.imdbId).title;
+      if (!watchRec.title) throw Error('could not find title');
+      return watchRec;
+    });
+
+    hashTable.setResource(username, 'watched', result as (typeof watchRecs[number] & { title: string })[]);
+    return NextResponse.json(result);
+  }
 
   try {
     if (searchParams.has('imdbId')) {

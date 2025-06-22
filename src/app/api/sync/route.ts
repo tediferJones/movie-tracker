@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Hashes, Resources, SyncResponse } from '@/lib/hashCache';
 import { currentUser } from '@clerk/nextjs';
+import { hashTable } from '@/lib/hashCache';
 
 export const resources: Resources[] = [ 'watched', 'reviews' ];
 
@@ -9,14 +10,34 @@ export async function POST(req: Request) {
   if (!user?.username) {
     return NextResponse.json('Unauthorized', { status: 401 });
   }
-  const body: Hashes = await req.json();
-  console.log(body)
-  if (!body?.hash) {
+  const clientHashes: Hashes = await req.json();
+  console.log('clientHash', clientHashes)
+
+  const userHashes = hashTable.cache[user.username];
+  console.log('serverHash', userHashes)
+  if (!userHashes) {
+    // no hashes exist, fetch all resources
     return NextResponse.json<SyncResponse>({
       synced: false,
       needsSynced: resources,
+    });
+  }
+
+  if (userHashes.hash === clientHashes.hash) {
+    // master hashes match, no need to scan resource hashes
+    return NextResponse.json<SyncResponse>({
+      synced: true,
+      needsSynced: [],
     })
   }
-  // body has hashes, check serverHashCache for matches
-  return NextResponse.json({ synced: false })
+
+  // master hashes do not match, scan resources to determine what resources need refetched
+  const needsSynced = resources.filter(resource => {
+    return userHashes.resources[resource] !== clientHashes.resources[resource];
+  });
+
+  return NextResponse.json<SyncResponse>({
+    synced: false,
+    needsSynced,
+  })
 }

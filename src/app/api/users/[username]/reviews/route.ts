@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import { isValid } from '@/lib/inputValidation';
 import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 import cache from '@/lib/cache';
+import { hashTable } from '@/lib/hashCache';
 
 type Params = { username: string }
 type Review = typeof reviews.$inferInsert
@@ -16,6 +17,24 @@ export async function GET(req: Request, { params }: { params: Params }) {
   // otherwise return all reviews for user
   const { username } = params;
   const { searchParams } = new URL(req.url);
+
+  // TESTING
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    const allReviews = await db.select().from(reviews).where(
+      eq(reviews.username, username)
+    ).orderBy(desc(reviews.date));
+
+    await getManyExistingMedia(allReviews.map(review => review.imdbId));
+
+    const result = allReviews.map((review: typeof allReviews[number] & { title?: string }) => {
+      review.title = cache.get(review.imdbId).title;
+      if (!review.title) throw Error('could not find title');
+      return review;
+    });
+
+    hashTable.setResource(username, 'reviews', result);
+    return NextResponse.json(result);
+  }
 
   try {
     if (searchParams.has('imdbId')) {

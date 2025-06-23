@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { Hashes, Resources, SyncResponse } from '@/lib/hashCache';
+import { Hashes, resources, SyncResponse } from '@/lib/hashCache';
 import { currentUser } from '@clerk/nextjs';
 import { hashTable } from '@/lib/hashCache';
 
-export const resources: Resources[] = [ 'watched', 'reviews' ];
+// export const resources: Resources[] = [ 'watched', 'reviews' ];
 
 export async function POST(req: Request) {
   const user = await currentUser();
@@ -11,10 +11,10 @@ export async function POST(req: Request) {
     return NextResponse.json('Unauthorized', { status: 401 });
   }
   const clientHashes: Hashes = await req.json();
-  console.log('clientHash', clientHashes)
+  // console.log('clientHash', clientHashes)
 
   const userHashes = hashTable.cache[user.username];
-  console.log('serverHash', userHashes)
+  // console.log('serverHash', userHashes)
   if (!userHashes) {
     // no hashes exist, fetch all resources
     return NextResponse.json<SyncResponse>({

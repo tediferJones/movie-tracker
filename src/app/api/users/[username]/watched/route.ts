@@ -50,7 +50,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
       return watchRec;
     });
 
-    hashTable.setResource(username, 'watched', result as (typeof watchRecs[number] & { title: string })[]);
+    hashTable.setResource(username, 'watched', result);
     return NextResponse.json(result);
   }
 
@@ -126,6 +126,22 @@ export async function POST(req: Request, { params }: { params: Params }) {
 
   if (!searchParams.has('imdbId')) {
     return NextResponse.json('Bad request, no imdbId', { status: 400 });
+  }
+
+  // TESTING
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    const imdbId = searchParams.get('imdbId')!;
+    console.log('POST WATCHED TEST', imdbId)
+    const preInsertRecord = { username, imdbId, date: Date.now() };
+    const { lastInsertRowid } = await db.insert(watched).values(preInsertRecord);
+    const postInsertRecord = {
+      id: Number(lastInsertRowid),
+      ...preInsertRecord
+    }
+    hashTable.updateResource(username, 'watched', 'POST', postInsertRecord)
+    cache.delete(`${username},${imdbId},watched`);
+    cache.delete(`${username},watched`);
+    return NextResponse.json(postInsertRecord);
   }
 
   const imdbId = searchParams.get('imdbId')!;

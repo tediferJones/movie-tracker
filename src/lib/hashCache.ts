@@ -1,20 +1,51 @@
 import { reviews, watched } from '@/drizzle/schema';
-import easyFetch from '@/lib/easyFetch';
+import easyFetch, { Methods } from '@/lib/easyFetch';
 
 type Hash = string
 type Username = string
-export type Resources = 'watched' | 'reviews'
+export type Resources = typeof immutableResources[number]
 export type Hashes = {
   hash: Hash,
   resources: { [K in Resources]: Hash }
 }
-type WatchedRec = typeof watched.$inferSelect & { title: string }
+type WatchedRec = typeof watched.$inferSelect & { title?: string }
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
-export type UserDataTypes<T extends Resources> = {
-  watched: WatchedRec[],
-  reviews: ExistingReview[],
-}[T]
-export type UserData = { [K in Resources]: UserDataTypes<K> }
+// export type UserDataTypes<T extends Resources> = {
+//   watched: WatchedRec[],
+//   reviews: ExistingReview[],
+// }[T]
+// export type UserData = { [K in Resources]: UserDataTypes<K> }
+
+type FillWith<T extends Partial<Record<Methods, any>>, F> = {
+  [K in Methods]: K extends keyof T ? T[K] : F
+}
+
+export type ResourceTypes<T extends Resources, K extends Methods> = {
+  watched: FillWith<{
+    GET: WatchedRec[],
+    POST: WatchedRec,
+  }, undefined>,
+  reviews: FillWith<{
+    GET: ExistingReview[],
+  }, undefined>
+}[T][K]
+
+export type ResourceInputTypes<T extends Resources, K extends Methods> = {
+  watched: FillWith<{
+    POST: { imdbId: string },
+  }, undefined>
+  reviews: FillWith<{}, undefined>
+}[T][K]
+
+export type UserData = {
+  hash: Hash,
+  data: {
+    [K in Resources]: {
+      hash: Hash,
+      data: ResourceTypes<K, 'GET'>
+    }
+  }
+}
 export type SyncResponse = { synced: boolean, needsSynced: Resources[] }
 
 export async function hash(data: string) {
@@ -25,6 +56,12 @@ export async function hash(data: string) {
   return byteArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
+const immutableResources = [ 'watched', 'reviews' ] as const
+export const resources = [ ...immutableResources ];
+
+// Rename this to ServerHashCache
+// Create ClientHashCache with methods from userData context file
+//  - class will need to take external state and setState as constructor args to make everything work
 class HashTable {
   cache: { [key: Username]: Hashes }
   hash: (data: string) => Promise<string>
@@ -34,7 +71,7 @@ class HashTable {
     this.hash = hash;
   }
 
-  async setResource<K extends Resources>(username: string, resource: K, val: UserDataTypes<K>) {
+  async setResource<K extends Resources>(username: string, resource: K, val: ResourceTypes<K, 'GET'>) {
     if (!this.cache[username]) this.cache[username] = {
       hash: '',
       resources: {
@@ -46,9 +83,35 @@ class HashTable {
     this.cache[username].resources[resource] = await this.hash(
       JSON.stringify(val)
     );
+    await this.updateMasterHash(username);
+    // this.cache[username].hash = await this.hash(
+    //   JSON.stringify(this.cache[username].resources)
+    // );
+  }
+
+  async updateMasterHash(username: string) {
     this.cache[username].hash = await this.hash(
       JSON.stringify(this.cache[username].resources)
     );
+    // console.log('after updating hashes', this.cache[username])
+  }
+
+  async updateResource<K extends Resources, M extends Methods>(
+    username: string,
+    resource: K,
+    method: M,
+    record: ResourceTypes<K, M>
+  ) {
+    const userHashes = this.cache[username];
+    // console.log(`old hash for ${resource}:`, userHashes.resources.watched)
+    const oldHash = userHashes.resources[resource];
+    const hashString = `${oldHash},${method},${JSON.stringify(record)}`
+    // console.log('hash string', hashString)
+    const newHash = await this.hash(hashString);
+    // console.log(`new hash for ${resource}:`, newHash)
+    userHashes.resources[resource] = newHash;
+    await this.updateMasterHash(username);
+    // console.log('new hashes', userHashes);
   }
 }
 
@@ -58,48 +121,48 @@ if (!(globalThis as any).hashTable) {
   (globalThis as any).hashTable = hashTable;
 }
 
-export class ClientHashCache {
-  hashes: Hashes;
-  userData: UserData;
-  fetchers: { [K in Resources]: () => Promise<UserDataTypes<K>> }
-
-  constructor(username: string) {
-    const { hashes, userData } = JSON.parse(localStorage.getItem('media-tracker') || JSON.stringify({}))
-    this.hashes = hashes;
-    this.userData = userData;
-    this.fetchers = {
-      watched: () => easyFetch<WatchedRec[]>({
-        route: `/api/users/${username}/watched`,
-        method: 'GET',
-      }),
-      reviews: () => easyFetch<ExistingReview[]>({
-        route: `/api/users/${username}/reviews`,
-        method: 'GET',
-      }),
-    }
-  }
-
-  async sync() {
-    const syncState = await easyFetch({
-      route: `/api/sync`,
-      method: 'POST',
-      body: this.hashes,
-    });
-    console.log('result', syncState)
-    // if sync is good, return
-    // if sync is not good, re-fetch resources and save synced state to localStorage
-    // might wanna recheck sync state after re-fetching
-    //  - make sure that doesn't turn into an infinite loop
-  }
-}
-
-export class ServerHashCache {
-  cache: { [key: Username]: Hashes }
-
-  constructor() {
-    this.cache = {}
-  }
-}
+// export class ClientHashCache {
+//   hashes: Hashes;
+//   userData: UserData;
+//   fetchers: { [K in Resources]: () => Promise<UserDataTypes<K>> }
+// 
+//   constructor(username: string) {
+//     const { hashes, userData } = JSON.parse(localStorage.getItem('media-tracker') || JSON.stringify({}))
+//     this.hashes = hashes;
+//     this.userData = userData;
+//     this.fetchers = {
+//       watched: () => easyFetch<WatchedRec[]>({
+//         route: `/api/users/${username}/watched`,
+//         method: 'GET',
+//       }),
+//       reviews: () => easyFetch<ExistingReview[]>({
+//         route: `/api/users/${username}/reviews`,
+//         method: 'GET',
+//       }),
+//     }
+//   }
+// 
+//   async sync() {
+//     const syncState = await easyFetch({
+//       route: `/api/sync`,
+//       method: 'POST',
+//       body: this.hashes,
+//     });
+//     console.log('result', syncState)
+//     // if sync is good, return
+//     // if sync is not good, re-fetch resources and save synced state to localStorage
+//     // might wanna recheck sync state after re-fetching
+//     //  - make sure that doesn't turn into an infinite loop
+//   }
+// }
+// 
+// export class ServerHashCache {
+//   cache: { [key: Username]: Hashes }
+// 
+//   constructor() {
+//     this.cache = {}
+//   }
+// }
 
 // import { reviews, watched } from '@/drizzle/schema';
 // import easyFetch, { Methods } from '@/lib/easyFetch';

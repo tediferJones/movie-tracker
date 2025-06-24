@@ -20,19 +20,25 @@ type FillWith<T extends Partial<Record<Methods, any>>, F> = {
   [K in Methods]: K extends keyof T ? T[K] : F
 }
 
+// Maybe rename this to ResourceResTypes
+// because this is what we get back from the API
 export type ResourceTypes<T extends Resources, K extends Methods> = {
   watched: FillWith<{
     GET: WatchedRec[],
     POST: WatchedRec,
+    DELETE: { id: number },
   }, undefined>,
   reviews: FillWith<{
     GET: ExistingReview[],
   }, undefined>
 }[T][K]
 
+// Maybe rename this to ResourceReqTypes
+// because this is what we send to the API
 export type ResourceInputTypes<T extends Resources, K extends Methods> = {
   watched: FillWith<{
     POST: { imdbId: string },
+    DELETE: { id: number },
   }, undefined>
   reviews: FillWith<{}, undefined>
 }[T][K]

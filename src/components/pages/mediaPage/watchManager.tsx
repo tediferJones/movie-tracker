@@ -34,8 +34,8 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
   // }, [refreshTrigger, user?.username]);
 
   useEffect(() => {
-    const watchedRecs = userData.userData?.data.watched.data
-    if (!watchedRecs) return
+    // const watchedRecs = userData.userData?.data.watched.data
+    // if (!watchedRecs) return
     // console.log('last record', watchedRecs[watchedRecs.length - 1])
     // console.log('userData has changed', userData.userData?.data.watched.data)
     if (!userData.userData) return;
@@ -99,15 +99,19 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
         action={() => {
           if (record) {
             setButtonText('Deleting...');
-            easyFetch({
-              route: `/api/users/${user?.username}/watched`,
-              method: 'DELETE',
-              params: { id: record.id, imdbId },
-              skipJSON: true,
-            }).then(() => {
-                setButtonText('');
-                setRefreshTrigger(!refreshTrigger);
-              });
+
+            // WORKING
+            // easyFetch({
+            //   route: `/api/users/${user?.username}/watched`,
+            //   method: 'DELETE',
+            //   params: { id: record.id, imdbId },
+            //   skipJSON: true,
+            // }).then(() => {
+            //     setButtonText('');
+            //     setRefreshTrigger(!refreshTrigger);
+            //   });
+
+            userData.modifyResource('watched', 'DELETE', { id: record.id })
           }
         }}
       >

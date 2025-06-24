@@ -9,48 +9,31 @@ import {
   useContext,
   useEffect,
 } from 'react';
-import { hash, resources, Resources, ResourceTypes, SyncResponse, UserData, ResourceInputTypes, Hashes } from '@/lib/hashCache';
+import {
+  hash,
+  resources,
+  Resources,
+  ResourceTypes,
+  SyncResponse,
+  UserData,
+  ResourceInputTypes,
+  Hashes
+} from '@/lib/hashCache';
 import { useUser } from '@clerk/nextjs';
 import easyFetch, { Methods } from '@/lib/easyFetch';
-// import { resources } from '@/app/api/sync/route';
-import { reviews, watched } from '@/drizzle/schema';
 
-
-// type WatchedRec = typeof watched.$inferSelect & { title: string }
-// type ExistingReview = typeof reviews.$inferSelect & { title?: string }
-// export type UserDataTypes<T extends Resources, K extends Methods> = {
-//   watched: WatchedRec,
-//   reviews: ExistingReview,
-// }[T]
-
-// type GetterFuncs = { [K in Resources]: (username: string) => Promise<UserDataTypes<K>> }
-// type GetterFuncs = {
-//   [K in Resources]: {
-//     [M in Methods]?: (username: string, record: M extends 'GET' ? undefined : UserDataTypes<K>) => M extends 'GET' ? Promise<UserDataTypes<K>[]> : Promise<UserDataTypes<K>>
-//   }
-// }
 type GetterFuncs = {
   [K in Resources]: {
     [M in Methods]?: (username: string, record: ResourceInputTypes<K, M>) =>  Promise<ResourceTypes<K, M>>
   }
 }
 
-// type ModifyFunc = <K extends Resources, M extends Methods>(
-//   resource: K,
-//   method: M,
-//   record: ResourceInputTypes<K, M>
-// ) => Promise<ResourceTypes<K, M>>
-
-// type Hash = string
-// type UserData = {
-//   hash: Hash,
-//   data: {
-//     [K in Resources]: {
-//       hash: Hash,
-//       data: UserDataTypes<K>
-//     }
-//   }
-// }
+type GenericModFunc<K extends Resources, M extends Methods> = (userData: UserData, record: ResourceTypes<K, M>) => void
+type ModFuncs = {
+  [K in Resources]: {
+    [M in Methods]?: GenericModFunc<K, M>
+  }
+} 
 
 const UserDataContext = createContext<{
   userData: UserData | undefined,
@@ -80,47 +63,48 @@ const UserDataContext = createContext<{
 //        - add method to hash string, otherwise POST someRecord and DELETE someRecord could have the same hash
 //          - Example: await hash(oldHash + method + JSON.string(resource))
 //      5.) then check sync status to make sure hash matches serverside
+//
+// Create class for clientHashCache (move most of these function into that class)
+//  - class should take userData and setUserData as constructor args
+//    - setUserData should probably be a private field so it's not exposed outside of the class
+//  - separate hashes from userData, this should simplify some of the data structure crawling
+//    - also helps us avoid mutating state variable outside of setUserData to update hashes
+//      - in general hash changes should not trigger re-renders, even tho hashes shouldn't change unless userData changes
+// ReviewManager should probably be a form instead of just a div
+//  - make sure other buttons inside the form have type='button'
+// Add listnames field after getting reviews working
+//  - do listContents last, it's going to be the most complicated
+// Try to come up with a better way to use setUserData, too much spreading in it's current form
 
 export function UserDataProvider({ children }: { children: ReactNode }) {
   const [userData, setUserData] = useState<UserData>();
   const { user } = useUser();
 
-  // const getters: GetterFuncs = {
-  //   watched: (username) => {
-  //     return easyFetch({
-  //       route: `/api/users/${username}/watched`,
-  //       method: 'GET',
-  //       params: { testType: 'userContext' }
-  //     })
-  //   },
-  //   reviews: (username) => {
-  //     return easyFetch({
-  //       route: `/api/users/${username}/reviews`,
-  //       method: 'GET',
-  //       params: { testType: 'userContext' }
-  //     })
-  //   },
-  // }
-
+  // Maybe rename this to reqFuncs
   const getters: GetterFuncs = {
     watched: {
       GET: (username) => easyFetch({
         route: `/api/users/${username}/watched`,
         method: 'GET',
-        params: { testType: 'userContext' }
+        params: { testType: 'userContext' },
       }),
       POST: (username, record) => easyFetch({
         route: `/api/users/${username}/watched`,
         method: 'POST',
-        params: { testType: 'userContext', ...record }
-      })
+        params: { testType: 'userContext', ...record },
+      }),
+      DELETE: (username, record) => easyFetch({
+        route: `/api/users/${username}/watched`,
+        method: 'DELETE',
+        params: { testType: 'userContext', ...record },
+      }),
     },
     reviews: {
       GET: (username) => easyFetch({
         route: `/api/users/${username}/reviews`,
         method: 'GET',
-        params: { testType: 'userContext' }
-      })
+        params: { testType: 'userContext' },
+      }),
     }
   }
 
@@ -142,21 +126,32 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     (userData.data as any)[key].data = value;
   }
 
-  function updateState<K extends Resources>(
-    userData: UserData,
-    resource: K,
-    record: ResourceTypes<K, 'GET'>[number]
-  ) {
-    setUserData({
-      ...userData,
-      data: {
-        ...userData.data,
-        [resource]: {
-          ...userData.data[resource],
-          data: userData.data[resource].data.concat(record)
+  const modFuncs: ModFuncs = {
+    watched: {
+      POST: (userData, rec) => setUserData({
+        ...userData,
+        data: {
+          ...userData.data,
+          watched: {
+            ...userData.data.watched,
+            data: userData.data.watched.data.concat(rec)
+          }
         }
-      }
-    })
+      }),
+      DELETE: (userData, rec) => setUserData({
+        ...userData,
+        data: {
+          ...userData.data,
+          watched: {
+            ...userData.data.watched,
+            data: userData.data.watched.data.filter(
+              existingRec => existingRec.id !== rec.id
+            ),
+          }
+        }
+      })
+    },
+    reviews: {},
   }
 
   async function updateResourceHash<K extends Resources, M extends Methods>(
@@ -166,31 +161,13 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     record: ResourceTypes<K, M>
   ) {
     const oldHash = userData.data[resource].hash;
-    const hashString = `${oldHash},${method},${JSON.stringify(record)}`
+    const hashString = `${oldHash},${method},${JSON.stringify(record)}`;
     const newHash = await hash(hashString);
     userData.data[resource].hash = newHash;
     await updateMasterHash(userData);
-    if (method !== 'POST') throw Error('this is just a proof of concept')
-    // setUserData((prev) => {
-    //   console.log('updating state', record)
-    //   // console.log(JSON.stringify(prev) === JSON.stringify(userData))
-    //   if (!prev) throw Error('no previous userData')
-    //   prev.data.watched.data = prev.data.watched.data.concat(record as any)
-    //   return { ...prev }
-    // })
-    // setUserData({
-    //   ...userData,
-    //   data: {
-    //     ...userData.data,
-    //     watched: {
-    //       ...userData.data.watched,
-    //       data: userData.data.watched.data.concat(record as any)
-    //     }
-    //   }
-    // })
-    if (!record) throw Error()
-    // FIX ME, type should not be 'as any'
-    updateState(userData, resource, record as any)
+    const modFunc = modFuncs[resource][method] as GenericModFunc<K, M> | undefined;
+    if (!modFunc) throw Error(`Resource ${resource} has no mod func for ${method}`);
+    modFunc(userData, record);
     if (!user?.username) throw Error('not logged in');
     await sync(user.username);
   }
@@ -200,13 +177,13 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     method: M,
     record: ResourceInputTypes<K, M>
   ) {
-    const modFunc = getters[resource][method] as (
+    const reqFunc = getters[resource][method] as (
       username: string,
       record: ResourceInputTypes<K, M>
     ) => Promise<ResourceTypes<K, M>>
-    if (!modFunc) throw Error('post func for watched no found in context');
+    if (!reqFunc) throw Error(`Resource ${resource} has no reqFunc for ${method}`);
     if (!user?.username) throw Error('not logged in');
-    const newRecord = await modFunc(user.username, record);
+    const newRecord = await reqFunc(user.username, record);
     if (!userData) throw Error('no userData found');
     await updateResourceHash(userData, resource, method, newRecord);
     return newRecord;

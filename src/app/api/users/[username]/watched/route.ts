@@ -174,6 +174,18 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
     return NextResponse.json('Bad request, no id', { status: 400 });
   }
 
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    const id = Number(searchParams.get('id'));
+    await db.delete(watched).where(
+      and(
+        eq(watched.username, username),
+        eq(watched.id, id),
+      )
+    );
+    hashTable.updateResource(username, 'watched', 'DELETE', { id })
+    return NextResponse.json({ id })
+  }
+
   if (!searchParams.has('imdbId')) {
     return NextResponse.json('Bad request, no imdbId', { status: 400 });
   }

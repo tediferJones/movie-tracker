@@ -7,10 +7,12 @@ import { isValid } from '@/lib/inputValidation';
 import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 import cache from '@/lib/cache';
 import { hashTable } from '@/lib/hashCache';
+import { ReviewBody } from '@/components/pages/mediaPage/reviewManager';
 
 type Params = { username: string }
-type Review = typeof reviews.$inferInsert
-type ReviewBody = Omit<Omit<Omit<Review, 'username'>, 'imdbId'>, 'date'>
+
+// type Review = typeof reviews.$inferInsert
+// type ReviewBody = Omit<Omit<Omit<Review, 'username'>, 'imdbId'>, 'date'>
 
 export async function GET(req: Request, { params }: { params: Params }) {
   // if req has imdbId param, return single review for given imdbId
@@ -106,6 +108,39 @@ export async function POST(req: Request, { params }: { params: Params }) {
   }
 
   const imdbId = searchParams.get('imdbId')!;
+
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    // FIX ME
+    // probably dont even have to do this, database should error out based on compound key
+    // cannot have two records with same username and imdbId
+    // or if review exists, just forward to PUT method
+    const exisitingReview = await db.select().from(reviews).where(
+      and(
+        eq(reviews.username, username),
+        eq(reviews.imdbId, imdbId),
+      )
+    ).get();
+
+    if (exisitingReview) {
+      return NextResponse.json('Review already exists', { status: 400 });
+    }
+
+    const newRecord = {
+      username,
+      imdbId,
+      date: Date.now(),
+      ...review,
+    }
+    await db.insert(reviews).values(newRecord);
+    // hashTable.setResource(username, 'reviews', result);
+    if (!cache.get(imdbId)) await getManyExistingMedia([ imdbId ]);
+    const title = cache.get(imdbId).title;
+    const newNewRecord = { ...newRecord, title }
+    hashTable.updateResource(username, 'reviews', 'POST', newNewRecord);
+    cache.delete(`${imdbId},reviews`);
+    return NextResponse.json(newNewRecord);
+  }
+
   try {
     const exisitingReview = await db.select().from(reviews).where(
       and(
@@ -152,13 +187,45 @@ export async function PUT(req: Request, { params }: { params: Params }) {
   }
 
   const imdbId = searchParams.get('imdbId')!;
+
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    // probably dont need to do this either
+    // if there is no record with matching username and imdbId, nothing will be updated
+    const existingReview = await db.select().from(reviews).where(
+      and(
+        eq(reviews.username, username),
+        eq(reviews.imdbId, imdbId),
+      )
+    ).get();
+    if (!existingReview) {
+      return NextResponse.json('No review to update', { status: 400 });
+    }
+
+    const updatedReview = {
+      ...review,
+      date: Date.now()
+    }
+    await db.update(reviews).set(updatedReview).where(
+      and(
+        eq(reviews.username, username),
+        eq(reviews.imdbId, imdbId),
+      )
+    );
+    if (!cache.get(imdbId)) await getManyExistingMedia([ imdbId ]);
+    const title = cache.get(imdbId).title;
+    const newNewRecord = { ...updatedReview, username, imdbId, title }
+    hashTable.updateResource(username, 'reviews', 'PUT', newNewRecord);
+    cache.delete(`${imdbId},reviews`);
+    return NextResponse.json(newNewRecord);
+  }
+
   try {
     const existingReview = await db.select().from(reviews).where(
       and(
         eq(reviews.username, username),
         eq(reviews.imdbId, imdbId),
       )
-    )
+    ).get();
     if (!existingReview) {
       return NextResponse.json('No review to update', { status: 400 });
     }
@@ -193,6 +260,19 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
   }
 
   const imdbId = searchParams.get('imdbId')!;
+
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    await db.delete(reviews).where(
+      and(
+        eq(reviews.username, username),
+        eq(reviews.imdbId, imdbId),
+      )
+    );
+    hashTable.updateResource(username, 'reviews', 'DELETE', { imdbId });
+    cache.delete(`${imdbId},reviews`);
+    return NextResponse.json({ imdbId });
+  }
+
   try {
     await db.delete(reviews).where(
       and(

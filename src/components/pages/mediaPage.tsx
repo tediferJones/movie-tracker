@@ -12,7 +12,7 @@ export default function MediaPage({ imdbId }: { imdbId: string }) {
         <WatchManger imdbId={imdbId} />
         <ListManager imdbId={imdbId} />
       </div>
+      <ReviewManager imdbId={imdbId} />
     </UserDataProvider>
-    <ReviewManager imdbId={imdbId} />
   </>
 }

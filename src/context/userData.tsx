@@ -75,6 +75,14 @@ const UserDataContext = createContext<{
 // Add listnames field after getting reviews working
 //  - do listContents last, it's going to be the most complicated
 // Try to come up with a better way to use setUserData, too much spreading in it's current form
+// Keep in mind that we should still probably be using serverCaching for user resources
+//  - for example if 5 other users all look at userA's profile it is still beneficial to cache userA's resources
+//  - also related, we could do use a technique similar to the hashCache to prevent refetching
+//    - when userA POSTs a new watch record, review, etc... update the server cache accordingly instead of just deleting and refetching
+//      - server cache can still use a timer to delete entries that haven't been used in a while
+// Once everything is working go back over all files that use userData or hashTable and clean them up
+//  - dont forget to add try catch blocks for api stuff
+//  - dont forget to reimplement server caching where appropiate
 
 export function UserDataProvider({ children }: { children: ReactNode }) {
   const [userData, setUserData] = useState<UserData>();
@@ -105,6 +113,23 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         method: 'GET',
         params: { testType: 'userContext' },
       }),
+      POST: (username, { imdbId, ...record }) => easyFetch({
+        route: `/api/users/${username}/reviews`,
+        method: 'POST',
+        params: { testType: 'userContext', imdbId },
+        body: record,
+      }),
+      PUT: (username, { imdbId, ...record }) => easyFetch({
+        route: `/api/users/${username}/reviews`,
+        method: 'PUT',
+        params: { testType: 'userContext', imdbId },
+        body: record,
+      }),
+      DELETE: (username, { imdbId }) => easyFetch({
+        route: `/api/users/${username}/reviews`,
+        method: 'DELETE',
+        params: { testType: 'userContext', imdbId },
+      })
     }
   }
 
@@ -151,7 +176,38 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         }
       })
     },
-    reviews: {},
+    reviews: {
+      POST: (userData, rec) => setUserData({
+        ...userData,
+        data: {
+          ...userData.data,
+          reviews: {
+            ...userData.data.reviews,
+            data: userData.data.reviews.data.concat(rec),
+          }
+        }
+      }),
+      PUT: (userData, rec) => setUserData({
+        ...userData,
+        data: {
+          ...userData.data,
+          reviews: {
+            ...userData.data.reviews,
+            data: userData.data.reviews.data.filter(existingRec => existingRec.imdbId !== rec.imdbId).concat(rec),
+          }
+        }
+      }),
+      DELETE: (userData, { imdbId }) => setUserData({
+        ...userData,
+        data: {
+          ...userData.data,
+          reviews: {
+            ...userData.data.reviews,
+            data: userData.data.reviews.data.filter(existingRec => existingRec.imdbId !== imdbId),
+          }
+        }
+      })
+    },
   }
 
   async function updateResourceHash<K extends Resources, M extends Methods>(
@@ -177,13 +233,15 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     method: M,
     record: ResourceInputTypes<K, M>
   ) {
-    const reqFunc = getters[resource][method] as (
+    // Why? I do not know, typescript just decided to throw a hissy fit here
+    const reqFunc = getters[resource][method] as any as (
       username: string,
       record: ResourceInputTypes<K, M>
     ) => Promise<ResourceTypes<K, M>>
     if (!reqFunc) throw Error(`Resource ${resource} has no reqFunc for ${method}`);
     if (!user?.username) throw Error('not logged in');
     const newRecord = await reqFunc(user.username, record);
+    console.log('newRecord', newRecord)
     if (!userData) throw Error('no userData found');
     await updateResourceHash(userData, resource, method, newRecord);
     return newRecord;

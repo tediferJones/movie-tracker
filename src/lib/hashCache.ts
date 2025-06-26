@@ -1,8 +1,12 @@
-import { reviews, watched } from '@/drizzle/schema';
+import { listnames, reviews, watched } from '@/drizzle/schema';
 import /*easyFetch,*/ { Methods } from '@/lib/easyFetch';
 
 type Hash = string
 type Username = string
+const immutableResources = [ 'watched', 'reviews', 'listnames' ] as const
+export type Resources = typeof immutableResources[number]
+export const resources = [ ...immutableResources ];
+
 export type Hashes = {
   hash: Hash,
   resources: { [K in Resources]: Hash }
@@ -11,6 +15,7 @@ type WatchedRec = typeof watched.$inferSelect & { title?: string }
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
 type Review = typeof reviews.$inferInsert
 type ReviewBody = Omit<Omit<Omit<Review, 'username'>, 'imdbId'>, 'date'>
+type Listname = typeof listnames.$inferSelect
 // export type UserDataTypes<T extends Resources> = {
 //   watched: WatchedRec[],
 //   reviews: ExistingReview[],
@@ -34,6 +39,12 @@ export type ResourceTypes<T extends Resources, K extends Methods> = {
     POST: ExistingReview,
     PUT: ExistingReview,
     DELETE: { imdbId: string },
+  }, undefined>,
+  listnames: FillWith<{
+    GET: Listname[],
+    POST: Listname,
+    PUT: { listname: string, newListname: string },
+    DELETE: { listname: string },
   }, undefined>
 }[T][K]
 
@@ -48,6 +59,11 @@ export type ResourceInputTypes<T extends Resources, K extends Methods> = {
     POST: ReviewBody & { imdbId: string },
     PUT: ReviewBody & { imdbId: string },
     DELETE: { imdbId: string },
+  }, undefined>,
+  listnames: FillWith<{
+    POST: { listname: string },
+    PUT: { listname: string, newListname: string },
+    DELETE: { listname: string },
   }, undefined>
 }[T][K]
 
@@ -70,10 +86,6 @@ export async function hash(data: string) {
   return byteArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-const immutableResources = [ 'watched', 'reviews' ] as const
-export type Resources = typeof immutableResources[number]
-export const resources = [ ...immutableResources ];
-
 // Rename this to ServerHashCache
 // Create ClientHashCache with methods from userData context file
 //  - class will need to take external state and setState as constructor args to make everything work
@@ -92,6 +104,7 @@ class HashTable {
       resources: {
         watched: '',
         reviews: '',
+        listnames: '',
       }
     };
     

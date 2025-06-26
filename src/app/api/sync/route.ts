@@ -11,10 +11,10 @@ export async function POST(req: Request) {
     return NextResponse.json('Unauthorized', { status: 401 });
   }
   const clientHashes: Hashes = await req.json();
-  // console.log('clientHash', clientHashes)
+  console.log('clientHash', clientHashes)
 
   const userHashes = hashTable.cache[user.username];
-  // console.log('serverHash', userHashes)
+  console.log('serverHash', userHashes)
   if (!userHashes) {
     // no hashes exist, fetch all resources
     return NextResponse.json<SyncResponse>({

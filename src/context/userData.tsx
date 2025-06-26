@@ -83,6 +83,9 @@ const UserDataContext = createContext<{
 // Once everything is working go back over all files that use userData or hashTable and clean them up
 //  - dont forget to add try catch blocks for api stuff
 //  - dont forget to reimplement server caching where appropiate
+//  - add await to all calls to hashTable.updateResource/setResource
+//  - add await to all calls to userData.updateResource/setResource
+// UPDATE LISTNAMES TABLE TO CASCADE CHANGES TO LISTS TABLE
 
 export function UserDataProvider({ children }: { children: ReactNode }) {
   const [userData, setUserData] = useState<UserData>();
@@ -129,6 +132,28 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         route: `/api/users/${username}/reviews`,
         method: 'DELETE',
         params: { testType: 'userContext', imdbId },
+      })
+    },
+    listnames: {
+      GET: (username) => easyFetch({
+        route: `/api/users/${username}/lists`,
+        method: 'GET',
+        params: { testType: 'userContext' },
+      }),
+      POST: (username, listname) => easyFetch({
+        route: `/api/users/${username}/lists`,
+        method: 'POST',
+        params: { testType: 'userContext', ...listname },
+      }),
+      PUT: (username, listname) => easyFetch({
+        route: `/api/users/${username}/lists`,
+        method: 'PUT',
+        params: { testType: 'userContext', ...listname },
+      }),
+      DELETE: (username, listname) => easyFetch({
+        route: `/api/users/${username}/lists`,
+        method: 'DELETE',
+        params: { testType: 'userContext', ...listname },
       })
     }
   }
@@ -208,6 +233,44 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         }
       })
     },
+    listnames: {
+      POST: (userData, listRec) => setUserData({
+        ...userData,
+        data: {
+          ...userData.data,
+          listnames: {
+            ...userData.data.listnames,
+            data: userData.data.listnames.data.concat(listRec),
+          }
+        }
+      }),
+      PUT: (userData, { listname, newListname }) => setUserData({
+        ...userData,
+        data: {
+          ...userData.data,
+          listnames: {
+            ...userData.data.listnames,
+            data: userData.data.listnames.data.map(listRec => {
+              if (listRec.listname !== listname) return listRec;
+              return {
+                ...listRec,
+                listname: newListname,
+              }
+            })
+          }
+        }
+      }),
+      DELETE: (userData, { listname }) => setUserData({
+        ...userData,
+        data: {
+          ...userData.data,
+          listnames: {
+            ...userData.data.listnames,
+            data: userData.data.listnames.data.filter(listRec => listRec.listname !== listname),
+          }
+        }
+      })
+    }
   }
 
   async function updateResourceHash<K extends Resources, M extends Methods>(
@@ -294,6 +357,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       method: 'POST',
       body: getHashObj(userData),
     });
+    console.log({ synced, needsSynced }, userData)
     if (synced) return console.log('SYNC SUCCESSFUL');
     // console.log({ synced, needsSynced })
     await Promise.all(

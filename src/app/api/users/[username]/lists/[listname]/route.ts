@@ -69,6 +69,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
     if (searchParams.has('imdbId')) {
       const imdbId = searchParams.get('imdbId')!;
 
+      // FIX ME
       // this should probably just be handled by foreign keys
       // const imdbIdExists = await db.select().from(media).where(
       //   eq(media.imdbId, imdbId)

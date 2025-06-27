@@ -3,19 +3,32 @@ import /*easyFetch,*/ { Methods } from '@/lib/easyFetch';
 
 type Hash = string
 type Username = string
-const immutableResources = [ 'watched', 'reviews', 'listnames' ] as const
-export type Resources = typeof immutableResources[number]
+// const immutableResources = [ 'watched', 'reviews', 'listnames' ] as const
+// const immutableResources = [ 'watched', 'reviews', 'listnames', 'listContents' ] as const
+const normalResources = [ 'watched', 'reviews', 'listnames' ] as const
+const specialResources = [ 'listContents' ] as const
+const immutableResources = [ ...normalResources, ...specialResources ];
+// export type Resources = typeof immutableResources[number]
 export const resources = [ ...immutableResources ];
+type NormalResources = typeof normalResources[number]
+type SpecialResources = typeof specialResources[number]
+export type Resources = NormalResources | SpecialResources
+// type HashableResource = Exclude<Resources, 'listContents'>
 
+// type HashChildren<T extends Resources> = T extends 'listContents' ? any : Hash
+export type ListContentType = { hash: string, data: { [key: string]: Hash } }
 export type Hashes = {
   hash: Hash,
-  resources: { [K in Resources]: Hash }
+  resources: {
+    [K in Resources]: K extends 'listContents' ? ListContentType : Hash
+  }
 }
 type WatchedRec = typeof watched.$inferSelect & { title?: string }
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
 type Review = typeof reviews.$inferInsert
 type ReviewBody = Omit<Omit<Omit<Review, 'username'>, 'imdbId'>, 'date'>
 type Listname = typeof listnames.$inferSelect
+type ListItem = { imdbId: string, date: number }
 // export type UserDataTypes<T extends Resources> = {
 //   watched: WatchedRec[],
 //   reviews: ExistingReview[],
@@ -45,6 +58,9 @@ export type ResourceTypes<T extends Resources, K extends Methods> = {
     POST: Listname,
     PUT: { listname: string, newListname: string },
     DELETE: { listname: string },
+  }, undefined>,
+  listContents: FillWith<{
+    GET: { listname: string, contents: ListItem[] },
   }, undefined>
 }[T][K]
 
@@ -64,7 +80,8 @@ export type ResourceInputTypes<T extends Resources, K extends Methods> = {
     POST: { listname: string },
     PUT: { listname: string, newListname: string },
     DELETE: { listname: string },
-  }, undefined>
+  }, undefined>,
+  listContents: FillWith<{}, undefined>
 }[T][K]
 
 export type UserData = {
@@ -72,11 +89,17 @@ export type UserData = {
   data: {
     [K in Resources]: {
       hash: Hash,
-      data: ResourceTypes<K, 'GET'>
+      data: K extends NormalResources ?  ResourceTypes<K, 'GET'> : 
+      K extends SpecialResources ? {
+        [key: string]: {
+          hash: Hash,
+          data: ListItem[],
+        }
+      } : never
     }
   }
 }
-export type SyncResponse = { synced: boolean, needsSynced: Resources[] }
+export type SyncResponse = { synced: boolean, needsSynced: (Resources | ListContentType)[] }
 
 export async function hash(data: string) {
   const encoder = new TextEncoder();
@@ -84,6 +107,14 @@ export async function hash(data: string) {
   const buffer = await crypto.subtle.digest('SHA-256', encodedData);
   const byteArray = Array.from(new Uint8Array(buffer));
   return byteArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export function isNormalResource(resource: Resources): resource is NormalResources {
+  return (normalResources as readonly string[]).includes(resource)
+}
+
+export function isSpecialResource(resource: Resources): resource is SpecialResources {
+  return (specialResources as readonly string[]).includes(resource)
 }
 
 // Rename this to ServerHashCache
@@ -105,12 +136,24 @@ class HashTable {
         watched: '',
         reviews: '',
         listnames: '',
+        listContents: {
+          hash: '',
+          data: {},
+        }
       }
     };
     
-    this.cache[username].resources[resource] = await this.hash(
-      JSON.stringify(val)
-    );
+    if (isNormalResource(resource)) {
+      this.cache[username].resources[resource] = await this.hash(
+        JSON.stringify(val)
+      );
+    } else if (isSpecialResource(resource)) {
+      // throw Error('how do we handle listContents setting?')
+      const obj = this.cache[username].resources[resource as SpecialResources]
+      // obj['hoopla']
+    } else {
+      throw Error('resource not recognized');
+    }
     await this.updateMasterHash(username);
     // this.cache[username].hash = await this.hash(
     //   JSON.stringify(this.cache[username].resources)
@@ -137,7 +180,14 @@ class HashTable {
     // console.log('hash string', hashString)
     const newHash = await this.hash(hashString);
     // console.log(`new hash for ${resource}:`, newHash)
-    userHashes.resources[resource] = newHash;
+
+    if (resource !== 'listContents') {
+      const hashable = resource as NormalResources;
+      userHashes.resources[hashable] = newHash;
+    } else {
+      throw Error('how do we handle listContents updating?')
+      const obj = this.cache[username].resources[resource as 'listContents']
+    }
     await this.updateMasterHash(username);
     // console.log('new hashes', userHashes);
   }

@@ -17,7 +17,9 @@ import {
   SyncResponse,
   UserData,
   ResourceInputTypes,
-  Hashes
+  Hashes,
+  isNormalResource,
+  isSpecialResource
 } from '@/lib/hashCache';
 import { useUser } from '@clerk/nextjs';
 import easyFetch, { Methods } from '@/lib/easyFetch';
@@ -155,6 +157,9 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         method: 'DELETE',
         params: { testType: 'userContext', ...listname },
       })
+    },
+    listContents: {
+
     }
   }
 
@@ -162,7 +167,19 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     return {
       hash: userData.hash,
       resources: (Object.keys(userData.data) as Resources[]).reduce((hashes, key) => {
-        hashes[key] = userData.data[key].hash;
+        if (isNormalResource(key)) {
+          hashes[key] = userData.data[key].hash;
+        } else if (isSpecialResource(key)) {
+          hashes[key] = {
+            hash: userData.data[key].hash,
+            data: Object.keys(userData.data[key].data).reduce((hashObj, innerKey) => {
+              hashObj[innerKey] = userData.data[key].data[innerKey].hash
+              return hashObj
+            }, {} as { [key: string]: string })
+          }
+        } else {
+          throw Error('resource not recognized')
+        }
         return hashes;
       }, {} as Hashes['resources'])
     }
@@ -270,6 +287,9 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
           }
         }
       })
+    },
+    listContents: {
+
     }
   }
 
@@ -335,7 +355,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         setUserData({
           hash: '',
           data: resources.reduce((data, key) => {
-            data[key] = { hash: '', data: [] as any }
+            data[key] = { hash: '', data: key === 'listContents' ? {} : [] as any }
             return data
           }, {} as UserData['data'])
         });

@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import { Hashes, isNormalResource, isSpecialResource, ListContentType, Resources, resources, SyncResponse } from '@/lib/hashCache';
+// import { Hashes, isNormalResource, isSpecialResource, ListContentType, Resources, resources, SyncResponse } from '@/lib/hashCache';
+import { Hashes, resources, SyncResponse } from '@/lib/hashCache';
 import { currentUser } from '@clerk/nextjs';
 import { hashTable } from '@/lib/hashCache';
-
-// export const resources: Resources[] = [ 'watched', 'reviews' ];
 
 export async function POST(req: Request) {
   const user = await currentUser();
@@ -32,25 +31,25 @@ export async function POST(req: Request) {
   }
 
   // master hashes do not match, scan resources to determine what resources need refetched
-  // const needsSynced = resources.filter(resource => {
-  //   return userHashes.resources[resource] !== clientHashes.resources[resource];
-  // });
+  const needsSynced = resources.filter(resource => {
+    return userHashes.resources[resource] !== clientHashes.resources[resource];
+  });
 
-  const needsSynced = resources.reduce((needsSynced, resource) => {
-    if (isNormalResource(resource)) {
-      if (userHashes.resources[resource] !== clientHashes.resources[resource]) {
-        needsSynced.push(resource);
-      }
-    } else if (isSpecialResource(resource)) {
-      if (userHashes.resources[resource].hash !== clientHashes.resources[resource].hash) {
-        // listContents master hash out of sync
-        needsSynced.push(resource)
-      }
-    } else {
-      throw Error('resource not recognized')
-    }
-    return needsSynced
-  }, [] as [] as SyncResponse['needsSynced'])
+  // const needsSynced = resources.reduce((needsSynced, resource) => {
+  //   if (isNormalResource(resource)) {
+  //     if (userHashes.resources[resource] !== clientHashes.resources[resource]) {
+  //       needsSynced.push(resource);
+  //     }
+  //   } else if (isSpecialResource(resource)) {
+  //     if (userHashes.resources[resource].hash !== clientHashes.resources[resource].hash) {
+  //       // listContents master hash out of sync
+  //       needsSynced.push(resource)
+  //     }
+  //   } else {
+  //     throw Error('resource not recognized')
+  //   }
+  //   return needsSynced
+  // }, [] as [] as SyncResponse['needsSynced'])
 
   return NextResponse.json<SyncResponse>({
     synced: false,

@@ -18,8 +18,8 @@ import {
   UserData,
   ResourceInputTypes,
   Hashes,
-  isNormalResource,
-  isSpecialResource
+  // isNormalResource,
+  // isSpecialResource
 } from '@/lib/hashCache';
 import { useUser } from '@clerk/nextjs';
 import easyFetch, { Methods } from '@/lib/easyFetch';
@@ -158,28 +158,29 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         params: { testType: 'userContext', ...listname },
       })
     },
-    listContents: {
+    // listContents: {
 
-    }
+    // }
   }
 
   function getHashObj(userData: UserData) {
     return {
       hash: userData.hash,
       resources: (Object.keys(userData.data) as Resources[]).reduce((hashes, key) => {
-        if (isNormalResource(key)) {
-          hashes[key] = userData.data[key].hash;
-        } else if (isSpecialResource(key)) {
-          hashes[key] = {
-            hash: userData.data[key].hash,
-            data: Object.keys(userData.data[key].data).reduce((hashObj, innerKey) => {
-              hashObj[innerKey] = userData.data[key].data[innerKey].hash
-              return hashObj
-            }, {} as { [key: string]: string })
-          }
-        } else {
-          throw Error('resource not recognized')
-        }
+        // if (isNormalResource(key)) {
+        //   hashes[key] = userData.data[key].hash;
+        // } else if (isSpecialResource(key)) {
+        //   hashes[key] = {
+        //     hash: userData.data[key].hash,
+        //     data: Object.keys(userData.data[key].data).reduce((hashObj, innerKey) => {
+        //       hashObj[innerKey] = userData.data[key].data[innerKey].hash
+        //       return hashObj
+        //     }, {} as { [key: string]: string })
+        //   }
+        // } else {
+        //   throw Error('resource not recognized')
+        // }
+        hashes[key] = userData.data[key].hash;
         return hashes;
       }, {} as Hashes['resources'])
     }
@@ -288,9 +289,9 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         }
       })
     },
-    listContents: {
+    // listContents: {
 
-    }
+    // }
   }
 
   async function updateResourceHash<K extends Resources, M extends Methods>(
@@ -355,7 +356,8 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
         setUserData({
           hash: '',
           data: resources.reduce((data, key) => {
-            data[key] = { hash: '', data: key === 'listContents' ? {} : [] as any }
+            // data[key] = { hash: '', data: key === 'listContents' ? {} : [] as any }
+            data[key] = { hash: '', data: [] }
             return data
           }, {} as UserData['data'])
         });

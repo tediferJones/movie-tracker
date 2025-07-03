@@ -1,7 +1,10 @@
-import { text, sqliteTable, integer, primaryKey, foreignKey } from 'drizzle-orm/sqlite-core';
+import { text, sqliteTable, integer, primaryKey, foreignKey, unique } from 'drizzle-orm/sqlite-core';
 
 // Use this command to push changes to external DB:
 // npx drizzle-kit push:sqlite
+//
+// User this command to get schema from current DB:
+// npx drizzle-kit introspect:sqlite
 
 export const media = sqliteTable('media', {
   imdbId: text('imdbId').primaryKey(),
@@ -15,7 +18,8 @@ export const media = sqliteTable('media', {
   awards: text('awards'),
   poster: text('poster'),
   imdbVotes: integer('imdbVotes'),
-  type: text('text'),
+  type: text('text'), // FIX ME
+  // type: text('type'), // CORRECT VERSION
   dvd: integer('dvd'),
   boxOffice: integer('boxOffice'),
   totalSeasons: integer('totalSeasons'),
@@ -77,7 +81,9 @@ export const reviews = sqliteTable('reviews', {
     pk: primaryKey({ columns: [ table.username, table.imdbId ] })
   }));
 
+// BEFORE MIGRATION
 export const listnames = sqliteTable('listnames', {
+  // id: integer('id').notNull(), // TESTING
   username: text('username').notNull(),
   listname: text('listname').notNull(),
   defaultList: integer('defaultList', { mode: 'boolean' }).notNull(),
@@ -99,3 +105,25 @@ export const lists = sqliteTable('lists', {
       name: 'listId',
     }).onDelete('cascade')
   }));
+
+// AFTER MIGRATION
+// export const listnames = sqliteTable('listnames', {
+//   id: integer('id').primaryKey({ autoIncrement: true }),
+//   username: text('username').notNull(),
+//   listname: text('listname').notNull(),
+//   defaultList: integer('defaultList', { mode: 'boolean' }).notNull(),
+//   date: integer('date').notNull(),
+// }, table => ({
+//     // pk: primaryKey({ columns: [ table.username, table.listname ] })
+//     usernameListnameIdx: unique().on(table.username, table.listname)
+//   }));
+// 
+// export const lists = sqliteTable('lists', {
+//   imdbId: text('imdbId').notNull().references(() => media.imdbId, { onDelete: 'cascade' }),
+//   listnameId: integer('listnameId').notNull().references(() => listnames.id, { onDelete: 'cascade' }),
+//   username: text('username').notNull(),
+//   listname: text('listname').notNull(),
+//   date: integer('date').notNull(),
+// }, table => ({
+//     pk: primaryKey({ columns: [ table.imdbId, table.listnameId ] }),
+//   }));

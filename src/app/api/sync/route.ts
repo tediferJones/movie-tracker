@@ -4,11 +4,21 @@ import { Hashes, resources, SyncResponse } from '@/lib/hashCache';
 import { currentUser } from '@clerk/nextjs';
 import { hashTable } from '@/lib/hashCache';
 
+export async function GET(req: Request) {
+  const user = await currentUser();
+  if (!user?.username) {
+    return NextResponse.json('Unauthorized', { status: 401 });
+  }
+
+  return NextResponse.json(hashTable.cache[user.username] || null);
+}
+
 export async function POST(req: Request) {
   const user = await currentUser();
   if (!user?.username) {
     return NextResponse.json('Unauthorized', { status: 401 });
   }
+
   const clientHashes: Hashes = await req.json();
   console.log('clientHash', clientHashes)
 

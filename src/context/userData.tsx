@@ -23,6 +23,7 @@ import {
 } from '@/lib/hashCache';
 import { useUser } from '@clerk/nextjs';
 import easyFetch, { Methods } from '@/lib/easyFetch';
+import { ClientHashCache } from '@/lib/hashCacheV3';
 
 type GetterFuncs = {
   [K in Resources]: {
@@ -404,6 +405,12 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     if (!user?.username) throw Error('no username found');
     sync(user.username);
   }, [userData]);
+
+  useEffect(() => {
+    if (!user?.username) return
+    // console.log('HashCacheV3', new ClientHashCache(user.username))
+    (window as any).hashCache = new ClientHashCache(user.username)
+  }, [user?.username]);
 
   return (
     <UserDataContext.Provider value={{ userData, setUserData, modifyResource }}>

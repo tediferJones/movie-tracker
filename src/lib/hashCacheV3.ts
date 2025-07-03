@@ -4,16 +4,25 @@
 // - one fetch to /api/sync to get what needs to be synced
 // - granular updates (if one list is out of sync only sync that one list not all lists)
 //   - would it be easier to manage list updates if lists had a unique ID?
+//
+// In order to get this working we'll have to do a couple things
+// 1.) import new db schema (see schema file for how to do this)
+// 2.) adjust /lists/[listname] route to take and use listnameIds
+// 3.) probably a good idea just go around and revert front-end to using fetch in every component
+//      - this will make it easier to troubleshoot hashCacheV3
+//
+// Unrelated but fix media schema 'type' property, right now it actually named 'text'
 
 import { listnames, lists, reviews, watched } from '@/drizzle/schema'
 import easyFetch, { Methods } from '@/lib/easyFetch'
+import { ExistingMediaInfo } from '@/types'
 
 // title should probably be required for WatchedRec and ExistingReview
 type WatchedRec = typeof watched.$inferSelect & { title?: string }
 // type ExistingReview = typeof reviews.$inferSelect & { title?: string }
 type Listname = typeof listnames.$inferSelect & { id: ListId }
-type ListItem = typeof lists.$inferSelect & { id: ListId }
-type List = { listname: Listname, listContents: ListItem[] }
+// type ListItem = typeof lists.$inferSelect & { id: ListId }
+type List = { listname: Listname, listContents: ExistingMediaInfo[] }
 type ListObj = { [key: string]: List }
 
 type ListId = number
@@ -53,70 +62,16 @@ async function hash(data: string) {
   return byteArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-class ClientHashCache {
+// const emptyListEntry = () => ({
+//   listname: {} as any,
+//   listContents: [] as any,
+// })
+
+export class ClientHashCache {
   username: string
   userData: UserData
   hashes: Hashes
   storageKey = 'media-tracker'
-  // fetch = {
-  //   watched: () => easyFetch<WatchedRec[]>({
-  //     route: `/api/users/${this.username}/watched`,
-  //     method: 'GET',
-  //   }),
-  //   // listnames: () => easyFetch<Listname[]>({
-  //   //   route: `/api/users/${this.username}/lists`,
-  //   //   method: 'GET',
-  //   // }),
-  //   // listContents: (listname: ListId) => easyFetch<ListItem[]>({
-  //   //   route: `/api/users/${this.username}/lists/${listname}`,
-  //   //   method: 'GET',
-  //   // })
-  //   lists: async (listId?: ListId) => {
-  //     if (!listId) {
-  //       // fetch all
-  //       const listnames = await easyFetch<Listname[]>({
-  //         route: `/api/users/${this.username}/lists`,
-  //         method: 'GET',
-  //       });
-  //       return Object.fromEntries(
-  //         await Promise.all(
-  //           listnames.map(async listname => {
-  //             return [
-  //               listname.id,
-  //               {
-  //                 listname: listname,
-  //                 listContents: await easyFetch({
-  //                   route: `/api/users/${this.username}/lists`,
-  //                   method: 'GET',
-  //                 })
-  //               }
-  //             ]
-  //           })
-  //         )
-  //       );
-  //     }
-  //   }
-  // }
-  // compare = {
-  //   watched: (clientVal: string, serverVal: string) => {
-  //     return clientVal === serverVal
-  //   },
-  //   lists: (clientLists: UserData['lists'], serverLists: UserData['lists']) => {
-  //     const listIds = [
-  //       ...new Set(
-  //         [ ...Object.keys(clientLists), ...Object.keys(serverLists) ]
-  //       )
-  //     ].map(Number);
-  //     listIds.every(listId => {
-  //       if (serverLists[listId].listname !== clientLists[listId].listname) {
-  //         return false
-  //       }
-  //       if (serverLists[listId].listContents !== clientLists[listId].listContents) {
-  //         return false
-  //       }
-  //     })
-  //   }
-  // }
   syncFuncs = {
     watched: {
       isOutOfSync: (clientHash: Hashes['watched'], serverHash: Hashes['watched']) => {
@@ -158,98 +113,69 @@ class ClientHashCache {
           lists = await easyFetch<Listname[]>({
             route: `/api/users/${this.username}/lists`,
             method: 'GET',
+            params: { testType: 'userContext' }
           });
           outOfSyncResult = lists.reduce((outOfSyncResult, listname) => {
             const listId = Number(listname.id);
+            if (!this.userData.lists[listId]) this.userData.lists[listId] = this.getEmptyListVal();
             this.userData.lists[listId].listname = listname;
             outOfSyncResult[listId] = ['listContents'];
             return outOfSyncResult;
           }, {} as { [key: string]: ('listname' | 'listContents')[] });
         }
-        Object.keys(outOfSyncResult).forEach(async listIdStr => {
-          const listId = Number(listIdStr);
-          const needsUpdated = outOfSyncResult[listId];
-          if (needsUpdated.includes('listname')) {
-            if (!lists) {
-              lists = await easyFetch<Listname[]>({
-                route: `/api/users/${this.username}/lists`,
+          Object.keys(outOfSyncResult).map(async listIdStr => {
+            const listId = Number(listIdStr);
+            const needsUpdated = outOfSyncResult[listId];
+            if (needsUpdated.includes('listname')) {
+              if (!lists) {
+                lists = await easyFetch<Listname[]>({
+                  route: `/api/users/${this.username}/lists`,
+                  method: 'GET',
+                });
+              }
+              const listname = lists.find(list => list.id === listId);
+              if (!listname) throw Error('could not find matching listname');
+              this.userData.lists[listId].listname = listname;
+              this.hashes.lists[listId].listname = await hash(
+                JSON.stringify(this.userData.lists[listId].listname)
+              );
+            }
+            if (needsUpdated.includes('listContents')) {
+              const listname = this.userData.lists[listId].listname;
+              const listContents = await easyFetch<ExistingMediaInfo[]>({
+                route: `/api/users/${this.username}/lists/${listname.listname}`,
                 method: 'GET',
               });
+              this.userData.lists[listId].listContents = listContents;
+              if (!this.hashes.lists[listId]) this.hashes.lists[listId] = this.getEmptyListVal();
+              this.hashes.lists[listId].listContents = await hash(
+                JSON.stringify(this.userData.lists[listId].listContents)
+              );
             }
-            const listname = lists.find(list => list.id === listId);
-            if (!listname) throw Error('could not find matching listname');
-            this.userData.lists[listId].listname = listname;
-            this.hashes.lists[listId].listname = await hash(
-              JSON.stringify(this.userData.lists[listId].listname)
-            );
-          }
-          if (needsUpdated.includes('listContents')) {
-            const listname = this.userData.lists[listId].listname;
-            this.userData.lists[listId].listContents = await easyFetch({
-              route: `/api/users/${this.username}/lists/${listname}`,
-              method: 'GET',
-            });
-            this.hashes.lists[listId].listContents = await hash(
-              JSON.stringify(this.userData.lists[listId].listContents)
-            );
-          }
-        })
-        // const listIds = [
-        //   ...new Set(
-        //     [
-        //       ...Object.keys(clientHashes.lists),
-        //       ...Object.keys(serverHashes.lists),
-        //     ]
-        //   )
-        // ].map(Number);
-        // let allLists: Listname[];
-        // listIds.map(async listId => {
-        //   if (clientHashes.lists[listId].listname !== serverHashes.lists[listId].listname) {
-        //     if (!allLists) {
-        //       allLists = await easyFetch<Listname[]>({
-        //         route: `/api/users/${this.username}/lists`,
-        //         method: 'GET'
-        //       });
-        //     }
-        //     const updatedListname = allLists.find(list => list.id === listId);
-        //     if (!updatedListname) throw Error('cant find updated listname');
-        //     this.userData.lists[listId].listname = updatedListname;
-        //     this.hashes.lists[listId].listname = await hash(
-        //       JSON.stringify(this.userData.lists[listId].listname)
-        //     );
-        //   }
-        //   if (clientHashes.lists[listId].listContents !== serverHashes.lists[listId].listContents) {
-        //     const listname = this.userData.lists[listId].listname.listname;
-        //     this.userData.lists[listId].listContents = await easyFetch({
-        //       route: `/api/users/${this.username}/lists/${listname}`,
-        //       method: 'GET',
-        //     });
-        //     this.hashes.lists[listId].listContents = await hash(
-        //       JSON.stringify(this.userData.lists[listId].listContents)
-        //     );
-        //   }
-        // })
+          })
       }
     }
   }
 
-  // crawlRec(obj: any, ...keys: string[]): any {
-  //   if (keys.length === 0) return obj;
-  //   if (!obj[keys[0]]) return;
-  //   return this.crawlRec(obj[keys[0]], ...keys.slice(1));
-  // }
+  getEmptyListVal() {
+    return {
+      listname: {} as any,
+      listContents: [] as any,
+    }
+  }
 
   constructor(username: string) {
     this.username = username;
     const { userData, hashes } = this.getSavedState(username);
     this.userData = userData;
     this.hashes = hashes;
+    this.sync();
   }
 
   getSavedState(username: string): SavedState {
     const { hashes, userData }: SavedState = JSON.parse(
       localStorage.getItem(this.storageKey) || JSON.stringify({})
-    )[username];
+    )[username] || {};
 
     return {
       hashes: hashes || { watched: '', lists: {} },
@@ -260,45 +186,26 @@ class ClientHashCache {
   async sync() {
     const syncResult = await easyFetch<SyncResponse>({
       route: '/api/sync',
-      method: 'POST',
+      method: 'GET',
+      params: { v: 3 }
     });
 
     if (syncResult === null) {
+      console.log('syncResult is empty, get all resources')
       Object.keys(this.syncFuncs).map(async resource => {
         await this.syncFuncs[resource as keyof typeof this.syncFuncs].GET()
-      })
+      });
       return;
     }
 
-    // Object.keys(syncResult).forEach(resource => {
-    //   this.syncFuncs[resource as keyof typeof this.syncFuncs](this.hashes, syncResult)
-    // })
-
-    // crawl syncResult, if hashes mismatch, fetch results
-    // if (!syncResult.watched) {
-    //   this.userData.watched = await this.fetch.watched();
-    // }
-
-    // Object.keys(syncResult.lists).forEach(key => {
-    //   if (!syncResult.lists[Number(key)]) {
-    //     // figure out how to determine if we just need to re-fetch the listname (i.e. the list was renamed)
-    //     // or if we need to refetch the list's contents
-    //     // will probably need to add hashes for listname and listContent to figure this out
-    //   }
-    // });
-    // Object.keys(syncResult).forEach(resource => {
-    //   const typedKey = resource as keyof typeof this.compare;
-    //   const isSynced = (this.compare[typedKey] as any)(this.hashes[typedKey], syncResult[typedKey])
-    //   if (!isSynced) {
-    //   }
-    // })
+    console.log('doing actual syncing')
     Object.keys(syncResult).forEach(resource => {
       this.syncFuncs[resource as keyof typeof this.syncFuncs].GET(
         this.syncFuncs[resource as keyof typeof this.syncFuncs].isOutOfSync(
           (this.hashes as any)[resource], (syncResult as any)[resource]
         ) as any
       )
-    })
+    });
   }
 
   async updateHash(resource: string) {

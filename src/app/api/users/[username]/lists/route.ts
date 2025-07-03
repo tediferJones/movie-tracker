@@ -18,9 +18,9 @@ export async function GET(req: Request, { params }: { params: Params }) {
   if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
     const listnameRecs = await db.select().from(listnames).where(
       eq(listnames.username, username)
-    )
-    hashTable.setResource(username, 'listnames', listnameRecs)
-    return NextResponse.json(listnameRecs)
+    );
+    hashTable.setResource(username, 'listnames', listnameRecs);
+    return NextResponse.json(listnameRecs);
   }
 
   // this makes absolutely no sense,

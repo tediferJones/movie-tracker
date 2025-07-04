@@ -15,7 +15,6 @@ import StarRating from '@/components/subcomponents/StarRating';
 import { inputValidation } from '@/lib/inputValidation';
 import easyFetch from '@/lib/easyFetch';
 import { ratingConfig, watchAgainConfig } from '@/lib/reviewHelpers';
-import { useUserData } from '@/context/userData';
 
 type ExistingReview = typeof reviews.$inferSelect
 export type ReviewBody = {
@@ -71,33 +70,19 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   }
 
   const { user } = useUser();
-  // useEffect(() => {
-  //   if (user?.username) {
-  //     easyFetch<ExistingReview | undefined>({
-  //       route: `/api/users/${user.username}/reviews`,
-  //       method: 'GET',
-  //       params: { imdbId },
-  //     }).then(data => {
-  //         setCurrentReview(data || defaultReview);
-  //         setExistingReview(data);
-  //         setButtonText(data ? 'Update Review' : 'Submit Review');
-  //       });
-  //   }
-  // }, [refreshTrigger, user?.username]);
-
-  const userData = useUserData();
   useEffect(() => {
-    if (!userData.userData) return;
-    const existingReview = userData.userData.data.reviews.data.find(
-      review => review.imdbId === imdbId
-    );
-    // FIX ME
-    // This will add extra values to current review which will cause problems when updating a review
-    // currentReview should only contain review, rating, and watchAgain
-    setCurrentReview(existingReview || defaultReview);
-    setExistingReview(existingReview);
-    setButtonText(existingReview ? 'Update Review' : 'Submit Review');
-  }, [userData.userData]);
+    if (user?.username) {
+      easyFetch<ExistingReview | undefined>({
+        route: `/api/users/${user.username}/reviews`,
+        method: 'GET',
+        params: { imdbId },
+      }).then(data => {
+          setCurrentReview(data || defaultReview);
+          setExistingReview(data);
+          setButtonText(data ? 'Update Review' : 'Submit Review');
+        });
+    }
+  }, [refreshTrigger, user?.username]);
 
   return !currentReview ? <Loading /> :
     <>
@@ -198,29 +183,13 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
           disabled={!reviewMismatch}
           onClick={() => {
             if (user?.username) {
-              // WORKING
-              // setButtonText(existingReview ? 'Updating Review...' : 'Adding Review...');
-              // easyFetch({
-              //   route: `/api/users/${user.username}/reviews`,
-              //   method: currentReview.username ? 'PUT' : 'POST',
-              //   params: { imdbId },
-              //   body: currentReview,
-              //   skipJSON: true,
-              // }).then(() => setRefreshTrigger(!refreshTrigger));
-
-              const method = existingReview ? 'PUT' : 'POST'
-              const buttonText = {
-                POST: 'Adding Review...',
-                PUT: 'Updating Review...',
-              }
-              setButtonText(buttonText[method])
-
-              const { review, rating, watchAgain } = currentReview;
-              userData.modifyResource('reviews', method, {
-                review,
-                rating,
-                watchAgain,
-                imdbId,
+              setButtonText(existingReview ? 'Updating Review...' : 'Adding Review...');
+              easyFetch({
+                route: `/api/users/${user.username}/reviews`,
+                method: existingReview?.username ? 'PUT' : 'POST',
+                params: { imdbId },
+                body: currentReview,
+                skipJSON: true,
               }).then(() => setRefreshTrigger(!refreshTrigger));
             }
           }}
@@ -232,14 +201,12 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
         action={() => {
           if (user?.username) {
             setButtonText('Deleting Review...');
-            // easyFetch({
-            //   route: `/api/users/${user.username}/reviews`,
-            //   method: 'DELETE',
-            //   params: { imdbId },
-            //   skipJSON: true,
-            // }).then(() => setRefreshTrigger(!refreshTrigger));
-            userData.modifyResource('reviews', 'DELETE', { imdbId })
-              .then(() => setRefreshTrigger(!refreshTrigger));
+            easyFetch({
+              route: `/api/users/${user.username}/reviews`,
+              method: 'DELETE',
+              params: { imdbId },
+              skipJSON: true,
+            }).then(() => setRefreshTrigger(!refreshTrigger));
           }
         }}
       >

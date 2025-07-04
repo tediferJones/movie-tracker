@@ -112,11 +112,20 @@ export async function POST(req: Request, { params }: { params: Params }) {
       //   // cache.delete(`${username},${listname}`);
       // }
 
+      const listnameRec = await db.select().from(listnames).where(
+        and(
+          eq(listnames.username, username),
+          eq(listnames.listname, listname),
+        )
+      ).get();
+      if (!listnameRec) throw Error('could not find listnameRec');
+
       await db.insert(lists).values({
         username,
         listname,
         imdbId,
         date: Date.now(),
+        listnameId: listnameRec.id,
       });
       cache.delete(`${username},${imdbId},lists`);
       cache.delete(`${username},${listname}`);

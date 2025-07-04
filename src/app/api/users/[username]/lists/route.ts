@@ -80,7 +80,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
   }
 
   await db.insert(listnames).values(newRecord);
-  await hashTable.updateResource(username, 'listnames', 'POST', newRecord);
+  // await hashTable.updateResource(username, 'listnames', 'POST', newRecord);
   return NextResponse.json(newRecord);
 }
 

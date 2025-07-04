@@ -169,7 +169,7 @@ export class ClientHashCache {
     const { userData, hashes } = this.getSavedState(username);
     this.userData = userData;
     this.hashes = hashes;
-    this.sync();
+    // this.sync();
   }
 
   getSavedState(username: string): SavedState {

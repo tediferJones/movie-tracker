@@ -6,12 +6,24 @@ import { currentUser } from '@clerk/nextjs';
 import { and, desc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
+import { serverHashCache } from '@/lib/hashCacheV4';
 
 type Params = { username: string, listname: string }
 
 export async function GET(req: Request, { params }: { params: Params }) {
   // Get full media data for every item in list
   const { username, listname } = params;
+
+
+  const { searchParams } = new URL(req.url)
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    const listId = Number(listname)
+    const listRecords = await db.select().from(lists).where(
+      eq(lists.listnameId, listId),
+    );
+    await serverHashCache.updateHash(username, `list-${listId}`, 'GET', listRecords)
+    return NextResponse.json(listRecords);
+  }
   
   const cacheStr = `${username},${listname}`;
   if (!cache.get(cacheStr)) {

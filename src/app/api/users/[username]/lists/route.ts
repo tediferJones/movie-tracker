@@ -6,6 +6,7 @@ import cache from '@/lib/cache';
 import { hashTable } from '@/lib/hashCache';
 import { currentUser } from '@clerk/nextjs';
 import { isValid } from '@/lib/inputValidation';
+import { serverHashCache } from '@/lib/hashCacheV4';
 
 type Params = { username: string }
 
@@ -19,7 +20,8 @@ export async function GET(req: Request, { params }: { params: Params }) {
     const listnameRecs = await db.select().from(listnames).where(
       eq(listnames.username, username)
     );
-    hashTable.setResource(username, 'listnames', listnameRecs);
+    // hashTable.setResource(username, 'listnames', listnameRecs);
+    await serverHashCache.updateHash(username, 'listnames', 'GET', listnameRecs);
     return NextResponse.json(listnameRecs);
   }
 

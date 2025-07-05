@@ -23,7 +23,7 @@ import {
 } from '@/lib/hashCache';
 import { useUser } from '@clerk/nextjs';
 import easyFetch, { Methods } from '@/lib/easyFetch';
-import { ClientHashCache } from '@/lib/hashCacheV3';
+import { ClientHashCache } from '@/lib/hashCacheV4';
 
 type GetterFuncs = {
   [K in Resources]: {
@@ -348,27 +348,28 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    (async () => {
-      if (!user?.username) return;
-      const savedState = localStorage.getItem('media-tracker');
-      if (!savedState) {
-        // fetch and set all
-        console.log('no existing state, sync all')
-        setUserData({
-          hash: '',
-          data: resources.reduce((data, key) => {
-            // data[key] = { hash: '', data: key === 'listContents' ? {} : [] as any }
-            data[key] = { hash: '', data: [] }
-            return data
-          }, {} as UserData['data'])
-        });
-      } else {
-        console.log('state exists')
-        setUserData(JSON.parse(savedState))
-      }
-    })();
+    // (async () => {
+    //   if (!user?.username) return;
+    //   const savedState = localStorage.getItem('media-tracker');
+    //   if (!savedState) {
+    //     // fetch and set all
+    //     console.log('no existing state, sync all')
+    //     setUserData({
+    //       hash: '',
+    //       data: resources.reduce((data, key) => {
+    //         // data[key] = { hash: '', data: key === 'listContents' ? {} : [] as any }
+    //         data[key] = { hash: '', data: [] }
+    //         return data
+    //       }, {} as UserData['data'])
+    //     });
+    //   } else {
+    //     console.log('state exists')
+    //     setUserData(JSON.parse(savedState))
+    //   }
+    // })();
+    if (!user?.username) return;
+    (window as any).hashCache = new ClientHashCache(user.username);
   }, [user?.username]);
-
 
   async function sync(username: string, retryCount = 0, maxRetryCount = 5) {
     if (retryCount === 0) console.log('starting sync')
@@ -400,17 +401,17 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     sync(username, retryCount + 1);
   }
 
-  useEffect(() => {
-    if (userData === undefined) return console.log('userData undefined');
-    if (!user?.username) throw Error('no username found');
-    sync(user.username);
-  }, [userData]);
+  // useEffect(() => {
+  //   if (userData === undefined) return console.log('userData undefined');
+  //   if (!user?.username) throw Error('no username found');
+  //   sync(user.username);
+  // }, [userData]);
 
-  useEffect(() => {
-    if (!user?.username) return
-    // console.log('HashCacheV3', new ClientHashCache(user.username))
-    (window as any).hashCache = new ClientHashCache(user.username)
-  }, [user?.username]);
+  // useEffect(() => {
+  //   if (!user?.username) return
+  //   // console.log('HashCacheV3', new ClientHashCache(user.username))
+  //   (window as any).hashCache = new ClientHashCache(user.username)
+  // }, [user?.username]);
 
   return (
     <UserDataContext.Provider value={{ userData, setUserData, modifyResource }}>

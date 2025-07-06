@@ -14,14 +14,18 @@ export async function GET(req: Request, { params }: { params: Params }) {
   // Get full media data for every item in list
   const { username, listname } = params;
 
-
-  const { searchParams } = new URL(req.url)
+  const { searchParams } = new URL(req.url);
   if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
-    const listId = Number(listname)
+    const listId = Number(listname);
     const listRecords = await db.select().from(lists).where(
       eq(lists.listnameId, listId),
     );
-    await serverHashCache.updateHash(username, `list-${listId}`, 'GET', listRecords)
+    await serverHashCache.updateHash(
+      username,
+      `list-${listId}`,
+      'GET',
+      listRecords
+    );
     return NextResponse.json(listRecords);
   }
   
@@ -58,6 +62,23 @@ export async function POST(req: Request, { params }: { params: Params }) {
 
   const valid = isValid({ listname });
   if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
+
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    if (!searchParams.get('imdbId')) throw Error('no imdbId');
+    if (!searchParams.get('listId')) throw Error('no listId');
+    const imdbId = searchParams.get('imdbId')!;
+    const listId = searchParams.get('listId')!;
+    const newRecord = {
+      username,
+      listname,
+      imdbId,
+      date: Date.now(),
+      listnameId: Number(listId),
+    }
+    await db.insert(lists).values(newRecord);
+    await serverHashCache.updateHash(username, `list-${listId}`, 'POST', newRecord);
+    return NextResponse.json(newRecord);
+  }
 
   try {
     const alreadyExists = await db.select().from(listnames).where(

@@ -34,7 +34,7 @@
 // The main problem we have is how to get and update listContents items
 
 import { listnames, lists } from '@/drizzle/schema'
-import easyFetch from '@/lib/easyFetch';
+import easyFetch, { Methods } from '@/lib/easyFetch';
 // import { ExistingMediaInfo } from '@/types'
 
 // might need to design how we return listContents
@@ -264,3 +264,156 @@ export const serverHashCache = new ServerHashCache();
 if (!(globalThis as any).serverHashCache) {
   (globalThis as any).serverHashCache = serverHashCache;
 }
+
+// const myConfig = {
+//   lists: {
+//     link: `/api/users/tedifer_jones/lists`,
+//     fetch: {
+//       GET: () => ({ params: testParams }),
+//     }
+//   }
+// }
+
+// type AsyncFunc = (...args: any) => Promise<any>
+type FetchFuncs = { [key: string]: Function }
+export class Resource {
+  link: string;
+  fetch: FetchFuncs;
+  data: any;
+  hash: any;
+
+  constructor(link: string, fetch: FetchFuncs) {
+    this.link = link;
+    this.fetch = fetch;
+    this.updateResource('GET');
+  }
+
+  async updateResource(method: string, ...args: any[]) {
+    // const data = await this.fetch[method](...args);
+    const data = await this.req(method as Methods);
+    this.data = data;
+    if (method === 'GET') {
+      this.hash = await hash(JSON.stringify(data));
+    } else {
+      this.hash = await hash(
+        `${this.hash},${method},${JSON.stringify(data)}`
+      );
+    }
+    return this;
+  }
+
+  async req(method: Methods) {
+    return await easyFetch({
+      route: this.link,
+      method,
+      ...this.fetch[method]()
+    });
+  }
+}
+
+export class ClientHashCacheV2 {
+  cache: { [key: string]: Resource }
+  initFunc: (a: ClientHashCacheV2) => Promise<any>
+
+  constructor(initFunc: (a: ClientHashCacheV2) => Promise<any>) {
+    this.cache = {};
+    this.initFunc = initFunc;
+    this.sync();
+    // initFunc(this).then(() => this.sync());
+  }
+
+  get(key: string) {
+    return this.cache[key].data;
+  }
+
+  add(key: string, val: Resource) {
+    this.cache[key] = val;
+  }
+
+  async sync(): Promise<void> {
+    const syncState = await easyFetch<{ [key: string]: string } | null>({
+      route: '/api/sync',
+      method: 'GET',
+    });
+    console.log('SYNC STATE', syncState);
+
+    if (!syncState) {
+      console.log('no server hashes, running init func')
+      this.initFunc(this);
+      this.sync();
+      return;
+    }
+
+    const outOfSync = Object.keys(syncState).filter(key => {
+      if (!this.cache?.[key]?.hash) {
+        throw Error(`cant find hash for: ${key}`)
+      }
+      return syncState[key] !== this.cache[key].hash;
+    });
+    console.log('outOfSync', outOfSync)
+
+    if (outOfSync.length === 0) {
+      console.log('SYNC SUCCESSFUL')
+      this.saveState();
+      return;
+    }
+
+    await Promise.all(
+      outOfSync.map(key => this.cache[key].updateResource('GET'))
+    );
+    this.sync();
+  }
+
+  loadState() {
+
+  }
+
+  saveState() {
+
+  }
+
+  // async req(obj: Resource, method: string) {
+  //   return await easyFetch({
+  //     route: obj.link,
+  //     method: method as Methods,
+  //     ...obj.fetch[method](),
+  //   });
+  // }
+}
+
+// const myConfig = classConfig('tedifer_jones');
+// console.log({ myConfig })
+
+// const setup = {
+//   lists: new Resource(
+//     '/api/users/tedifer_jones/lists',
+//     {
+//       GET: () => ({ params: testParams })
+//     }
+//   )
+// }
+
+export async function initFunc(hashCache: ClientHashCacheV2) {
+  // const cache: ClientHashCacheV2['cache'] = {};
+  const listnames = new Resource(
+    '/api/users/tedifer_jones/lists',
+    {
+      GET: () => ({ params: testParams })
+    }
+  );
+  hashCache.add('listnames', await listnames.updateResource('GET'));
+
+  await Promise.all(
+    (listnames.data as Listname[]).map(async listname => {
+      const list = new Resource(
+        `/api/users/tedifer_jones/lists/${listname.id}`,
+        {
+          GET: () => ({ params: testParams })
+        }
+      );
+      hashCache.add(`list-${listname.id}`, await list.updateResource('GET'));
+    })
+  );
+}
+
+// const hashCacheTest = new ClientHashCacheV2();

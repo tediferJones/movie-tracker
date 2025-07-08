@@ -33,7 +33,7 @@
 //
 // The main problem we have is how to get and update listContents items
 
-import { listnames, lists } from '@/drizzle/schema'
+import { listnames, lists } from '@/drizzle/schema';
 import easyFetch, { Methods } from '@/lib/easyFetch';
 // import { ExistingMediaInfo } from '@/types'
 
@@ -416,4 +416,123 @@ export async function initFunc(hashCache: ClientHashCacheV2) {
   );
 }
 
-// const hashCacheTest = new ClientHashCacheV2();
+type ServerHashesV3 = {
+  listnames: string,
+  listContents: { [listId: number]: string }
+}
+type IndexableObj = { [key: string | number]: string }
+
+const storageKey = 'media-tracker';
+export class ClientHashCacheV3 {
+  username: string;
+  cache: {
+    listnames: {
+      hash: string,
+      data: Listname[],
+    },
+    listContents: {
+      [listId: number]: {
+        hash: string,
+        data: ListItem[],
+      }
+    }
+  } = {} as any
+
+  constructor(username: string) {
+    this.username = username;
+    this.loadState();
+    this.checkSync();
+  }
+
+  loadState() {
+    console.log('localStorage', localStorage)
+    const savedState = localStorage.getItem(storageKey);
+    if (savedState) {
+      const userData = JSON.parse(savedState)[this.username];
+      if (userData) {
+        this.cache = userData;
+        return;
+      }
+    }
+  }
+
+  async checkSync() {
+    const serverHashes = await easyFetch<ServerHashesV3 | null>({
+      route: '/api/sync',
+      method: 'GET',
+    });
+    console.log(serverHashes)
+    if (!serverHashes) {
+      this.getAll();
+      // this.checkSync();
+      return
+    }
+
+    const { listContents: serverLists, ...checkable } = serverHashes;
+    const { listContents: clientLists, ...clientCheckable } = this.getHashes();
+  }
+
+  getHashes(): ServerHashesV3 {
+    return {
+      listnames: this.cache.listnames.hash,
+      listContents: Object.keys(this.cache.listContents).reduce((hashes, listId) => {
+        const numListId = Number(listId);
+        hashes[numListId] = this.cache.listContents[numListId].hash;
+        return hashes;
+      }, {} as IndexableObj)
+    }
+  }
+
+  compareObjects(main: IndexableObj, check: IndexableObj) {
+    // check that all keys in main exist on check and values match
+    // what do we do if check has keys that do not exist on main?
+    return Object.keys(main).filter(key => {
+      return main[key] === check[key]
+    });
+  }
+
+  async getAll() {
+    const listnames = await easyFetch<Listname[]>({
+      route: `/api/users/${this.username}/lists`,
+      method: 'GET',
+      params: testParams,
+    });
+    console.log(listnames)
+
+    const listContents = Object.fromEntries(
+      await Promise.all(
+        listnames.map(async listname => {
+          return [
+            listname.id,
+            await easyFetch({
+              route: `/api/users/${this.username}/lists/${listname.id}`,
+              method: 'GET',
+              params: testParams,
+            })
+          ]
+        })
+      )
+    );
+
+    this.cache = {
+      listnames: {
+        data: listnames,
+        hash: await hash(JSON.stringify(listnames))
+      },
+      listContents: Object.fromEntries(
+        await Promise.all(
+          Object.keys(listContents).map(async key => {
+            return [
+              key,
+              {
+                data: listContents[key],
+                hash: await hash(JSON.stringify(listContents[key]))
+              }
+            ]
+          }, {} as { [key: number]: { data: ListItem[], hash: string } })
+        )
+      )
+    }
+    console.log(this.cache)
+  }
+}

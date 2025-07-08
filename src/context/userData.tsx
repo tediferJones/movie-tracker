@@ -23,7 +23,7 @@ import {
 } from '@/lib/hashCache';
 import { useUser } from '@clerk/nextjs';
 import easyFetch, { Methods } from '@/lib/easyFetch';
-import { ClientHashCache, ClientHashCacheV2, initFunc } from '@/lib/hashCacheV4';
+import { ClientHashCache, ClientHashCacheV2, ClientHashCacheV3, initFunc } from '@/lib/hashCacheV4';
 
 type GetterFuncs = {
   [K in Resources]: {
@@ -369,7 +369,8 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     // })();
     if (!user?.username) return;
     // (window as any).hashCache = new ClientHashCache(user.username);
-    (window as any).hashCache = new ClientHashCacheV2(initFunc);
+    // (window as any).hashCache = new ClientHashCacheV2(initFunc);
+    (window as any).hashCache = new ClientHashCacheV3(user.username);
   }, [user?.username]);
 
   async function sync(username: string, retryCount = 0, maxRetryCount = 5) {

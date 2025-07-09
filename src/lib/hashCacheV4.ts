@@ -536,3 +536,132 @@ export class ClientHashCacheV3 {
     console.log(this.cache)
   }
 }
+
+export const configV2: Config = {
+  resources: {
+    listnames: {
+      fetch: {
+        GET: async (hashCache, serverHashes) => {
+          if (serverHashes && hashCache.hashes.listnames === serverHashes.listnames) {
+            // hashes match, do nothing
+            return
+          }
+          const results = await easyFetch<Listname[]>({
+            route: `/api/users/${hashCache.username}/lists`,
+            method: 'GET',
+            params: testParams,
+          });
+          hashCache.resources.listnames = results;
+          hashCache.hashes.listnames = await hashCache.config.hashFunc(
+            JSON.stringify(results)
+          );
+        },
+        POST: async (hashCache, _, record) => {
+          const newRecord = await easyFetch<Listname>({
+            route: `/api/users/${hashCache.username}/lists`,
+            method: 'POST',
+            params: testParams,
+            body: record,
+          });
+          hashCache.resources.listnames.push(newRecord);
+          hashCache.hashes.listnames = await hashCache.config.hashFunc(
+            `${JSON.stringify(hashCache.resources.listnames)},POST,${newRecord}`
+          );
+        }
+      }
+    },
+    listContents: {
+      fetch: {
+        GET: async (hashCache, serverHashes) => {
+          if (!hashCache.resources.listnames) {
+            throw Error('listnames does not exist');
+          }
+
+          if (!hashCache.resources.listContents) {
+            hashCache.resources.listContents= {};
+          }
+          if (!hashCache.hashes.listContents) {
+            hashCache.hashes.listContents = {};
+          }
+
+          let needsSyncedListIds = (hashCache.resources.listnames as Listname[]).map(listname => listname.id.toString())
+          if (serverHashes) {
+            needsSyncedListIds = (
+              Object.keys(serverHashes).filter(listId => {
+                return serverHashes[listId] && hashCache.hashes.listContents[listId]
+                  && serverHashes[listId] !== hashCache.hashes.listContents[listId]
+              })
+            )
+          }
+
+          // these fetchs can probably be done in parallel
+          // for (const listname of hashCache.resources.listnames as Listname[]) {
+          for (const listId of needsSyncedListIds) {
+            const data = await easyFetch({
+              route: `/api/users/${hashCache.username}/lists/${listId}`,
+              method: 'GET',
+              params: testParams,
+            });
+            hashCache.resources.listContents[listId] = data;
+            hashCache.hashes.listContents[listId] = (
+              await hashCache.config.hashFunc(JSON.stringify(data))
+            );
+          }
+        }
+      }
+    }
+  },
+  hashFunc: hash
+}
+
+type Config = {
+  resources: {
+    [resourceName: string]: {
+      fetch: {
+        [M in Methods]?: (
+          hashCache: ClientHashCacheV4<Config>,
+          serverHashes: any,
+          ...args: any[]
+        ) => Promise<any>
+      }
+    }
+  },
+  hashFunc: (data: string) => Promise<string>
+}
+
+export class ClientHashCacheV4<T extends Config> {
+  config: T;
+  username: string;
+  resources: { [R: keyof Config['resources']]: any };
+  hashes: { [R: keyof Config['resources']]: any };
+
+  constructor(config: T, username: string) {
+    this.config = config;
+    this.username = username;
+    this.resources = {};
+    this.hashes = {};
+    this.sync();
+  }
+
+  async sync() {
+    const serverHashes = await easyFetch({
+      route: '/api/sync',
+      method: 'GET',
+    });
+    console.log(serverHashes);
+
+    if (!serverHashes) {
+      for (const resource in this.config.resources) {
+        console.log('getting resource', resource)
+        await this.getFetchFunc(resource, 'GET')(this, serverHashes);
+      }
+      return;
+    }
+  }
+
+  getFetchFunc(resource: keyof Config['resources'], method: Methods) {
+    const fetchFunc = this.config.resources[resource].fetch[method];
+    if (!fetchFunc) throw Error(`Cannot find ${method} func for ${resource}`);
+    return fetchFunc;
+  }
+}

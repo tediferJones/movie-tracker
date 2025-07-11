@@ -371,7 +371,8 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     // (window as any).hashCache = new ClientHashCache(user.username);
     // (window as any).hashCache = new ClientHashCacheV2(initFunc);
     // (window as any).hashCache = new ClientHashCacheV3(user.username);
-    (window as any).hashCache = new ClientHashCacheV4(configV2, user.username);
+    const hashCache = new ClientHashCacheV4(configV2, user.username);
+    (window as any).hashCache = hashCache;
   }, [user?.username]);
 
   async function sync(username: string, retryCount = 0, maxRetryCount = 5) {

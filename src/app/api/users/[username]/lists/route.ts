@@ -21,7 +21,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
       eq(listnames.username, username)
     );
     // hashTable.setResource(username, 'listnames', listnameRecs);
-    await serverHashCache.updateHash(username, 'listnames', 'GET', listnameRecs);
+    await serverHashCache.updateHash(username, ['listnames'], 'GET', listnameRecs);
     return NextResponse.json(listnameRecs);
   }
 

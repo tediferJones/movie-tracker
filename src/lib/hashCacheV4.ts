@@ -260,10 +260,10 @@ class ServerHashCache {
   }
 }
 
-export const serverHashCache = new ServerHashCache();
-if (!(globalThis as any).serverHashCache) {
-  (globalThis as any).serverHashCache = serverHashCache;
-}
+// export const serverHashCache = new ServerHashCache();
+// if (!(globalThis as any).serverHashCache) {
+//   (globalThis as any).serverHashCache = serverHashCache;
+// }
 
 // const myConfig = {
 //   lists: {
@@ -537,8 +537,6 @@ export class ClientHashCacheV3 {
   }
 }
 
-type WatchedRec = typeof watched.$inferSelect
-
 export const configV2 = {
   resources: {
     listnames: {
@@ -568,7 +566,7 @@ export const configV2 = {
           });
           hashCache.resources.listnames.push(newRecord);
           hashCache.hashes.listnames = await hashCache.config.hashFunc(
-            `${JSON.stringify(hashCache.resources.listnames)},POST,${newRecord}`
+            `${JSON.stringify(hashCache.hashes.listnames)},POST,${newRecord}`
           );
         },
       },
@@ -616,29 +614,23 @@ export const configV2 = {
             );
           }
         },
+        POST: async (hashCache, _, record: { listnameId: number }) => {
+          const listId = record.listnameId;
+          const newRecord = await easyFetch({
+            route: `/api/users/${hashCache.username}/lists/${record.listnameId}`,
+            method: 'POST',
+            params: testParams,
+            body: record,
+          });
+          hashCache.resources.listContents[listId].push(record);
+          hashCache.hashes.listContents[listId] = (
+            await hashCache.config.hashFunc(
+              `${JSON.stringify(hashCache.hashes.listContents[listId])},POST,${newRecord}`
+            )
+          );
+        }
       },
     },
-    // watched: {
-    //   fetch: {
-    //     GET: async (hashCache, serverHashes) => {
-    //       if (serverHashes && serverHashes.watched === hashCache.hashes.watched) {
-    //         // hashes match, nothing to update
-    //         return;
-    //       }
-    //       hashCache.isSynced = false;
-
-    //       const data = easyFetch<WatchedRec[]>({
-    //         route: `/api/users/${hashCache.username}/watched`,
-    //         method: 'GET',
-    //         params: testParams,
-    //       });
-    //       hashCache.resources.watched = data;
-    //       hashCache.hashes.watched = await hashCache.config.hashFunc(
-    //         JSON.stringify(data)
-    //       );
-    //     }
-    //   },
-    // },
   },
   hashFunc: hash
 } as const satisfies Config
@@ -663,7 +655,26 @@ type Config = {
 // }
 // type TypeConfig = ConfigGeneric<typeof configV2['resources']>
 
-type Resources = keyof (typeof configV2)['resources']
+function defineNestedResources<const T extends Resources[]>(arr: T) {
+  return arr;
+}
+
+type Resources = keyof typeof configV2['resources']
+// const nestedResources = [ 'listContents' ] as const
+const nestedResources = defineNestedResources([ 'listContents' ]);
+type NestedResources = typeof nestedResources[number]
+type HashesV2 = {
+  [R in Resources]: R extends NestedResources ? { [key: string]: string } : string
+}
+// Make sure ServerHashCache.getHashes returns ServerResponse
+// Make sure the hash type for ServerHashCache and ClientHashCache is also HashV2
+type ServerResponse = HashesV2 | null
+
+// const test: ServerHashes = {
+//   listnames: 'asdf',
+//   listContents: { key: 'val' }
+// }
+
 // type FillWith<T extends Partial<Record<Methods, any>>, F> = {
 //   [K in Methods]: K extends keyof T ? T[K] : F
 // }
@@ -672,6 +683,16 @@ type Resources = keyof (typeof configV2)['resources']
 //   listnames: FillWith<{}, undefined>,
 //   listContents: FillWith<{}, undefined>,
 // }[K][M]
+// type Keys = (string | number)[]
+type GetRecordType<
+  R extends Resources,
+  M extends ExistingMethod<R>
+> = Parameters<
+  Extract<typeof configV2['resources'][R]['fetch'][M],
+  (...args: any) => any>
+>[2]
+type ExistingMethod<R extends Resources> = keyof typeof configV2['resources'][R]['fetch']
+type TrustMe = any
 
 export class ClientHashCacheV4<T extends Config> {
   config: T;
@@ -695,23 +716,18 @@ export class ClientHashCacheV4<T extends Config> {
       throw Error('Failed to sync')
     }
     this.isSynced = true;
-    const serverHashes = await easyFetch({
+    const serverHashes = await easyFetch<ServerResponse>({
       route: '/api/sync',
       method: 'GET',
     });
-    console.log(serverHashes);
-    console.log(this.hashes);
+    console.log({
+      serverHashes,
+      clientHashes: this.hashes,
+    })
 
-    // if (!serverHashes) {
-    //   for (const resource in this.config.resources) {
-    //     console.log('getting resource', resource)
-    //     await this.getFetchFunc(resource, 'GET')(this, serverHashes);
-    //   }
-    //   return;
-    // }
     for (const resource in this.config.resources) {
       console.log('getting resource', resource)
-      await this.getFetchFunc(resource, 'GET')(this, serverHashes);
+      await this.getFetchFunc(resource as Resources, 'GET')(this, serverHashes);
     }
     if (!this.isSynced) {
       this.sync(retryCount + 1);
@@ -719,10 +735,23 @@ export class ClientHashCacheV4<T extends Config> {
     console.log('IS SYNCED')
   }
 
-  getFetchFunc(resource: keyof Config['resources'], method: Methods) {
-    const fetchFunc = this.config.resources[resource].fetch[method];
-    if (!fetchFunc) throw Error(`Cannot find ${method} func for ${resource}`);
+  getFetchFunc<R extends Resources, M extends ExistingMethod<R>>(
+    resource: R,
+    method: M
+  ) {
+    const fetchFunc = this.config.resources[resource].fetch[method] as TrustMe;
+    if (!fetchFunc) throw Error(`Cannot find ${method.toString()} func for ${resource}`);
     return fetchFunc;
+  }
+
+  async updateResource<R extends Resources, M extends ExistingMethod<R>>(
+    resource: R,
+    method: M,
+    data: GetRecordType<R, M>
+  ) {
+    // const fetchFunc = this.getFetchFunc(resource, method);
+    // await fetchFunc(this, data);
+    await this.getFetchFunc(resource, method)(this, data)
   }
 }
 
@@ -739,36 +768,55 @@ export class ServerHashCacheV4<T extends Config> {
     return this.cache[username] || null
   }
 
-  async updateHash(username: string, resource: string, method: Methods, data: any) {
+  // async updateHash(username: string, resource: string, method: Methods, data: any) {
+  //   if (!this.cache[username]) this.cache[username] = {};
+  //   const userHashes = this.cache[username]!
+  //   if (method === 'GET') {
+  //     userHashes[resource] = await this.config.hashFunc(JSON.stringify(data));
+  //   } else {
+  //     if (!userHashes[resource]) throw Error('no resource to update');
+  //     userHashes[resource] = await this.config.hashFunc(
+  //       `${JSON.stringify(userHashes[resource])},${method},${JSON.stringify(data)}`
+  //     );
+  //   }
+  // }
+
+  async updateHash(username: string, keys: (string | number)[], method: Methods, data: any) {
     if (!this.cache[username]) this.cache[username] = {};
     const userHashes = this.cache[username]!
     if (method === 'GET') {
-      // this.setKey(userHashes, keys, await this.config.hashFunc(
-      //   JSON.stringify(data)
-      // ));
-      userHashes[resource] = await this.config.hashFunc(JSON.stringify(data));
+      this.setVal(userHashes, keys, 
+        await this.config.hashFunc(JSON.stringify(data))
+      )
     } else {
-      if (!userHashes[resource]) throw Error('no resource to update');
-      userHashes[resource] = await this.config.hashFunc(
-        `${JSON.stringify(userHashes[resource])},${method},${JSON.stringify(data)}`
-      );
-      // this.setKey(userHashes, keys, await this.config.hashFunc(
-      //   `${JSON.stringify(userHashes[resource])},${method},${JSON.stringify(data)}`
-      // ));
+      this.setVal(userHashes, keys, 
+        await this.config.hashFunc(
+          `${this.getVal(userHashes, keys)},${method},${data}`
+        )
+      )
     }
   }
 
-  setKey(hashObj: any, keys: string[], val: string): void {
+  setVal(hashObj: any, keys: (string | number)[], val: string): void {
     if (!hashObj[keys[0]]) hashObj[keys[0]] = {};
     if (keys.length === 1) {
       hashObj[keys[0]] = val;
       return;
     }
-    return this.setKey(hashObj[keys[0]], keys.slice(1), val);
+    return this.setVal(hashObj[keys[0]], keys.slice(1), val);
   }
+
+  getVal(obj: any, keys: (string | number)[]): any {
+    if (keys.length === 0) return obj;
+    return this.getVal(obj[keys[0]], keys.slice(1))
+  }
+
+  // getParent(hashObj: Object, keys: string[]) {
+  //   if (keys.length === 1) return 
+  // }
 }
 
-// export const serverHashCache = new ServerHashCacheV4(configV2);
-// if (!(globalThis as any).serverHashCache) {
-//   (globalThis as any).serverHashCache = serverHashCache;
-// }
+export const serverHashCache = new ServerHashCacheV4(configV2);
+if (!(globalThis as any).serverHashCache) {
+  (globalThis as any).serverHashCache = serverHashCache;
+}

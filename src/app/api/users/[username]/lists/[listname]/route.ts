@@ -22,7 +22,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
     );
     await serverHashCache.updateHash(
       username,
-      `list-${listId}`,
+      ['listContents', listId],
       'GET',
       listRecords
     );
@@ -76,7 +76,13 @@ export async function POST(req: Request, { params }: { params: Params }) {
       listnameId: Number(listId),
     }
     await db.insert(lists).values(newRecord);
-    await serverHashCache.updateHash(username, `list-${listId}`, 'POST', newRecord);
+    await serverHashCache.updateHash(
+      username,
+      // `list-${listId}`,
+      ['listContents', listId],
+      'POST',
+      newRecord
+    );
     return NextResponse.json(newRecord);
   }
 

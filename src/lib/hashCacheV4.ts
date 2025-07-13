@@ -540,6 +540,9 @@ export class ClientHashCacheV3 {
 export const configV2 = {
   resources: {
     listnames: {
+      compare(client, server) {
+          
+      },
       fetch: {
         GET: async (hashCache, serverHashes) => {
           if (serverHashes && hashCache.hashes.listnames === serverHashes.listnames) {
@@ -558,7 +561,7 @@ export const configV2 = {
           );
           return results
         },
-        POST: async (hashCache, _, record: { listnameId: string }) => {
+        POST: async (hashCache, _, record: { listname: string }) => {
           const newRecord = await easyFetch<Listname>({
             route: `/api/users/${hashCache.username}/lists`,
             method: 'POST',
@@ -574,6 +577,9 @@ export const configV2 = {
     },
     listContents: {
       key: 'listnameId',
+      compare(client, server) {
+          
+      },
       fetch: {
         GET: async (hashCache, serverHashes) => {
           if (!hashCache.resources.listnames) {
@@ -643,6 +649,7 @@ type Config = {
   resources: {
     [resourceName: string]: {
       key?: string,
+      compare: (client: any, server: any) => any,
       fetch: {
         [M in Methods]?: (
           hashCache: ClientHashCacheV4,
@@ -753,6 +760,63 @@ type GetReturnType<
 type ExistingMethod<R extends Resources> = keyof typeof configV2['resources'][R]['fetch']
 type TrustMe = any
 
+// type ResourceModFunc<
+//   R extends Resources,
+//   M extends ExistingMethod<R>
+// > = (
+//   oldData: GetReturnType<R, 'GET'>,
+//   newData: GetReturnType<R, M>
+// ) => GetReturnType<R, 'GET'>
+
+// const resourceModFuncs: { [M in Methods]: ResourceModFunc<R, M> } = {}
+
+function getKey(resource: NestedResources, data: any) {
+  const keyName = configV2.resources[resource].key;
+  if (!keyName) throw Error(`Cannot find keyName for ${resource}`);
+  const key = Array.isArray(data) ? data[0][keyName] : data[keyName];
+  if (!key) throw Error(`Cannot find key for ${resource}`);
+  return key;
+}
+
+// share this function between clientHashCache and serverHashCache
+// this will help ensure hashes are updated with the exact same logic
+async function updateHash(
+  hashes: HashesV2,
+  resource: Resources,
+  method: ExistingMethod<typeof resource>,
+  data: GetReturnType<typeof resource, typeof method>
+) {
+  if (method === 'GET') {
+    if (includes(nestedResources, resource)) {
+      const key = getKey(resource, data);
+      hashes[resource][key] = await configV2.hashFunc(
+        JSON.stringify(data)
+      );
+    } else {
+      hashes[resource] = await configV2.hashFunc(
+        JSON.stringify(data)
+      )
+    }
+  } else {
+    if (includes(nestedResources, resource)) {
+      const key = getKey(resource, data);
+      if (!hashes[resource][key]) {
+        throw Error(`No hash to update for hashes.${resource}.${key}`);
+      }
+      hashes[resource][key] = await configV2.hashFunc(
+        `${hashes[resource][key]},${method.toString()},${JSON.stringify(data)}`
+      );
+    } else {
+      if (!hashes[resource]) {
+        throw Error(`No hash to update for hashes.${resource}`);
+      }
+      hashes[resource] = await configV2.hashFunc(
+        `${hashes[resource]},${method.toString()},${JSON.stringify(data)}`
+      );
+    }
+  }
+}
+
 export class ClientHashCacheV4 {
   config: Config;
   username: string;
@@ -761,6 +825,23 @@ export class ClientHashCacheV4 {
   resources: UserDataV2;
   hashes: HashesV2;
   isSynced: boolean;
+  modFuncs = {
+    GET: (_: any[], newData: any[]) => newData,
+    POST: (oldData: any[], newData: any) => oldData.concat(newData),
+    PUT: (oldData: any[], newData: any, match: string[]) => {
+      return oldData.map(obj => {
+        if (match.every(key => obj[key] === newData[key])) {
+          return newData;
+        }
+        return obj
+      })
+    },
+    DELETE: (oldData: any[], newData: any, match: string[]) => {
+      return oldData.filter(obj => {
+        return match.every(key => obj[key] !== newData[key])
+      })
+    }
+  }
 
   constructor(config: Config, username: string) {
     this.config = config;
@@ -786,6 +867,17 @@ export class ClientHashCacheV4 {
       clientHashes: this.hashes,
     })
 
+    // Ideally this should be something like
+    // ConfigV2 will need updated
+    //  - add compare functions for each resource
+    //  - fix fetch methods to return fetched data instead of directly modifying resource and hashes
+    // for each resource {
+    //   const compareResult = this.config.resource.compare(clientHash, serverHash)
+    //   if (compareResult) {
+    //     const newResource = updateResource(compareResult)
+    //     this.updateResource(resource, 'GET', newResource)
+    //   }
+    // }
     for (const resource in this.config.resources) {
       console.log('getting resource', resource)
       await this.getFetchFunc(resource as Resources, 'GET')(this, serverHashes);
@@ -798,25 +890,89 @@ export class ClientHashCacheV4 {
 
   getFetchFunc<R extends Resources, M extends ExistingMethod<R>>(
     resource: R,
-    method: M
+    method: M,
   ) {
     const fetchFunc = this.config.resources[resource].fetch[method] as TrustMe;
     if (!fetchFunc) throw Error(`Cannot find ${method.toString()} func for ${resource}`);
     return fetchFunc;
   }
 
+  getModFunc<M extends Methods>(method: M) {
+    const modFunc = (this.modFuncs as any)[method];
+    if (!modFunc) throw Error(`Cannot find modFunc for ${method.toString()}`);
+    return modFunc;
+  }
+
+  // async updateResource<R extends Resources, M extends ExistingMethod<R>>(
+  //   resource: R,
+  //   method: M,
+  //   data: GetRecordType<R, M>
+  // ) {
+  //   const fetchFunc = this.getFetchFunc(resource, method);
+  //   await fetchFunc(this, data);
+  //   // await this.getFetchFunc(resource, method)(this, data)
+  // }
+
   async updateResource<R extends Resources, M extends ExistingMethod<R>>(
     resource: R,
     method: M,
     data: GetRecordType<R, M>
+    // The below types do not expose the types we want
+    // resource: Resources,
+    // method: ExistingMethod<typeof resource>,
+    // data: GetReturnType<typeof resource, typeof method>
   ) {
-    const fetchFunc = this.getFetchFunc(resource, method);
-    await fetchFunc(this, data);
-    // await this.getFetchFunc(resource, method)(this, data)
+    const newResource = await this.getFetchFunc(resource, method)(this, data);
+    const modFunc = this.getModFunc(method as any);
+    if (includes(nestedResources, resource)) {
+      const key = getKey(resource, newResource);
+      (this.resources[resource] as any)[key] = modFunc(
+        this.resources[resource][key], newResource
+      );
+    } else {
+      this.resources[resource] = modFunc(this.resources[resource], newResource);
+    }
+    this.updateHash(resource, method as any, data);
+  }
+
+  async updateHash<R extends Resources, M extends ExistingMethod<R>>(
+    // resource: R,
+    // method: M,
+    // data: GetRecordType<R, M>
+    // The below types do not expose the types we want
+    // But that does that really matter for this function since it should only be called internally?
+    resource: Resources,
+    method: ExistingMethod<typeof resource>,
+    data: GetReturnType<typeof resource, typeof method>
+  ) {
+    const userHashes = this.hashes;
+    if (method === 'GET') {
+      if (includes(nestedResources, resource)) {
+        const key = getKey(resource, data);
+        userHashes[resource][key] = await this.config.hashFunc(
+          JSON.stringify(data)
+        );
+      } else {
+        userHashes[resource] = await this.config.hashFunc(
+          JSON.stringify(data)
+        )
+      }
+    } else {
+      if (includes(nestedResources, resource)) {
+        const key = getKey(resource, data);
+        userHashes[resource][key] = await this.config.hashFunc(
+          `${userHashes[resource][key]},${method.toString()},${JSON.stringify(data)}`
+        );
+      } else {
+        userHashes[resource] = await this.config.hashFunc(
+          `${userHashes[resource]},${method.toString()},${JSON.stringify(data)}`
+        );
+      }
+    }
   }
 }
 // const clientHashCache = new ClientHashCacheV4(configV2, 'tedifer_jones')
-// clientHashCache.updateResource('listnames', 'POST', { listnameId: '' })
+// clientHashCache.updateResource('listnames', 'POST', { listname: 'asdf' })
 
 export class ServerHashCacheV4 {
   config: Config;
@@ -842,9 +998,7 @@ export class ServerHashCacheV4 {
     const userHashes = this.cache[username]!
     if (method === 'GET') {
       if (includes(nestedResources, resource)) {
-        // All nested resources should have a key, enforce this with types later (if possible)
-        const keyName = this.config.resources[resource].key!;
-        const key = (data as any[])[0][keyName];
+        const key = getKey(resource, data);
         userHashes[resource][key] = await this.config.hashFunc(
           JSON.stringify(data)
         );
@@ -852,6 +1006,17 @@ export class ServerHashCacheV4 {
         userHashes[resource] = await this.config.hashFunc(
           JSON.stringify(data)
         )
+      }
+    } else {
+      if (includes(nestedResources, resource)) {
+        const key = getKey(resource, data);
+        userHashes[resource][key] = await this.config.hashFunc(
+          `${userHashes[resource][key]},${method},${JSON.stringify(data)}`
+        );
+      } else {
+        userHashes[resource] = await this.config.hashFunc(
+          `${userHashes[resource]},${method},${JSON.stringify(data)}`
+        );
       }
     }
   }
@@ -885,19 +1050,19 @@ export class ServerHashCacheV4 {
   //   }
   // }
 
-  setVal(hashObj: any, keys: (string | number)[], val: string): void {
-    if (!hashObj[keys[0]]) hashObj[keys[0]] = {};
-    if (keys.length === 1) {
-      hashObj[keys[0]] = val;
-      return;
-    }
-    return this.setVal(hashObj[keys[0]], keys.slice(1), val);
-  }
+  // setVal(hashObj: any, keys: (string | number)[], val: string): void {
+  //   if (!hashObj[keys[0]]) hashObj[keys[0]] = {};
+  //   if (keys.length === 1) {
+  //     hashObj[keys[0]] = val;
+  //     return;
+  //   }
+  //   return this.setVal(hashObj[keys[0]], keys.slice(1), val);
+  // }
 
-  getVal(obj: any, keys: (string | number)[]): any {
-    if (keys.length === 0) return obj;
-    return this.getVal(obj[keys[0]], keys.slice(1))
-  }
+  // getVal(obj: any, keys: (string | number)[]): any {
+  //   if (keys.length === 0) return obj;
+  //   return this.getVal(obj[keys[0]], keys.slice(1))
+  // }
 
   // getParent(hashObj: Object, keys: string[]) {
   //   if (keys.length === 1) return 

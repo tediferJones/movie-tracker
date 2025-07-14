@@ -22,9 +22,11 @@ export async function GET(req: Request, { params }: { params: Params }) {
     );
     await serverHashCache.updateHash(
       username,
-      ['listContents', listId],
+      'listContents',
+      // ['listContents', listId],
       'GET',
-      listRecords
+      listRecords as any,
+      listId.toString(),
     );
     return NextResponse.json(listRecords);
   }
@@ -79,9 +81,11 @@ export async function POST(req: Request, { params }: { params: Params }) {
     await serverHashCache.updateHash(
       username,
       // `list-${listId}`,
-      ['listContents', listId],
+      // ['listContents', listId],
+      'listContents',
       'POST',
-      newRecord
+      newRecord,
+      listId.toString(),
     );
     return NextResponse.json(newRecord);
   }

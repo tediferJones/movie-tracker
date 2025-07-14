@@ -540,27 +540,35 @@ export class ClientHashCacheV3 {
 export const configV2 = {
   resources: {
     listnames: {
-      compare(client, server) {
-          
+      compare: (client, server) => {
+        console.log('comparing listnames', client, server)
+        if (!client) return true;
+        if (!server) return true;
+        return client !== server;
       },
       fetch: {
-        GET: async (hashCache, serverHashes) => {
-          if (serverHashes && hashCache.hashes.listnames === serverHashes.listnames) {
-            // hashes match, do nothing
-            return [] as Listname[];
-          }
-          hashCache.isSynced = false;
-          const results = await easyFetch<Listname[]>({
-            route: `/api/users/${hashCache.username}/lists`,
-            method: 'GET',
-            params: testParams,
-          });
-          hashCache.resources.listnames = results;
-          hashCache.hashes.listnames = await hashCache.config.hashFunc(
-            JSON.stringify(results)
-          );
-          return results
-        },
+        GET: async (hashCache) => await easyFetch<Listname[]>({
+          route: `/api/users/${hashCache.username}/lists`,
+          method: 'GET',
+          params: testParams,
+        }),
+        // GET: async (hashCache, serverHashes) => {
+        //   if (serverHashes && hashCache.hashes.listnames === serverHashes.listnames) {
+        //     // hashes match, do nothing
+        //     return [] as Listname[];
+        //   }
+        //   hashCache.isSynced = false;
+        //   const results = await easyFetch<Listname[]>({
+        //     route: `/api/users/${hashCache.username}/lists`,
+        //     method: 'GET',
+        //     params: testParams,
+        //   });
+        //   hashCache.resources.listnames = results;
+        //   hashCache.hashes.listnames = await hashCache.config.hashFunc(
+        //     JSON.stringify(results)
+        //   );
+        //   return results
+        // },
         POST: async (hashCache, _, record: { listname: string }) => {
           const newRecord = await easyFetch<Listname>({
             route: `/api/users/${hashCache.username}/lists`,
@@ -576,53 +584,75 @@ export const configV2 = {
       },
     },
     listContents: {
-      key: 'listnameId',
-      compare(client, server) {
-          
+      // key: 'listnameId',
+      isNested: 'listnames',
+      compare: (client, server, refs: Listname[]) => {
+        console.log('comparing listContents')
+        if (!client || !server) return refs.map(ref => ref.id);
+        const outOfSync = Object.keys(server).filter(key => {
+          return server[key] !== client[key];
+        });
+        return outOfSync.length ? outOfSync : false;
       },
       fetch: {
-        GET: async (hashCache, serverHashes) => {
-          if (!hashCache.resources.listnames) {
-            throw Error('listnames does not exist');
-          }
-
+        GET: async (hashCache, needsSynced: string[]): Promise<{ [key: string]: ListItem[] }> => {
+          console.log(needsSynced)
           if (!hashCache.resources.listContents) {
             hashCache.resources.listContents = {};
           }
-          if (!hashCache.hashes.listContents) {
-            hashCache.hashes.listContents = {};
-          }
-
-          let needsSyncedListIds = (hashCache.resources.listnames as Listname[]).map(listname => listname.id.toString())
-          if (serverHashes) {
-            needsSyncedListIds = (
-              Object.keys(serverHashes).filter(listId => {
-                // this should be serverHashes.listContents[listId]
-                return serverHashes[listId] && hashCache.hashes.listContents[listId]
-                  && serverHashes[listId] !== hashCache.hashes.listContents[listId];
+          await Promise.all(
+            needsSynced.map(async listId => {
+              hashCache.resources.listContents[listId] = await easyFetch<ListItem[]>({
+                route: `/api/users/${hashCache.username}/lists/${listId}`,
+                method: 'GET',
+                params: testParams,
               })
-            );
-          }
-
-          if (needsSyncedListIds.length !== 0) {
-            hashCache.isSynced = false;
-          }
-
-          // these fetchs can probably be done in parallel
-          // for (const listname of hashCache.resources.listnames as Listname[]) {
-          for (const listId of needsSyncedListIds) {
-            const data = await easyFetch<ListItem[]>({
-              route: `/api/users/${hashCache.username}/lists/${listId}`,
-              method: 'GET',
-              params: testParams,
-            });
-            hashCache.resources.listContents[listId] = data;
-            hashCache.hashes.listContents[listId] = (
-              await hashCache.config.hashFunc(JSON.stringify(data))
-            );
-          }
-          return {} as Record<string, ListItem[]>
+            })
+          );
+          return hashCache.resources.listContents;
         },
+        // GET: async (hashCache, serverHashes) => {
+        //   if (!hashCache.resources.listnames) {
+        //     throw Error('listnames does not exist');
+        //   }
+
+        //   if (!hashCache.resources.listContents) {
+        //     hashCache.resources.listContents = {};
+        //   }
+        //   if (!hashCache.hashes.listContents) {
+        //     hashCache.hashes.listContents = {};
+        //   }
+
+        //   let needsSyncedListIds = (hashCache.resources.listnames as Listname[]).map(listname => listname.id.toString())
+        //   if (serverHashes) {
+        //     needsSyncedListIds = (
+        //       Object.keys(serverHashes).filter(listId => {
+        //         // this should be serverHashes.listContents[listId]
+        //         return serverHashes[listId] && hashCache.hashes.listContents[listId]
+        //           && serverHashes[listId] !== hashCache.hashes.listContents[listId];
+        //       })
+        //     );
+        //   }
+
+        //   if (needsSyncedListIds.length !== 0) {
+        //     hashCache.isSynced = false;
+        //   }
+
+        //   // these fetchs can probably be done in parallel
+        //   // for (const listname of hashCache.resources.listnames as Listname[]) {
+        //   for (const listId of needsSyncedListIds) {
+        //     const data = await easyFetch<ListItem[]>({
+        //       route: `/api/users/${hashCache.username}/lists/${listId}`,
+        //       method: 'GET',
+        //       params: testParams,
+        //     });
+        //     hashCache.resources.listContents[listId] = data;
+        //     hashCache.hashes.listContents[listId] = (
+        //       await hashCache.config.hashFunc(JSON.stringify(data))
+        //     );
+        //   }
+        //   return {} as Record<string, ListItem[]>
+        // },
         POST: async (hashCache, _, record: { listnameId: number }) => {
           const listId = record.listnameId;
           const newRecord = await easyFetch<ListItem>({
@@ -631,13 +661,7 @@ export const configV2 = {
             params: testParams,
             body: record,
           });
-          hashCache.resources.listContents[listId].push(newRecord);
-          hashCache.hashes.listContents[listId] = (
-            await hashCache.config.hashFunc(
-              `${JSON.stringify(hashCache.hashes.listContents[listId])},POST,${newRecord}`
-            )
-          );
-          return {} as ListItem
+          return newRecord;
         }
       },
     },
@@ -648,14 +672,18 @@ export const configV2 = {
 type Config = {
   resources: {
     [resourceName: string]: {
-      key?: string,
-      compare: (client: any, server: any) => any,
+      isNested?: string,
+      compare: (client: any, server: any, extra?: any) => any,
       fetch: {
         [M in Methods]?: (
           hashCache: ClientHashCacheV4,
-          serverHashes: any,
           ...args: any[]
         ) => Promise<any>
+        // [M in Methods]?: (
+        //   hashCache: ClientHashCacheV4,
+        //   serverHashes: any,
+        //   ...args: any[]
+        // ) => Promise<any>
       }
     }
   },
@@ -707,11 +735,17 @@ type Resources = keyof typeof configV2['resources']
 const nestedResources = defineNestedResources([ 'listContents' ]);
 type NestedResources = typeof nestedResources[number]
 type HashesV2 = {
-  [R in Resources]: R extends NestedResources ? { [key: string]: string } : string
+  // [R in Resources]: R extends NestedResources ? { [key: string]: string } : string
+  [R in Resources]: IsNested<R, { [key: string]: string }, string>
 }
 type UserDataV2 = {
   [R in Resources]: GetReturnType<R, 'GET'>
 }
+type IsNested<R extends Resources, T, F> =
+  typeof configV2['resources'][R] extends { isNested: boolean } ? T : F
+
+// const test: IsNested<'listContents'> = { idk: 'wow' }
+
 // Make sure ServerHashCache.getHashes returns ServerResponse
 // Make sure the hash type for ServerHashCache and ClientHashCache is also HashV2
 type ServerResponse = HashesV2 | null
@@ -770,47 +804,38 @@ type TrustMe = any
 
 // const resourceModFuncs: { [M in Methods]: ResourceModFunc<R, M> } = {}
 
-function getKey(resource: NestedResources, data: any) {
-  const keyName = configV2.resources[resource].key;
-  if (!keyName) throw Error(`Cannot find keyName for ${resource}`);
-  const key = Array.isArray(data) ? data[0][keyName] : data[keyName];
-  if (!key) throw Error(`Cannot find key for ${resource}`);
-  return key;
-}
+// function getKey(resource: NestedResources, data: any) {
+//   const keyName = configV2.resources[resource].key;
+//   if (!keyName) throw Error(`Cannot find keyName for ${resource}`);
+//   const key = Array.isArray(data) ? data[0][keyName] : data[keyName];
+//   if (!key) throw Error(`Cannot find key for ${resource}`);
+//   return key;
+// }
 
 // share this function between clientHashCache and serverHashCache
 // this will help ensure hashes are updated with the exact same logic
-async function updateHash(
+async function updateHash<R extends Resources, M extends ExistingMethod<R>>(
   hashes: HashesV2,
-  resource: Resources,
-  method: ExistingMethod<typeof resource>,
-  data: GetReturnType<typeof resource, typeof method>
+  resource: R,
+  method: M,
+  data: GetReturnType<R, M>,
+  key?: string,
 ) {
-  if (method === 'GET') {
-    if (includes(nestedResources, resource)) {
-      const key = getKey(resource, data);
-      hashes[resource][key] = await configV2.hashFunc(
-        JSON.stringify(data)
-      );
+  if (key) {
+    if (!hashes[resource]) hashes[resource] = {} as any;
+    const typedUserHashes = hashes[resource] as { [key: string]: string };
+    if (method === 'GET') {
+      typedUserHashes[key] = await hash(JSON.stringify(data));
     } else {
-      hashes[resource] = await configV2.hashFunc(
-        JSON.stringify(data)
-      )
+      typedUserHashes[key] = await hash(
+        `${typedUserHashes[key]},${method.toString()},${JSON.stringify(data)}`
+      );
     }
   } else {
-    if (includes(nestedResources, resource)) {
-      const key = getKey(resource, data);
-      if (!hashes[resource][key]) {
-        throw Error(`No hash to update for hashes.${resource}.${key}`);
-      }
-      hashes[resource][key] = await configV2.hashFunc(
-        `${hashes[resource][key]},${method.toString()},${JSON.stringify(data)}`
-      );
+    if (method === 'GET') {
+      (hashes[resource] as string) = await hash(JSON.stringify(data));
     } else {
-      if (!hashes[resource]) {
-        throw Error(`No hash to update for hashes.${resource}`);
-      }
-      hashes[resource] = await configV2.hashFunc(
+      (hashes[resource] as string) = await hash(
         `${hashes[resource]},${method.toString()},${JSON.stringify(data)}`
       );
     }
@@ -879,8 +904,29 @@ export class ClientHashCacheV4 {
     //   }
     // }
     for (const resource in this.config.resources) {
-      console.log('getting resource', resource)
-      await this.getFetchFunc(resource as Resources, 'GET')(this, serverHashes);
+      // order of execution matters here which relies on order of keys in configV2
+      // Example: listnames must be fetched before listContents can be fetched
+      const typedResource = resource as Resources
+      const needsSynced = this.config.resources[resource].compare(
+        this.hashes[typedResource],
+        serverHashes?.[typedResource],
+        this.resources[(this.config.resources[resource].isNested || '') as Resources],
+      );
+      if (needsSynced) {
+        console.log('NOT SYNCED', resource, needsSynced)
+        this.isSynced = false;
+        const data = await this.getFetchFunc(typedResource, 'GET')(this, needsSynced);
+        this.resources[typedResource] = data;
+        if (Array.isArray(data)) {
+          await updateHash(this.hashes, typedResource, 'GET', this.resources[typedResource]);
+        } else {
+          await Promise.all(
+            Object.keys(data).map(async key => {
+              await updateHash(this.hashes, typedResource, 'GET', data[key], key)
+            })
+          );
+        }
+      }
     }
     if (!this.isSynced) {
       this.sync(retryCount + 1);
@@ -903,72 +949,28 @@ export class ClientHashCacheV4 {
     return modFunc;
   }
 
-  // async updateResource<R extends Resources, M extends ExistingMethod<R>>(
-  //   resource: R,
-  //   method: M,
-  //   data: GetRecordType<R, M>
-  // ) {
-  //   const fetchFunc = this.getFetchFunc(resource, method);
-  //   await fetchFunc(this, data);
-  //   // await this.getFetchFunc(resource, method)(this, data)
-  // }
-
   async updateResource<R extends Resources, M extends ExistingMethod<R>>(
     resource: R,
     method: M,
-    data: GetRecordType<R, M>
-    // The below types do not expose the types we want
-    // resource: Resources,
-    // method: ExistingMethod<typeof resource>,
-    // data: GetReturnType<typeof resource, typeof method>
+    data: GetRecordType<R, M>,
+    key?: string,
   ) {
     const newResource = await this.getFetchFunc(resource, method)(this, data);
     const modFunc = this.getModFunc(method as any);
-    if (includes(nestedResources, resource)) {
-      const key = getKey(resource, newResource);
+    if (this.config.resources[resource].isNested && !key) {
+      throw Error(`Resource ${resource} is nested and requires a key`);
+    }
+    if (!this.config.resources[resource].isNested && key) {
+      throw Error(`Resource ${resource} is not nested and should not include a key`);
+    }
+    if (key) {
       (this.resources[resource] as any)[key] = modFunc(
-        this.resources[resource][key], newResource
+        (this.resources[resource] as any)[key], newResource
       );
     } else {
       this.resources[resource] = modFunc(this.resources[resource], newResource);
     }
-    this.updateHash(resource, method as any, data);
-  }
-
-  async updateHash<R extends Resources, M extends ExistingMethod<R>>(
-    // resource: R,
-    // method: M,
-    // data: GetRecordType<R, M>
-    // The below types do not expose the types we want
-    // But that does that really matter for this function since it should only be called internally?
-    resource: Resources,
-    method: ExistingMethod<typeof resource>,
-    data: GetReturnType<typeof resource, typeof method>
-  ) {
-    const userHashes = this.hashes;
-    if (method === 'GET') {
-      if (includes(nestedResources, resource)) {
-        const key = getKey(resource, data);
-        userHashes[resource][key] = await this.config.hashFunc(
-          JSON.stringify(data)
-        );
-      } else {
-        userHashes[resource] = await this.config.hashFunc(
-          JSON.stringify(data)
-        )
-      }
-    } else {
-      if (includes(nestedResources, resource)) {
-        const key = getKey(resource, data);
-        userHashes[resource][key] = await this.config.hashFunc(
-          `${userHashes[resource][key]},${method.toString()},${JSON.stringify(data)}`
-        );
-      } else {
-        userHashes[resource] = await this.config.hashFunc(
-          `${userHashes[resource]},${method.toString()},${JSON.stringify(data)}`
-        );
-      }
-    }
+    await updateHash(this.hashes, resource, method, data, key);
   }
 }
 // const clientHashCache = new ClientHashCacheV4(configV2, 'tedifer_jones')
@@ -988,85 +990,20 @@ export class ServerHashCacheV4 {
     return this.cache[username] || null
   }
 
-  async updateHash(
+  async updateHash<R extends Resources, M extends ExistingMethod<R>>(
     username: string,
-    resource: Resources,
-    method: ExistingMethod<typeof resource>,
-    data: GetReturnType<typeof resource, typeof method>
+    resource: R,
+    method: M,
+    data: GetReturnType<R, M>,
+    key?: string,
   ) {
-    if (!this.cache[username]) this.cache[username] = {} as HashesV2
-    const userHashes = this.cache[username]!
-    if (method === 'GET') {
-      if (includes(nestedResources, resource)) {
-        const key = getKey(resource, data);
-        userHashes[resource][key] = await this.config.hashFunc(
-          JSON.stringify(data)
-        );
-      } else {
-        userHashes[resource] = await this.config.hashFunc(
-          JSON.stringify(data)
-        )
-      }
-    } else {
-      if (includes(nestedResources, resource)) {
-        const key = getKey(resource, data);
-        userHashes[resource][key] = await this.config.hashFunc(
-          `${userHashes[resource][key]},${method},${JSON.stringify(data)}`
-        );
-      } else {
-        userHashes[resource] = await this.config.hashFunc(
-          `${userHashes[resource]},${method},${JSON.stringify(data)}`
-        );
-      }
-    }
+    if (!this.cache[username]) this.cache[username] = {} as HashesV2;
+    const userHashes = this.cache[username]!;
+    if (this.config.resources[resource].isNested && !key) {
+      throw Error(`Resource ${resource} is nested and requires a key arg`);
+    } 
+    await updateHash(userHashes, resource, method, data, key);
   }
-
-  // async updateHash(username: string, resource: string, method: Methods, data: any) {
-  //   if (!this.cache[username]) this.cache[username] = {};
-  //   const userHashes = this.cache[username]!
-  //   if (method === 'GET') {
-  //     userHashes[resource] = await this.config.hashFunc(JSON.stringify(data));
-  //   } else {
-  //     if (!userHashes[resource]) throw Error('no resource to update');
-  //     userHashes[resource] = await this.config.hashFunc(
-  //       `${JSON.stringify(userHashes[resource])},${method},${JSON.stringify(data)}`
-  //     );
-  //   }
-  // }
-
-  // async updateHash(username: string, keys: (string | number)[], method: Methods, data: any) {
-  //   if (!this.cache[username]) this.cache[username] = {} as HashesV2;
-  //   const userHashes = this.cache[username]!
-  //   if (method === 'GET') {
-  //     this.setVal(userHashes, keys, 
-  //       await this.config.hashFunc(JSON.stringify(data))
-  //     )
-  //   } else {
-  //     this.setVal(userHashes, keys, 
-  //       await this.config.hashFunc(
-  //         `${this.getVal(userHashes, keys)},${method},${data}`
-  //       )
-  //     )
-  //   }
-  // }
-
-  // setVal(hashObj: any, keys: (string | number)[], val: string): void {
-  //   if (!hashObj[keys[0]]) hashObj[keys[0]] = {};
-  //   if (keys.length === 1) {
-  //     hashObj[keys[0]] = val;
-  //     return;
-  //   }
-  //   return this.setVal(hashObj[keys[0]], keys.slice(1), val);
-  // }
-
-  // getVal(obj: any, keys: (string | number)[]): any {
-  //   if (keys.length === 0) return obj;
-  //   return this.getVal(obj[keys[0]], keys.slice(1))
-  // }
-
-  // getParent(hashObj: Object, keys: string[]) {
-  //   if (keys.length === 1) return 
-  // }
 }
 
 export const serverHashCache = new ServerHashCacheV4(configV2);

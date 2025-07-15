@@ -35,5 +35,8 @@ class Cache {
 const maxTime = 1000 * 60 * 15; // 15 minutes
 // const maxTime = 1000 * 60; // For testing purposes
 const cache = new Cache(maxTime);
-
+if (!(globalThis as any).cache) {
+  console.log('SETTING CACHE');
+  (globalThis as any).cache = cache;
+}
 export default cache;

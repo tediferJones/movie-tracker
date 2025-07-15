@@ -68,8 +68,10 @@ export async function POST(req: Request, { params }: { params: Params }) {
   if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
     if (!searchParams.get('imdbId')) throw Error('no imdbId');
     if (!searchParams.get('listId')) throw Error('no listId');
+    if (!searchParams.get('listname')) throw Error('no listname');
     const imdbId = searchParams.get('imdbId')!;
     const listId = searchParams.get('listId')!;
+    const listname = searchParams.get('listname')!;
     const newRecord = {
       username,
       listname,
@@ -77,16 +79,22 @@ export async function POST(req: Request, { params }: { params: Params }) {
       date: Date.now(),
       listnameId: Number(listId),
     }
+    console.log('INSERTING', newRecord)
+    console.log(cache.cache)
     await db.insert(lists).values(newRecord);
+    const newRecordV2 = cache.get(imdbId);
+    if (!newRecordV2) throw Error('cannot find media info');
     await serverHashCache.updateHash(
       username,
       // `list-${listId}`,
       // ['listContents', listId],
       'listContents',
       'POST',
-      newRecord,
+      newRecordV2,
       listId.toString(),
     );
+    cache.delete(`${username},${imdbId},lists`);
+    cache.delete(`${username},${listname}`);
     return NextResponse.json(newRecord);
   }
 

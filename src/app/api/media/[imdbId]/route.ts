@@ -24,6 +24,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
       return NextResponse.json('Failed to process request, database error', { status: 500 });
     }
   }
+  console.log('from media route', imdbId, cache.get(imdbId))
   return NextResponse.json(cache.get(imdbId));
 }
 

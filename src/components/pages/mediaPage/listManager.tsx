@@ -17,6 +17,8 @@ import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { inputValidation } from '@/lib/inputValidation';
 import easyFetch from '@/lib/easyFetch';
+import { ClientHashCacheV4 } from '@/lib/hashCacheV4';
+import { useUserData } from '@/context/userData';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname';
@@ -55,20 +57,41 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
       })
   }, [refreshTrigger, user?.username]);
 
+  // const hashCache: ClientHashCacheV4 = (window as any).hashCache;
+  function getListId(listname: string) {
+    return userData.current?.resources.listnames.find(
+      list => list.listname === listname
+    );
+  }
+  const userData = useUserData();
+  useEffect(() => {
+    console.log('USER DATA HAS CHANGED', userData)
+  }, [userData])
+
   return (
     <form className='flex flex-col justify-between gap-4 p-4 showOutline flex-1 max-h-96 min-w-72'
-      onSubmit={e => {
+      onSubmit={async e => {
         e.preventDefault();
         if (!user?.username) return;
         if (buttonText) return console.log('early return');
         const listname = e.currentTarget?.newListname?.value || currentList;
         setButtonText(`Adding to ${listname}...`);
-        easyFetch({
-          route: `/api/users/${user.username}/lists/${listname}`,
-          method: 'POST',
-          params: { imdbId },
-          skipJSON: true,
-        }).then(() => setRefreshTrigger(!refreshTrigger));
+        // easyFetch({
+        //   route: `/api/users/${user.username}/lists/${listname}`,
+        //   method: 'POST',
+        //   params: { imdbId },
+        //   skipJSON: true,
+        // }).then(() => setRefreshTrigger(!refreshTrigger));
+        const listId = getListId(listname);
+        if (!listId?.id) throw Error('cannot find listId')
+        // console.log('POSTING FROM FRONT END')
+        // console.log(imdbId, listId.id, listname)
+        if (!userData.current) throw Error('no userData context found')
+        userData.current.updateResource('listContents', 'POST', {
+          imdbId,
+          listId: listId.id,
+          listname: listname
+        }, listId.id.toString());
         e.currentTarget.reset();
       }}
     >

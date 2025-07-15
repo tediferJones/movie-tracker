@@ -35,6 +35,7 @@
 
 import { listnames, lists, watched } from '@/drizzle/schema';
 import easyFetch, { Methods } from '@/lib/easyFetch';
+import { Dispatch, SetStateAction } from 'react';
 // import { ExistingMediaInfo } from '@/types'
 
 // might need to design how we return listContents
@@ -653,15 +654,17 @@ export const configV2 = {
         //   }
         //   return {} as Record<string, ListItem[]>
         // },
-        POST: async (hashCache, _, record: { listnameId: number }) => {
-          const listId = record.listnameId;
+        POST: async (hashCache, _, record: { imdbId: string, listId: number, listname: string }, key) => {
+          console.log('POST FUNC', hashCache, _, record, key)
+          // const listId = record.listnameId;
           const newRecord = await easyFetch<ListItem>({
-            route: `/api/users/${hashCache.username}/lists/${record.listnameId}`,
+            route: `/api/users/${hashCache.username}/lists/${record.listId}`,
             method: 'POST',
-            params: testParams,
-            body: record,
+            params: { ...testParams, ...record },
           });
+          console.log('POSTED', newRecord)
           return newRecord;
+          // return {} as ListItem
         }
       },
     },
@@ -842,6 +845,8 @@ async function updateHash<R extends Resources, M extends ExistingMethod<R>>(
   }
 }
 
+export type UserContext = { current: ClientHashCacheV4 | null }
+type SetUserContext = Dispatch<SetStateAction<UserContext>>
 export class ClientHashCacheV4 {
   config: Config;
   username: string;
@@ -850,6 +855,7 @@ export class ClientHashCacheV4 {
   resources: UserDataV2;
   hashes: HashesV2;
   isSynced: boolean;
+  setUserData: SetUserContext;
   modFuncs = {
     GET: (_: any[], newData: any[]) => newData,
     POST: (oldData: any[], newData: any) => oldData.concat(newData),
@@ -868,12 +874,13 @@ export class ClientHashCacheV4 {
     }
   }
 
-  constructor(config: Config, username: string) {
+  constructor(config: Config, username: string, setUserData: SetUserContext) {
     this.config = config;
     this.username = username;
     this.resources = {} as UserDataV2;
     this.hashes = {} as HashesV2;
     this.isSynced = false;
+    this.setUserData = setUserData;
     this.sync();
   }
 
@@ -931,6 +938,7 @@ export class ClientHashCacheV4 {
     if (!this.isSynced) {
       this.sync(retryCount + 1);
     }
+    this.setState();
     console.log('IS SYNCED')
   }
 
@@ -955,7 +963,7 @@ export class ClientHashCacheV4 {
     data: GetRecordType<R, M>,
     key?: string,
   ) {
-    const newResource = await this.getFetchFunc(resource, method)(this, data);
+    const newResource = await this.getFetchFunc(resource, method)(this, undefined, data);
     const modFunc = this.getModFunc(method as any);
     if (this.config.resources[resource].isNested && !key) {
       throw Error(`Resource ${resource} is nested and requires a key`);
@@ -964,13 +972,20 @@ export class ClientHashCacheV4 {
       throw Error(`Resource ${resource} is not nested and should not include a key`);
     }
     if (key) {
+      console.log(this.resources[resource], key);
       (this.resources[resource] as any)[key] = modFunc(
         (this.resources[resource] as any)[key], newResource
       );
     } else {
       this.resources[resource] = modFunc(this.resources[resource], newResource);
     }
+    console.log('modified resource')
     await updateHash(this.hashes, resource, method, data, key);
+    this.setState();
+  }
+
+  setState() {
+    this.setUserData({ current: this })
   }
 }
 // const clientHashCache = new ClientHashCacheV4(configV2, 'tedifer_jones')

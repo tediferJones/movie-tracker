@@ -542,7 +542,7 @@ export const configV2 = {
   resources: {
     listnames: {
       compare: (client, server) => {
-        console.log('comparing listnames', client, server)
+        // console.log('comparing listnames', client, server)
         if (!client) return true;
         if (!server) return true;
         return client !== server;
@@ -588,7 +588,7 @@ export const configV2 = {
       // key: 'listnameId',
       isNested: 'listnames',
       compare: (client, server, refs: Listname[]) => {
-        console.log('comparing listContents')
+        // console.log('comparing listContents')
         if (!client || !server) return refs.map(ref => ref.id);
         const outOfSync = Object.keys(server).filter(key => {
           return server[key] !== client[key];
@@ -597,7 +597,7 @@ export const configV2 = {
       },
       fetch: {
         GET: async (hashCache, needsSynced: string[]): Promise<{ [key: string]: ListItem[] }> => {
-          console.log(needsSynced)
+          // console.log(needsSynced)
           if (!hashCache.resources.listContents) {
             hashCache.resources.listContents = {};
           }
@@ -655,14 +655,14 @@ export const configV2 = {
         //   return {} as Record<string, ListItem[]>
         // },
         POST: async (hashCache, _, record: { imdbId: string, listId: number, listname: string }, key) => {
-          console.log('POST FUNC', hashCache, _, record, key)
+          // console.log('POST FUNC', hashCache, _, record, key)
           // const listId = record.listnameId;
           const newRecord = await easyFetch<ListItem>({
             route: `/api/users/${hashCache.username}/lists/${record.listId}`,
             method: 'POST',
             params: { ...testParams, ...record },
           });
-          console.log('POSTED', newRecord)
+          // console.log('POSTED', newRecord)
           return newRecord;
           // return {} as ListItem
         }
@@ -963,6 +963,9 @@ export class ClientHashCacheV4 {
     data: GetRecordType<R, M>,
     key?: string,
   ) {
+    // FIX ME
+    // If this.isSynced is false block all requests, database must still be the source of truth
+    // Otherwise all changes made locally will be lost once re-synced
     const newResource = await this.getFetchFunc(resource, method)(this, undefined, data);
     const modFunc = this.getModFunc(method as any);
     if (this.config.resources[resource].isNested && !key) {
@@ -972,14 +975,14 @@ export class ClientHashCacheV4 {
       throw Error(`Resource ${resource} is not nested and should not include a key`);
     }
     if (key) {
-      console.log(this.resources[resource], key);
+      // console.log(this.resources[resource], key);
       (this.resources[resource] as any)[key] = modFunc(
         (this.resources[resource] as any)[key], newResource
       );
     } else {
       this.resources[resource] = modFunc(this.resources[resource], newResource);
     }
-    console.log('modified resource')
+    // console.log('modified resource')
     await updateHash(this.hashes, resource, method, data, key);
     this.setState();
   }

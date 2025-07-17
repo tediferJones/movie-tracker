@@ -4,11 +4,19 @@ import { Hashes, resources, SyncResponse } from '@/lib/hashCache';
 import { currentUser } from '@clerk/nextjs';
 import { hashTable } from '@/lib/hashCache';
 import { serverHashCache } from '@/lib/hashCacheV4';
+import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 
 export async function GET(req: Request) {
   const user = await currentUser();
+
   if (!user?.username) {
     return NextResponse.json('Unauthorized', { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  if (searchParams.get('v') === '5') {
+    console.log('V5 detected')
+    return NextResponse.json(serverHashCacheV5.getHashes(user.username));
   }
 
   return NextResponse.json(serverHashCache.cache[user.username] || null);

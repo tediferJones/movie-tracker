@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { ClientHashCacheV4, UserContext, configV2 } from '@/lib/hashCacheV4';
+import { ClientHashCacheV5, configV5 } from '@/lib/hashCacheV5';
 
 const UserDataContext = createContext<UserContext>({ current: null });
 
@@ -22,6 +23,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       return;
     }
     new ClientHashCacheV4(configV2, user.username, setHashCache);
+    (window as any).hashCache = new ClientHashCacheV5(user.username, configV5);
   }, [user?.username]);
 
   return (

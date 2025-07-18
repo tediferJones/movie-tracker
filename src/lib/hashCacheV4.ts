@@ -885,7 +885,7 @@ export class ClientHashCacheV4 {
   }
 
   async sync(retryCount = 0, maxRetryCount = 5) {
-    console.log(`SYNCING, ${retryCount}/${maxRetryCount}`)
+    // console.log(`SYNCING, ${retryCount}/${maxRetryCount}`)
     if (retryCount >= maxRetryCount) {
       throw Error('Failed to sync')
     }
@@ -894,10 +894,10 @@ export class ClientHashCacheV4 {
       route: '/api/sync',
       method: 'GET',
     });
-    console.log({
-      serverHashes,
-      clientHashes: this.hashes,
-    })
+    // console.log({
+    //   serverHashes,
+    //   clientHashes: this.hashes,
+    // })
 
     // Ideally this should be something like
     // ConfigV2 will need updated
@@ -920,7 +920,7 @@ export class ClientHashCacheV4 {
         this.resources[(this.config.resources[resource].isNested || '') as Resources],
       );
       if (needsSynced) {
-        console.log('NOT SYNCED', resource, needsSynced)
+        // console.log('NOT SYNCED', resource, needsSynced)
         this.isSynced = false;
         const data = await this.getFetchFunc(typedResource, 'GET')(this, needsSynced);
         this.resources[typedResource] = data;
@@ -939,7 +939,7 @@ export class ClientHashCacheV4 {
       this.sync(retryCount + 1);
     }
     this.setState();
-    console.log('IS SYNCED')
+    // console.log('IS SYNCED')
   }
 
   getFetchFunc<R extends Resources, M extends ExistingMethod<R>>(

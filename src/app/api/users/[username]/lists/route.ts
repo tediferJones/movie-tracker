@@ -7,6 +7,7 @@ import { hashTable } from '@/lib/hashCache';
 import { currentUser } from '@clerk/nextjs';
 import { isValid } from '@/lib/inputValidation';
 import { serverHashCache } from '@/lib/hashCacheV4';
+import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 
 type Params = { username: string }
 
@@ -21,7 +22,8 @@ export async function GET(req: Request, { params }: { params: Params }) {
       eq(listnames.username, username)
     );
     // hashTable.setResource(username, 'listnames', listnameRecs);
-    await serverHashCache.updateHash(username, ['listnames'], 'GET', listnameRecs);
+    // await serverHashCache.updateHash(username, ['listnames'], 'GET', listnameRecs);
+    await serverHashCacheV5.update(username, listnameRecs, 'GET', 'listnames');
     return NextResponse.json(listnameRecs);
   }
 

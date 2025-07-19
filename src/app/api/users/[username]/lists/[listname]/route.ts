@@ -7,6 +7,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
 import { serverHashCache } from '@/lib/hashCacheV4';
+import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 
 type Params = { username: string, listname: string }
 
@@ -20,14 +21,15 @@ export async function GET(req: Request, { params }: { params: Params }) {
     const listRecords = await db.select().from(lists).where(
       eq(lists.listnameId, listId),
     );
-    await serverHashCache.updateHash(
-      username,
-      'listContents',
-      // ['listContents', listId],
-      'GET',
-      listRecords as any,
-      listId.toString(),
-    );
+    await serverHashCacheV5.update(username, listRecords, 'GET', 'listContents', listId.toString());
+    // await serverHashCache.updateHash(
+    //   username,
+    //   'listContents',
+    //   // ['listContents', listId],
+    //   'GET',
+    //   listRecords as any,
+    //   listId.toString(),
+    // );
     return NextResponse.json(listRecords);
   }
   

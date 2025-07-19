@@ -39,26 +39,52 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   // }
   const userData = useUserData();
   useEffect(() => {
-    console.log('USER DATA HAS CHANGED', userData)
-    if (!userData.current) return console.log('no userData');
-    const listContents = userData.current.resources['listContents'];
-    const listnames = userData.current.resources['listnames'];
-    const alreadyInLists = Object.keys(listContents).filter(key => {
-      return listContents[key].find(mediaInfo => mediaInfo.imdbId === imdbId);
-    }).map(key => {
-      const listname = listnames.find(listname => listname.id === Number(key));
-      if (!listname) throw Error('this should not even be possible');
-      return listname;
-    });
-    setMatchingLists(alreadyInLists);
-    const matchingListIds = alreadyInLists.map(list => list.id);
-    const availableLists = listnames.filter(list => !matchingListIds.includes(list.id))
-    setAllListnames(availableLists);
-    const defaultList = availableLists.find(list => list.defaultList)?.listname;
-    setCurrentList(defaultList || availableLists[0].listname);
-    console.log('HASHCACHE', { alreadyInLists, availableLists })
-    setButtonText('');
+    if (!userData.current) return;
+    const listnames = userData.current.getResource('listnames');
+    const listContents = userData.current.getResource('listContents');
+
+    const { included, excluded } = listnames.data.reduce((obj, listname) => {
+      // @ts-ignore
+      const found = listContents[listname.id].data.find(
+        // @ts-ignore
+        listItem => listItem.imdbId === imdbId
+      );
+      if (found) {
+        obj.included.push(listname);
+      } else {
+        obj.excluded.push(listname);
+      }
+      return obj
+    }, { included: [] as Listname[], excluded: [] as Listname[] });
+
+    setMatchingLists(included); // already contains imdbId
+    setAllListnames(excluded); // available lists
+    const defaultList = excluded.find(list => list.defaultList);
+    setCurrentList(defaultList?.listname || excluded[0].listname); // listname of currently selected
   }, [userData]);
+
+  // V4
+  // useEffect(() => {
+  //   console.log('USER DATA HAS CHANGED', userData)
+  //   if (!userData.current) return console.log('no userData');
+  //   const listContents = userData.current.resources['listContents'];
+  //   const listnames = userData.current.resources['listnames'];
+  //   const alreadyInLists = Object.keys(listContents).filter(key => {
+  //     return listContents[key].find(mediaInfo => mediaInfo.imdbId === imdbId);
+  //   }).map(key => {
+  //     const listname = listnames.find(listname => listname.id === Number(key));
+  //     if (!listname) throw Error('this should not even be possible');
+  //     return listname;
+  //   });
+  //   setMatchingLists(alreadyInLists);
+  //   const matchingListIds = alreadyInLists.map(list => list.id);
+  //   const availableLists = listnames.filter(list => !matchingListIds.includes(list.id))
+  //   setAllListnames(availableLists);
+  //   const defaultList = availableLists.find(list => list.defaultList)?.listname;
+  //   setCurrentList(defaultList || availableLists[0].listname);
+  //   console.log('HASHCACHE', { alreadyInLists, availableLists })
+  //   setButtonText('');
+  // }, [userData]);
 
   // console.log(userData)
   // const lists = userData.current?.resources['listContents']
@@ -73,11 +99,11 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         if (!allListnames) throw Error('No listnames');
         const list = allListnames.find(list => list.listname === listname);
         if (!list) throw Error(`No listId for ${currentList}`);
-        await userData.current.updateResource('listContents', 'POST', {
-          imdbId,
-          listId: list.id,
-          listname: listname,
-        }, list.id.toString());
+        // await userData.current.updateResource('listContents', 'POST', {
+        //   imdbId,
+        //   listId: list.id,
+        //   listname: listname,
+        // }, list.id.toString());
         // WHAT DOES THIS DO
         // e.currentTarget.reset();
       }}

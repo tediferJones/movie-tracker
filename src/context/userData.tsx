@@ -8,8 +8,7 @@ import {
   useState
 } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { ClientHashCacheV4, UserContext, configV2 } from '@/lib/hashCacheV4';
-import { ClientHashCacheV5, configV5 } from '@/lib/hashCacheV5';
+import { ClientHashCacheV5, configV5, UserContext } from '@/lib/hashCacheV5';
 
 const UserDataContext = createContext<UserContext>({ current: null });
 
@@ -22,8 +21,8 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       setHashCache({ current: null });
       return;
     }
-    new ClientHashCacheV4(configV2, user.username, setHashCache);
-    (window as any).hashCache = new ClientHashCacheV5(user.username, configV5);
+    // new ClientHashCacheV4(configV2, user.username, setHashCache);
+    (window as any).hashCache = new ClientHashCacheV5(user.username, configV5, setHashCache);
   }, [user?.username]);
 
   return (
@@ -38,6 +37,46 @@ export function useUserData() {
   if (!context) throw new Error('useUserData must be used with UserDataProvider');
   return context;
 }
+
+// WORKING V4
+// import {
+//   ReactNode,
+//   createContext,
+//   useContext,
+//   useEffect,
+//   useState
+// } from 'react';
+// import { useUser } from '@clerk/nextjs';
+// import { ClientHashCacheV4, UserContext, configV2 } from '@/lib/hashCacheV4';
+// import { ClientHashCacheV5, configV5 } from '@/lib/hashCacheV5';
+// 
+// const UserDataContext = createContext<UserContext>({ current: null });
+// 
+// export function UserDataProvider({ children }: { children: ReactNode }) {
+//   const { user } = useUser();
+//   const [hashCache, setHashCache] = useState<UserContext>({ current: null });
+// 
+//   useEffect(() => {
+//     if (!user?.username) {
+//       setHashCache({ current: null });
+//       return;
+//     }
+//     new ClientHashCacheV4(configV2, user.username, setHashCache);
+//     (window as any).hashCache = new ClientHashCacheV5(user.username, configV5);
+//   }, [user?.username]);
+// 
+//   return (
+//     <UserDataContext.Provider value={hashCache}>
+//       {children}
+//     </UserDataContext.Provider>
+//   )
+// }
+// 
+// export function useUserData() {
+//   const context = useContext(UserDataContext);
+//   if (!context) throw new Error('useUserData must be used with UserDataProvider');
+//   return context;
+// }
 
 // OLD VERSION
 // import {

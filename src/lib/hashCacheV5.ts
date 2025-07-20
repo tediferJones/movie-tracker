@@ -8,8 +8,10 @@ type EasyFetchData = Omit<Parameters<typeof easyFetch>[0], 'route' | 'method' | 
 type DataCache<T> = { [key: string]: T | DataCache<T> }
 type ServerResponse = DataCache<{ hash: string }> | null
 type Dependent = { name: string, key: string }
+type Matcher = string[] 
 type Config = {
   [key: string]: {
+    match: Matcher,
     dependent?: Dependent,
     url: (client: ClientHashCacheV5, ...args: any[]) => string,
   }
@@ -27,6 +29,7 @@ type ResourceArgs = {
   dependent?: Dependent,
   data?: any,
   hash?: string,
+  match?: Matcher,
 }
 export type UserContext = { current: ClientHashCacheV5 | null }
 type SetUserContext = Dispatch<SetStateAction<UserContext>>
@@ -44,8 +47,17 @@ async function hash(data: string) {
   return byteArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-const dataHandlers: { [M in Methods]?: (extData: any, newData: any) => any } = {
-  GET: (extData, newData) => newData,
+const dataHandlers: { [M in Methods]?: (extData: any, newData: any, match?: Matcher) => any } = {
+  GET: (_, newData) => newData,
+  POST: (extData, newData) => extData.concat(newData),
+  DELETE: (extData, newData, match) => {
+    if (!match) throw Error('no matcher found');
+    return extData.filter((data: any) => {
+      const result = !match.every(key => data[key] === newData[key])
+      if (!result) console.log('REMOVING', data)
+      return result
+    });
+  }
 }
 
 class Resource<T = any> {
@@ -55,13 +67,15 @@ class Resource<T = any> {
   dependent?: Dependent;
   isResource = true;
   lookupObj = {} as { [key: string]: { [key: string]: T } };
+  match?: Matcher 
 
   // constructor(url: string, dependent?: Dependent, hash?: string, data?: any) {
-  constructor({ url, dependent, hash, data }: ResourceArgs) {
+  constructor({ url, dependent, hash, data, match }: ResourceArgs) {
     this.url = url;
     this.dependent = dependent;
     this.hash = hash || '';
     this.data = data;
+    this.match = match;
   }
 
   async update(cache: ClientHashCacheV5, method: Methods, data?: EasyFetchData) {
@@ -80,20 +94,25 @@ class Resource<T = any> {
         if (!this.dependent) throw Error('no dependent found');
         const key = data[this.dependent.key];
         if (!key) throw Error(`key ${this.dependent.key} not found`);
+        const match = cache.config[this.dependent.name].match;
+        console.log('creating nested', this.dependent.name);
         (cache.cache[this.dependent.name] as any)[key] = new Resource({
-          url: `${this.url}/${key}`
+          url: `${this.url}/${key}`,
+          match
         });
       })
     }
 
     const modFunc = dataHandlers[method];
     if (!modFunc) throw Error(`No modFunc found for ${method}`);
-    this.data = modFunc(this.data, result);
+    this.data = modFunc(this.data, result, this.match);
     if (method === 'GET') {
       this.hash = await hash(JSON.stringify(this.data));
     } else {
       this.hash = await hash(`${this.hash},${method},${result}`);
     }
+    console.log('SET NEW DATA', this.data)
+    cache.save();
   }
 
   lookup(key: string, val: string) {
@@ -144,7 +163,11 @@ export class ClientHashCacheV5 {
         cache[key] = {};
       } else {
         const url = config[key].url(this);
-        cache[key] = new Resource({ url, dependent: revDependencies[key] });
+        cache[key] = new Resource({
+          url,
+          dependent: revDependencies[key],
+          match: config[key].match
+        });
       }
       return cache;
     }, {} as DataCache<Resource>);
@@ -169,6 +192,8 @@ export class ClientHashCacheV5 {
       // we need to address cases where server has more or less keys than client
       // this is especially needed for listContents resource
       // if a list is added on device A, listnames will get synced to device B but listContents[newListId] will not
+      // if we include URL server side, it will be much easier to update keys that do not yet exist on the client
+      // if a key exists on the client but not on the server, just delete it
       try {
         await this.compare(serverHashes);
       } catch {
@@ -219,11 +244,13 @@ export class ClientHashCacheV5 {
   }
 
   save() {
+    console.log('SAVING')
     const allState = JSON.parse(
       localStorage.getItem(storageKey) || JSON.stringify({})
     );
     allState[this.username] = JSON.stringify(this.cache);
     localStorage.setItem(storageKey, JSON.stringify(allState));
+    // this.setState({ current: null });
     this.setState({ current: this });
   }
 
@@ -256,9 +283,10 @@ export class ClientHashCacheV5 {
     data: ResourceTypes<R, M>,
     method: M,
     resource: R,
-    ...keys: (string)[]
+    ...keys: (string | number)[]
   ) {
     const res: Resource = keys.reduce((obj, key) => {
+      console.log(obj, key)
       if (!obj[key]) throw Error(`Key ${key} does not exist`);
       return (obj as any)[key];
     }, this.cache[resource] as any);
@@ -287,10 +315,10 @@ export class ServerHashCacheV5 {
 
   async update<R extends Resources, M extends Methods>(
     username: string,
-    data: ResourceTypes<R, M>,
+    data: ResourceOutput<R, M>,
     method: M,
     resource: R,
-    ...keys: string[]
+    ...keys: (string | number)[]
   ) {
     if (!this.cache[username]) this.cache[username] = {};
     const userHashes = this.cache[username]!;
@@ -315,9 +343,11 @@ if (!(globalThis as any).serverHashCacheV5) {
 const storageKey = 'media-tracker';
 export const configV5 = {
   listnames: {
+    match: [ 'listname' ],
     url: (client) => `/api/users/${client.username}/lists`,
   },
   listContents: {
+    match: [ 'imdbId' ],
     dependent: { name: 'listnames', key: 'id' },
     url: (client, listId: number) => `/api/users/${client.username}/lists/${listId}`,
   },
@@ -334,18 +364,28 @@ type FillWith<T extends Partial<Record<Methods, any>>, F> = {
 type Resources = keyof typeof configV5;
 type ResourceTypes<R extends Resources, M extends Methods> = {
   listnames: FillWith<{
+    // POST: {
+    //   params: { listname: string, listId: number, imdbId: string }
+    // }
+  }, any>,
+  listContents: FillWith<{
     POST: {
       params: { listname: string, listId: number, imdbId: string }
     }
-  }, any>,
-  listContents: FillWith<{}, any>,
+    DELETE: {
+      params: { listname: string, listId: number, imdbId: string }
+    }
+  }, undefined>,
   watched: FillWith<{}, undefined>,
 }[R][M]
 type ResourceOutput<R extends Resources, M extends Methods> = {
   listnames: FillWith<{
     GET: Listname[]
   }, undefined>,
-  listContents: FillWith<{}, any>,
+  listContents: FillWith<{
+    GET: ListItem[],
+    DELETE: { imdbId: string }
+  }, undefined>,
   watched: FillWith<{}, undefined>,
 }[R][M]
 // type Config = typeof config;

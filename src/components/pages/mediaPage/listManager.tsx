@@ -40,8 +40,15 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const userData = useUserData();
   useEffect(() => {
     if (!userData.current) return;
+    // console.log(JSON.parse(JSON.stringify(userData.current.cache)))
+    // console.log(userData.current.cache.listnames)
+    // console.log(userData.current.cache.listContents)
+    // console.log(userData.current.getResource('listnames'))
+    // console.log(userData.current.getResource('listContents'))
+    if (!userData.current.isSynced) return
     const listnames = userData.current.getResource('listnames');
-    const listContents = userData.current.getResource('listContents');
+    const listContents = userData.current.getResource('listContents')
+    // if (!listnames.data || !listContents.data) return
 
     const { included, excluded } = listnames.data.reduce((obj, listname) => {
       // @ts-ignore
@@ -61,6 +68,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
     setAllListnames(excluded); // available lists
     const defaultList = excluded.find(list => list.defaultList);
     setCurrentList(defaultList?.listname || excluded[0].listname); // listname of currently selected
+    setButtonText('');
   }, [userData]);
 
   // V4
@@ -93,12 +101,16 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
     <form className='flex flex-col justify-between gap-4 p-4 showOutline flex-1 max-h-96 min-w-72'
       onSubmit={async e => {
         e.preventDefault();
+        if (buttonText) return;
         if (!userData.current) return;
         // this is needed for creating new lists
         const listname = e.currentTarget?.newListname?.value || currentList;
         if (!allListnames) throw Error('No listnames');
         const list = allListnames.find(list => list.listname === listname);
         if (!list) throw Error(`No listId for ${currentList}`);
+        await userData.current.update({
+          params: { listname, listId: list.id, imdbId  }
+        }, 'POST', 'listContents', list.id);
         // await userData.current.updateResource('listContents', 'POST', {
         //   imdbId,
         //   listId: list.id,
@@ -178,16 +190,22 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
       <ConfirmModal
         visible={modalVisible}
         setVisible={setModalVisible}
-        action={() => {
+        action={async () => {
           if (!userData.current?.username) return;
           if (buttonText) return;
           setButtonText(`Deleting from ${confirmList}...`);
-          easyFetch({
-            route: `/api/users/${userData.current.username}/lists/${confirmList}`,
-            method: 'DELETE',
-            params: { imdbId },
-            skipJSON: true,
-          }).then(() => setRefreshTrigger(!refreshTrigger));
+          const list = matchingLists?.find(list => list.listname === confirmList);
+          if (!list) throw Error('could not find listId')
+          console.log('DELETE THIS', { listname: confirmList, imdbId, listId: list.id })
+          await userData.current.update({
+            params: { listname: confirmList, imdbId, listId: list.id }
+          }, 'DELETE', 'listContents', list.id);
+          // easyFetch({
+          //   route: `/api/users/${userData.current.username}/lists/${confirmList}`,
+          //   method: 'DELETE',
+          //   params: { imdbId },
+          //   skipJSON: true,
+          // }).then(() => setRefreshTrigger(!refreshTrigger));
         }}
       >
         <>

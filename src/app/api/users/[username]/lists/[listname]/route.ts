@@ -21,7 +21,13 @@ export async function GET(req: Request, { params }: { params: Params }) {
     const listRecords = await db.select().from(lists).where(
       eq(lists.listnameId, listId),
     );
-    await serverHashCacheV5.update(username, listRecords, 'GET', 'listContents', listId.toString());
+    await serverHashCacheV5.update(
+      username,
+      listRecords,
+      'GET',
+      'listContents',
+      listId.toString()
+    );
     // await serverHashCache.updateHash(
     //   username,
     //   'listContents',
@@ -246,6 +252,26 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
   const user = await currentUser();
   if (!user?.username || user.username !== username) {
     return NextResponse.json('Unauthorized', { status: 401 });
+  }
+
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    const imdbId = searchParams.get('imdbId');
+    const listId = searchParams.get('listId');
+    if (!imdbId) throw Error('could not get imdbId param');
+    if (!listId) throw Error('could not get listId param');
+  console.log('DELETE', username, listname, imdbId)
+    const temp = await db.delete(lists).where(
+      and(
+        eq(lists.username, username),
+        eq(lists.listnameId, Number(listname)),
+        eq(lists.imdbId, imdbId)
+      )
+    );
+    console.log('DELETED', temp.rowsAffected)
+    serverHashCacheV5.update(username, { imdbId }, 'DELETE', 'listContents', listId);
+    cache.delete(`${username},${imdbId},lists`);
+    cache.delete(`${username},${listname}`);
+    return NextResponse.json({ imdbId });
   }
 
   try {

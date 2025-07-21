@@ -32,23 +32,12 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const [confirmList, setConfirmList] = useState('');
   const [buttonText, setButtonText] = useState('Waiting...');
 
-  // function getListId(listname: string) {
-  //   return userData.current?.resources.listnames.find(
-  //     list => list.listname === listname
-  //   );
-  // }
   const userData = useUserData();
   useEffect(() => {
-    if (!userData.current) return;
-    // console.log(JSON.parse(JSON.stringify(userData.current.cache)))
-    // console.log(userData.current.cache.listnames)
-    // console.log(userData.current.cache.listContents)
-    // console.log(userData.current.getResource('listnames'))
-    // console.log(userData.current.getResource('listContents'))
-    if (!userData.current.isSynced) return
+    if (!userData.current) return console.log('no current');
+    if (!userData.current.isSynced) return console.log('out of sync');
     const listnames = userData.current.getResource('listnames');
-    const listContents = userData.current.getResource('listContents')
-    // if (!listnames.data || !listContents.data) return
+    const listContents = userData.current.getResource('listContents');
 
     const { included, excluded } = listnames.data.reduce((obj, listname) => {
       // @ts-ignore
@@ -61,13 +50,13 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
       } else {
         obj.excluded.push(listname);
       }
-      return obj
+      return obj;
     }, { included: [] as Listname[], excluded: [] as Listname[] });
 
     setMatchingLists(included); // already contains imdbId
     setAllListnames(excluded); // available lists
     const defaultList = excluded.find(list => list.defaultList);
-    setCurrentList(defaultList?.listname || excluded[0].listname); // listname of currently selected
+    setCurrentList(defaultList?.listname || excluded[0]?.listname || illegalListname); // listname of currently selected
     setButtonText('');
   }, [userData]);
 

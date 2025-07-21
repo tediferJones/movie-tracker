@@ -22,6 +22,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
       eq(lists.listnameId, listId),
     );
     await serverHashCacheV5.update(
+      req,
       username,
       listRecords,
       'GET',
@@ -268,7 +269,7 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
       )
     );
     console.log('DELETED', temp.rowsAffected)
-    serverHashCacheV5.update(username, { imdbId }, 'DELETE', 'listContents', listId);
+    serverHashCacheV5.update(req, username, { imdbId }, 'DELETE', 'listContents', listId);
     cache.delete(`${username},${imdbId},lists`);
     cache.delete(`${username},${listname}`);
     return NextResponse.json({ imdbId });

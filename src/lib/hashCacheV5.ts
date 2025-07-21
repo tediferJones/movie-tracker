@@ -2,11 +2,13 @@ import { listnames, lists } from '@/drizzle/schema';
 import easyFetch, { Methods } from '@/lib/easyFetch';
 import { Dispatch, SetStateAction } from 'react';
 
-// type FetchFuncs = { [M in Methods]?: (...args: any[]) => Promise<any> }
-type EasyFetchData = Omit<Parameters<typeof easyFetch>[0], 'route' | 'method' | 'retryCount'>
-// type FetchParams = { [M in Methods]?: (...args: any[]) => EasyFetchData }
+type EasyFetchData = Omit<
+  Parameters<typeof easyFetch>[0],
+  'route' | 'method' | 'retryCount'
+>
 type DataCache<T> = { [key: string]: T | DataCache<T> }
-type ServerResponse = DataCache<{ hash: string }> | null
+type ServerResource = { hash: string, url: string }
+type ServerResponse = DataCache<ServerResource> | null
 type Dependent = { name: string, key: string }
 type Matcher = string[] 
 type Config = {
@@ -53,9 +55,7 @@ const dataHandlers: { [M in Methods]?: (extData: any, newData: any, match?: Matc
   DELETE: (extData, newData, match) => {
     if (!match) throw Error('no matcher found');
     return extData.filter((data: any) => {
-      const result = !match.every(key => data[key] === newData[key])
-      if (!result) console.log('REMOVING', data)
-      return result
+      return !match.every(key => data[key] === newData[key]);
     });
   }
 }
@@ -69,7 +69,6 @@ class Resource<T = any> {
   lookupObj = {} as { [key: string]: { [key: string]: T } };
   match?: Matcher 
 
-  // constructor(url: string, dependent?: Dependent, hash?: string, data?: any) {
   constructor({ url, dependent, hash, data, match }: ResourceArgs) {
     this.url = url;
     this.dependent = dependent;
@@ -111,8 +110,8 @@ class Resource<T = any> {
     } else {
       this.hash = await hash(`${this.hash},${method},${result}`);
     }
-    console.log('SET NEW DATA', this.data)
-    cache.save();
+    // console.log('SET NEW DATA', this.data)
+    // cache.save();
   }
 
   lookup(key: string, val: string) {
@@ -137,6 +136,7 @@ export class ClientHashCacheV5 {
   isSynced = true;
   setState: SetUserContext;
   config: Config;
+  deferSync = false;
 
   constructor(username: string, config: Config, setState: SetUserContext) {
     this.username = username;
@@ -187,26 +187,30 @@ export class ClientHashCacheV5 {
     console.log({ serverHashes, client: this })
 
     if (!serverHashes) {
+      this.deferSync = true;
       await this.getAll();
+      this.deferSync = false;
     } else {
       // we need to address cases where server has more or less keys than client
       // this is especially needed for listContents resource
       // if a list is added on device A, listnames will get synced to device B but listContents[newListId] will not
       // if we include URL server side, it will be much easier to update keys that do not yet exist on the client
       // if a key exists on the client but not on the server, just delete it
-      try {
-        await this.compare(serverHashes);
-      } catch {
-        // this isn't a real solution and it defeats the purpose of the hashCache
-        // we want to fetch each individual resource if doesn't match
-        console.log('failed to compare, fetching all')
-        this.cache = this.init(this.config);
-        await this.getAll();
-      }
+      // try {
+      //   await this.compare(serverHashes);
+      // } catch {
+      //   // this isn't a real solution and it defeats the purpose of the hashCache
+      //   // we want to fetch each individual resource if doesn't match
+      //   console.log('failed to compare, fetching all')
+      //   this.cache = this.init(this.config);
+      //   await this.getAll();
+      // }
+      await this.compare(serverHashes)
     }
 
     if (!this.isSynced) {
       await this.sync(retryCount + 1);
+      return;
     }
 
     console.log('SYNCED V5')
@@ -225,22 +229,73 @@ export class ClientHashCacheV5 {
     }
   }
 
-  async compare(server: DataCache<{ hash: string }>, client = this.cache) {
+  async compare(server: DataCache<ServerResource>, client = this.cache) {
+    const uniqueKeys = [
+      ...new Set(Object.keys(server).concat(Object.keys(client)))
+    ];
+
+    const { needsSynced, needsAdded, needsDeleted } = (
+      uniqueKeys.reduce((obj, key) => {
+        if (client[key] && server[key]) {
+          obj.needsSynced.push(key);
+        } else if (client[key]) {
+          obj.needsDeleted.push(key);
+        } else if (server[key]) {
+          obj.needsAdded.push(key);
+        } else {
+          throw Error('This should be impossible');
+        }
+        return obj
+      }, {
+          needsSynced: [] as string[],
+          needsAdded: [] as string[],
+          needsDeleted: [] as string[],
+        })
+    )
+
+    console.log({ needsDeleted, needsAdded, needsSynced })
+    if (needsDeleted.length) {
+      console.log({ server, client })
+      throw Error('want to delete something')
+    }
+    needsDeleted.forEach(key => delete client[key])
+    needsAdded.forEach(key => {
+      console.log('server has new resource, adding and syncing')
+      const url = server[key].url;
+      if (typeof url !== 'string') throw Error('Url is not a string');
+      client[key] = new Resource({ url });
+    });
+
     await Promise.all(
-      Object.keys(server).map(async key => {
-        if (!client[key]) throw Error('no client key')
+      needsSynced.map(async key => {
         if (client[key].isResource) {
-          if (server[key].hash !== client[key].hash) {
+          if (client[key].hash !== server[key].hash) {
             await (client[key] as Resource).update(this, 'GET');
           }
         } else {
           await this.compare(
-            server[key] as DataCache<{ hash: string }>,
-            client[key] as DataCache<Resource>
-          );
+            server[key] as DataCache<ServerResource>,
+            client[key] as DataCache<Resource>,
+          )
         }
       })
-    );
+    )
+
+    // await Promise.all(
+    //   Object.keys(server).map(async key => {
+    //     if (!client[key]) throw Error('no client key')
+    //     if (client[key].isResource) {
+    //       if (server[key].hash !== client[key].hash) {
+    //         await (client[key] as Resource).update(this, 'GET');
+    //       }
+    //     } else {
+    //       await this.compare(
+    //         server[key] as DataCache<ServerResource>,
+    //         client[key] as DataCache<Resource>
+    //       );
+    //     }
+    //   })
+    // );
   }
 
   save() {
@@ -258,8 +313,8 @@ export class ClientHashCacheV5 {
     const allState = JSON.parse(
       localStorage.getItem(storageKey) || JSON.stringify({})
     );
-    const userState: SerializedCache | undefined = allState[this.username] && JSON.parse(
-      allState[this.username]
+    const userState: SerializedCache | undefined = (
+      allState[this.username] && JSON.parse(allState[this.username])
     );
     if (userState) {
       console.log('LOADED')
@@ -292,6 +347,10 @@ export class ClientHashCacheV5 {
     }, this.cache[resource] as any);
     if (!res.isResource) throw Error('not a resource');
     await res.update(this, method, data);
+    await this.sync();
+    // if (!this.deferSync) {
+    //   await this.sync();
+    // }
   }
 
   getResource<R extends Resources>(resource: R, ...keys: (string | number)[]) {
@@ -303,7 +362,7 @@ export class ClientHashCacheV5 {
 }
 
 export class ServerHashCacheV5 {
-  cache: { [username: string]: DataCache<{ hash: string }> | undefined }
+  cache: { [username: string]: DataCache<ServerResource> | undefined }
 
   constructor() {
     this.cache = {}
@@ -314,6 +373,7 @@ export class ServerHashCacheV5 {
   }
 
   async update<R extends Resources, M extends Methods>(
+    req: Request,
     username: string,
     data: ResourceOutput<R, M>,
     method: M,
@@ -323,12 +383,15 @@ export class ServerHashCacheV5 {
     if (!this.cache[username]) this.cache[username] = {};
     const userHashes = this.cache[username]!;
     if (!userHashes[resource]) userHashes[resource] = {};
-    const res: { hash: string } = keys.reduce((obj, key, i) => {
+    const res: ServerResource = keys.reduce((obj, key) => {
       if (!obj[key]) obj[key] = {}
       return (obj as any)[key];
     }, userHashes[resource] as any);
     if (method === 'GET') {
+      console.log('SETTING', resource, keys)
       res.hash = await hash(JSON.stringify(data));
+      res.url = new URL(req.url).pathname;
+      console.log(userHashes)
     } else {
       res.hash = await hash(`${res.hash},${method},${JSON.stringify(data)}`);
     }

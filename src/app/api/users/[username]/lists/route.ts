@@ -23,7 +23,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
     );
     // hashTable.setResource(username, 'listnames', listnameRecs);
     // await serverHashCache.updateHash(username, ['listnames'], 'GET', listnameRecs);
-    await serverHashCacheV5.update(username, listnameRecs, 'GET', 'listnames');
+    await serverHashCacheV5.update(req, username, listnameRecs, 'GET', 'listnames');
     return NextResponse.json(listnameRecs);
   }
 

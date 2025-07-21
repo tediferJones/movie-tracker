@@ -6,6 +6,7 @@ import Header from '@/components/subcomponents/header';
 import { ClerkProvider } from '@clerk/nextjs';
 // import { ScrollArea } from '@/components/ui/scroll-area';
 import '@/app/globals.css';
+import { UserDataProvider } from '@/context/userData';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,9 +25,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         </head>
         <body className={inter.className}>
           <ThemeProvider attribute='class'>
-            <Header />
-            {children}
-            <Footer />
+            <UserDataProvider>
+              <Header />
+              {children}
+              <Footer />
+            </UserDataProvider>
           </ThemeProvider>
         </body>
       </html>

@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   if (searchParams.get('v') === '5') {
-    console.log('V5 detected')
+    console.log('V5 detected', serverHashCacheV5.getHashes(user.username))
     return NextResponse.json(serverHashCacheV5.getHashes(user.username));
   }
 

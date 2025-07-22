@@ -87,20 +87,21 @@ class Resource<T = any> {
       body: body,
     });
 
-    if (this.dependent) {
-      if (!cache.cache[this.dependent.name]) cache.cache[this.dependent.name] = {};
-      (result as any[]).forEach(data => {
-        if (!this.dependent) throw Error('no dependent found');
-        const key = data[this.dependent.key];
-        if (!key) throw Error(`key ${this.dependent.key} not found`);
-        const match = cache.config[this.dependent.name].match;
-        console.log('creating nested', this.dependent.name);
-        (cache.cache[this.dependent.name] as any)[key] = new Resource({
-          url: `${this.url}/${key}`,
-          match
-        });
-      })
-    }
+    // console.log(this.url, 'make dependents')
+    // if (!(cache.cache as any) && this.dependent) {
+    //   if (!cache.cache[this.dependent.name]) cache.cache[this.dependent.name] = {};
+    //   (result as any[]).forEach(data => {
+    //     if (!this.dependent) throw Error('no dependent found');
+    //     const key = data[this.dependent.key];
+    //     if (!key) throw Error(`key ${this.dependent.key} not found`);
+    //     const match = cache.config[this.dependent.name].match;
+    //     console.log('creating nested', this.dependent.name);
+    //     (cache.cache[this.dependent.name] as any)[key] = new Resource({
+    //       url: `${this.url}/${key}`,
+    //       match
+    //     });
+    //   })
+    // }
 
     const modFunc = dataHandlers[method];
     if (!modFunc) throw Error(`No modFunc found for ${method}`);
@@ -127,6 +128,22 @@ class Resource<T = any> {
       }, {} as { [key: string]: T });
     }
     return this.lookupObj[key][val];
+  }
+
+  buildDependencies(cache: ClientHashCacheV5) {
+    if (!this.dependent) throw Error('no dependent found')
+    if (!cache.cache[this.dependent.name]) cache.cache[this.dependent.name] = {};
+    (this.data as any[]).forEach(data => {
+      if (!this.dependent) throw Error('no dependent found');
+      const key = data[this.dependent.key];
+      if (!key) throw Error(`key ${this.dependent.key} not found`);
+      const match = cache.config[this.dependent.name].match;
+      console.log('creating nested', this.dependent.name);
+      (cache.cache[this.dependent.name] as any)[key] = new Resource({
+        url: `${this.url}/${key}`,
+        match
+      });
+    })
   }
 }
 
@@ -186,10 +203,9 @@ export class ClientHashCacheV5 {
     });
     console.log({ serverHashes, client: this })
 
+    this.deferSync = true;
     if (!serverHashes) {
-      this.deferSync = true;
       await this.getAll();
-      this.deferSync = false;
     } else {
       // we need to address cases where server has more or less keys than client
       // this is especially needed for listContents resource
@@ -205,10 +221,13 @@ export class ClientHashCacheV5 {
       //   this.cache = this.init(this.config);
       //   await this.getAll();
       // }
+      console.log('COMPARING')
       await this.compare(serverHashes)
     }
+    this.deferSync = false;
 
     if (!this.isSynced) {
+      console.log('ATTEMPT RESYNC', retryCount + 1, this)
       await this.sync(retryCount + 1);
       return;
     }
@@ -219,11 +238,15 @@ export class ClientHashCacheV5 {
 
   async getAll(cache = this.cache) {
     for (const key of Object.keys(cache)) {
+      console.log('GET ALL', key)
       if (cache[key].isResource) {
         const resource = cache[key] as Resource;
         await resource.update(this, 'GET');
+        if (resource.dependent) {
+          resource.buildDependencies(this);
+        }
       } else {
-        console.log('descending into', key)
+        console.log('descending into', key, cache[key])
         await this.getAll(cache[key] as DataCache<Resource>);
       }
     }
@@ -256,7 +279,7 @@ export class ClientHashCacheV5 {
     console.log({ needsDeleted, needsAdded, needsSynced })
     if (needsDeleted.length) {
       console.log({ server, client })
-      throw Error('want to delete something')
+      throw Error(`want to delete: ${needsDeleted.join(', ')}`)
     }
     needsDeleted.forEach(key => delete client[key])
     needsAdded.forEach(key => {
@@ -347,10 +370,12 @@ export class ClientHashCacheV5 {
     }, this.cache[resource] as any);
     if (!res.isResource) throw Error('not a resource');
     await res.update(this, method, data);
-    await this.sync();
-    // if (!this.deferSync) {
-    //   await this.sync();
-    // }
+    // await this.sync();
+    if (!this.deferSync) {
+      await this.sync();
+    } else {
+      console.log('DEFERING SYNC')
+    }
   }
 
   getResource<R extends Resources>(resource: R, ...keys: (string | number)[]) {
@@ -380,6 +405,7 @@ export class ServerHashCacheV5 {
     resource: R,
     ...keys: (string | number)[]
   ) {
+    console.log('STARTED SETTING', username, resource, keys)
     if (!this.cache[username]) this.cache[username] = {};
     const userHashes = this.cache[username]!;
     if (!userHashes[resource]) userHashes[resource] = {};
@@ -388,13 +414,14 @@ export class ServerHashCacheV5 {
       return (obj as any)[key];
     }, userHashes[resource] as any);
     if (method === 'GET') {
-      console.log('SETTING', resource, keys)
+      // console.log('SETTING', resource, keys)
       res.hash = await hash(JSON.stringify(data));
       res.url = new URL(req.url).pathname;
-      console.log(userHashes)
+      // console.log(userHashes)
     } else {
       res.hash = await hash(`${res.hash},${method},${JSON.stringify(data)}`);
     }
+    console.log('FINISHED SETTING', username, resource, keys)
   }
 }
 
@@ -427,10 +454,10 @@ type FillWith<T extends Partial<Record<Methods, any>>, F> = {
 type Resources = keyof typeof configV5;
 type ResourceTypes<R extends Resources, M extends Methods> = {
   listnames: FillWith<{
-    // POST: {
-    //   params: { listname: string, listId: number, imdbId: string }
-    // }
-  }, any>,
+    POST: {
+      params: { listname: string }
+    }
+  }, undefined>,
   listContents: FillWith<{
     POST: {
       params: { listname: string, listId: number, imdbId: string }
@@ -443,11 +470,12 @@ type ResourceTypes<R extends Resources, M extends Methods> = {
 }[R][M]
 type ResourceOutput<R extends Resources, M extends Methods> = {
   listnames: FillWith<{
-    GET: Listname[]
+    GET: Listname[],
+    POST: Listname,
   }, undefined>,
   listContents: FillWith<{
     GET: ListItem[],
-    DELETE: { imdbId: string }
+    DELETE: { imdbId: string },
   }, undefined>,
   watched: FillWith<{}, undefined>,
 }[R][M]

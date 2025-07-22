@@ -83,9 +83,14 @@ export async function POST(req: Request, { params }: { params: Params }) {
     date: Date.now(),
   }
 
-  await db.insert(listnames).values(newRecord);
+  const { lastInsertRowid } = await db.insert(listnames).values(newRecord);
+  const withId = {
+    ...newRecord,
+    id: Number(lastInsertRowid),
+  }
+  await serverHashCacheV5.update(req, username, withId, 'POST', 'listnames');
   // await hashTable.updateResource(username, 'listnames', 'POST', newRecord);
-  return NextResponse.json(newRecord);
+  return NextResponse.json(withId);
 }
 
 export async function PUT(req: Request, { params }: { params: Params }) {

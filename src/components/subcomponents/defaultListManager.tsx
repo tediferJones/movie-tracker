@@ -84,6 +84,10 @@ export default function DefaultListManager() {
                       //   params: { newDefaultListname },
                       //   skipJSON: true,
                       // }).then(() => setRefreshTrigger(!refreshTrigger));
+                      if (!userData.current) return;
+                      userData.current.update({
+                        params: { listname }
+                      }, 'PATCH', 'listnames');
                     }}
                   />
                   <Link className='w-full text-center p-2 hover:underline hover:bg-secondary transition-all duration-500 rounded-lg truncate m-auto'
@@ -130,24 +134,20 @@ export default function DefaultListManager() {
                 inputRef.current.focus();
                 return;
               }
+              if (!userData.current) return;
               if (newListname) {
                 if (renameList) {
                   setButtonText(`Renaming ${renameList}...`);
-                  // easyFetch({
-                  //   route: `/api/users/${user.username}/lists/${renameList}`,
-                  //   method: 'PUT',
-                  //   body: { newListname },
-                  //   skipJSON: true,
-                  // }).then(() => setRefreshTrigger(!refreshTrigger));
+                  const listId = listnames.find(list => list.listname === renameList);
+                  if (!listId) throw Error('could not find listId')
+                  await userData.current.update({
+                    params: { listname: renameList, newListname, id: listId.id }
+                  }, 'PUT', 'listnames');
                 } else {
                   setButtonText(`Creating ${newListname}...`);
-                  // easyFetch({
-                  //   route: `/api/users/${user.username}/lists/${newListname}`,
-                  //   method: 'POST',
-                  //   skipJSON: true,
-                  // }).then(() => setRefreshTrigger(!refreshTrigger));
-                  if (!userData.current) return;
-                  await userData.current.update({ params: { listname: newListname } }, 'POST', 'listnames');
+                  await userData.current.update({
+                    params: { listname: newListname }
+                  }, 'POST', 'listnames');
                 }
               }
               setShowNewListnameInput(false);
@@ -182,15 +182,14 @@ export default function DefaultListManager() {
           <ConfirmModal
             visible={modalVisible}
             setVisible={setModalVisible}
-            action={() => {
+            action={async () => {
               if (buttonText) return;
               if (!confirmList) return;
+              if (!userData.current) return;
               setButtonText(`Deleting ${confirmList}...`);
-              easyFetch({
-                route: `/api/users/${userData.current!.username}/lists/${confirmList}`,
-                method: 'DELETE',
-                skipJSON: true,
-              })// .then(() => setRefreshTrigger(!refreshTrigger));
+              await userData.current.update({
+                params: { listname: confirmList }
+              }, 'DELETE', 'listnames');
               setConfirmList('');
             }}
           >

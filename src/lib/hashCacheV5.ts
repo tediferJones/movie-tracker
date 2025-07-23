@@ -52,6 +52,15 @@ async function hash(data: string) {
 const dataHandlers: { [M in Methods]?: (extData: any, newData: any, match?: Matcher) => any } = {
   GET: (_, newData) => newData,
   POST: (extData, newData) => extData.concat(newData),
+  PUT: (extData, newData, match) => {
+    if (!match) throw Error('no matcher found');
+    return extData.map((data: any) => {
+      if (match.every(key => data[key] === newData[key])) {
+        return newData
+      }
+      return data
+    })
+  },
   DELETE: (extData, newData, match) => {
     if (!match) throw Error('no matcher found');
     return extData.filter((data: any) => {
@@ -103,6 +112,21 @@ class Resource<T = any> {
     //   })
     // }
 
+    // if (this.dependent) {
+    //   const key = (result as any)[this.dependent.key];
+    //   if (method === 'POST') {
+    //     console.log('add dependent', this.dependent)
+    //     const match = cache.config[this.dependent.name].match;
+    //     (cache.cache[this.dependent.name] as any)[key] = new Resource({
+    //       url: `${this.url}/${key}`,
+    //       match
+    //     });
+    //   } else if (method === 'DELETE') {
+    //     console.log('delete dependent', this.dependent)
+    //     delete (cache.cache[this.dependent.name] as any)[key]
+    //   }
+    // }
+
     const modFunc = dataHandlers[method];
     if (!modFunc) throw Error(`No modFunc found for ${method}`);
     this.data = modFunc(this.data, result, this.match);
@@ -112,7 +136,9 @@ class Resource<T = any> {
       this.hash = await hash(`${this.hash},${method},${result}`);
     }
     // console.log('SET NEW DATA', this.data)
-    // cache.save();
+    if (!cache.deferSync) {
+      cache.save();
+    }
   }
 
   lookup(key: string, val: string) {
@@ -282,17 +308,22 @@ export class ClientHashCacheV5 {
       throw Error(`want to delete: ${needsDeleted.join(', ')}`)
     }
     needsDeleted.forEach(key => delete client[key])
-    needsAdded.forEach(key => {
-      console.log('server has new resource, adding and syncing')
-      const url = server[key].url;
-      if (typeof url !== 'string') throw Error('Url is not a string');
-      client[key] = new Resource({ url });
-    });
+    await Promise.all(
+      needsAdded.map(async key => {
+        console.log('server has new resource, adding and syncing')
+        const url = server[key].url;
+        if (typeof url !== 'string') throw Error('Url is not a string');
+        const resource = new Resource({ url });
+        client[key] = resource;
+        await resource.update(this, 'GET');
+      })
+    )
 
     await Promise.all(
       needsSynced.map(async key => {
         if (client[key].isResource) {
           if (client[key].hash !== server[key].hash) {
+            console.log('SYNCING', key)
             await (client[key] as Resource).update(this, 'GET');
           }
         } else {
@@ -358,7 +389,7 @@ export class ClientHashCacheV5 {
   }
 
   async update<R extends Resources, M extends Methods>(
-    data: ResourceTypes<R, M>,
+    data: ClientTypes<R, M>,
     method: M,
     resource: R,
     ...keys: (string | number)[]
@@ -382,7 +413,7 @@ export class ClientHashCacheV5 {
     return keys.reduce((data, key) => {
       if (!data[key]) throw Error(`Key: ${key} does not exist`);
       return data[key]
-    }, this.cache[resource] as { [key: string]: any }) as Resource<ResourceOutput<R, 'GET'>>
+    }, this.cache[resource] as { [key: string]: any }) as Resource<ServerTypes<R, 'GET'>>
   }
 }
 
@@ -400,7 +431,7 @@ export class ServerHashCacheV5 {
   async update<R extends Resources, M extends Methods>(
     req: Request,
     username: string,
-    data: ResourceOutput<R, M>,
+    data: ServerTypes<R, M>,
     method: M,
     resource: R,
     ...keys: (string | number)[]
@@ -413,6 +444,9 @@ export class ServerHashCacheV5 {
       if (!obj[key]) obj[key] = {}
       return (obj as any)[key];
     }, userHashes[resource] as any);
+    // this needs to be cleaned up
+    // if res does not exist create a new one and fill with url and dependent
+    // otherwise just update the hash
     if (method === 'GET') {
       // console.log('SETTING', resource, keys)
       res.hash = await hash(JSON.stringify(data));
@@ -433,7 +467,7 @@ if (!(globalThis as any).serverHashCacheV5) {
 const storageKey = 'media-tracker';
 export const configV5 = {
   listnames: {
-    match: [ 'listname' ],
+    match: [ 'id' ],
     url: (client) => `/api/users/${client.username}/lists`,
   },
   listContents: {
@@ -449,14 +483,13 @@ export const configV5 = {
 type FillWith<T extends Partial<Record<Methods, any>>, F> = {
   [K in Methods]: K extends keyof T ? T[K] : F
 }
-// type ExistingMethod<R extends Resources> = keyof typeof configV2['resources'][R]['fetch']
-// type ExistingMethod<R extends Resources> = keyof ResourceTypes<R, Methods>
 type Resources = keyof typeof configV5;
-type ResourceTypes<R extends Resources, M extends Methods> = {
+type ClientTypes<R extends Resources, M extends Methods> = {
   listnames: FillWith<{
-    POST: {
-      params: { listname: string }
-    }
+    POST: { params: { listname: string } },
+    PUT: { params: { listname: string, newListname: string, id: number } },
+    DELETE: { params: { listname: string } },
+    PATCH: { params: {listname: string } },
   }, undefined>,
   listContents: FillWith<{
     POST: {
@@ -468,10 +501,12 @@ type ResourceTypes<R extends Resources, M extends Methods> = {
   }, undefined>,
   watched: FillWith<{}, undefined>,
 }[R][M]
-type ResourceOutput<R extends Resources, M extends Methods> = {
+type ServerTypes<R extends Resources, M extends Methods> = {
   listnames: FillWith<{
     GET: Listname[],
     POST: Listname,
+    PUT: Listname,
+    DELETE: { listname: string }
   }, undefined>,
   listContents: FillWith<{
     GET: ListItem[],

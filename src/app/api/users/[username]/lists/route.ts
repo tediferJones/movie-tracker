@@ -89,7 +89,6 @@ export async function POST(req: Request, { params }: { params: Params }) {
     id: Number(lastInsertRowid),
   }
   await serverHashCacheV5.update(req, username, withId, 'POST', 'listnames');
-  // await hashTable.updateResource(username, 'listnames', 'POST', newRecord);
   return NextResponse.json(withId);
 }
 
@@ -100,6 +99,11 @@ export async function PUT(req: Request, { params }: { params: Params }) {
   const user = await currentUser();
   if (!user?.username || user.username !== username) {
     return NextResponse.json('Unauthorized', { status: 401 });
+  }
+
+  const listId = searchParams.get('id');
+  if (!listId) {
+    return NextResponse.json('Bad Request', { status: 400 });
   }
 
   const listname = searchParams.get('listname');
@@ -116,14 +120,24 @@ export async function PUT(req: Request, { params }: { params: Params }) {
   const newListnameValid = isValid({ listname: newListname });
   if (!newListnameValid) return NextResponse.json('new listname is not valid', { status: 422 });
 
-  await db.update(listnames).set({ listname: newListname }).where(
+  const result = await db.update(listnames).set({ listname: newListname }).where(
     and(
       eq(listnames.username, username),
       eq(listnames.listname, listname),
     )
   );
-  await hashTable.updateResource(username, 'listnames', 'PUT', { listname, newListname });
-  return NextResponse.json({ listname, newListname });
+  console.log('UPDATED', result);
+  // await hashTable.updateResource(username, 'listnames', 'PUT', { listname, newListname });
+  const newRecord = await db.select().from(listnames).where(
+    and(
+      eq(listnames.username, username),
+      eq(listnames.listname, listname),
+    )
+  ).get();
+  if (!newRecord) throw Error('PUT used on record that does not exist')
+  await serverHashCacheV5.update(req, username, newRecord, 'PUT', 'listnames');
+
+  return NextResponse.json(newRecord);
 }
 
 export async function DELETE(req: Request, { params }: { params: Params }) {
@@ -152,6 +166,48 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
     )
   );
   console.log('SUCCESSFULLY DELETED')
-  await hashTable.updateResource(username, 'listnames', 'DELETE', { listname })
+  // await hashTable.updateResource(username, 'listnames', 'DELETE', { listname })
+  await serverHashCacheV5.update(req, username, { listname }, 'DELETE', 'listnames');
   return NextResponse.json({ listname })
+}
+
+export async function PATCH(req: Request, { params }: { params: Params }) {
+  const { username} = params;
+  const { searchParams } = new URL(req.url);
+
+  const user = await currentUser();
+  if (!user?.username || user.username !== username) {
+    return NextResponse.json('Unauthorized', { status: 401 });
+  }
+
+  const listname = searchParams.get('listname');
+  if (!listname) {
+    return NextResponse.json('Bad Request', { status: 400 });
+  }
+  const set = searchParams.get('set');
+  if (!set) {
+    return NextResponse.json('Bad Request', { status: 400 });
+  }
+  
+  type BooleanKeys<T> = {
+    [K in keyof T]: T[K] extends boolean ? K : never
+  }[keyof T]
+  const booleans = {
+    defaultList: false
+  } satisfies { [K in BooleanKeys<typeof listnames.$inferSelect>]: false }
+
+  if (!(set in booleans)) {
+    return NextResponse.json('Bad Request', { status: 400 });
+  }
+
+  await db.update(listnames).set({ [set]: false, }).where(
+    eq(listnames.username, username)
+  )
+
+  await db.update(listnames).set({ [set]: true }).where(
+    and(
+      eq(listnames.username, username),
+      eq(listnames.listname, listname),
+    )
+  )
 }

@@ -7,7 +7,12 @@ type EasyFetchData = Omit<
   'route' | 'method' | 'retryCount'
 >
 type DataCache<T> = { [key: string]: T | DataCache<T> }
-type ServerResource = { hash: string, url: string }
+type ServerResource = {
+  hash: string,
+  url: string,
+  dependent: Dependent
+  isResource: true,
+}
 type ServerResponse = DataCache<ServerResource> | null
 type Dependent = { name: string, key: string }
 type Matcher = string[] 
@@ -69,6 +74,31 @@ const dataHandlers: { [M in Methods]?: (extData: any, newData: any, match?: Matc
   }
 }
 
+// function isResource<T extends { isResource?: true }>(
+//   resource: T
+// ): resource is T {
+//   return (resource as any).isResource === true
+// }
+
+function isResource<T extends { isResource: true }>(
+  value: T | DataCache<T>
+): value is T {
+  return value.isResource === true;
+}
+
+function reverseDependencies(config: Config) {
+  const dependents = new Set<string>();
+  const revDeps = Object.keys(config).reduce((obj, key) => {
+    if (config[key].dependent) {
+      dependents.add(key);
+      const dep = config[key].dependent!;
+      obj[dep.name] = { name: key, key: dep.key };
+    }
+    return obj;
+  }, {} as { [key: string]: Dependent });
+  return { dependents, revDeps }
+}
+
 class Resource<T = any> {
   data: T;
   hash: string;
@@ -112,20 +142,26 @@ class Resource<T = any> {
     //   })
     // }
 
-    // if (this.dependent) {
-    //   const key = (result as any)[this.dependent.key];
-    //   if (method === 'POST') {
-    //     console.log('add dependent', this.dependent)
-    //     const match = cache.config[this.dependent.name].match;
-    //     (cache.cache[this.dependent.name] as any)[key] = new Resource({
-    //       url: `${this.url}/${key}`,
-    //       match
-    //     });
-    //   } else if (method === 'DELETE') {
-    //     console.log('delete dependent', this.dependent)
-    //     delete (cache.cache[this.dependent.name] as any)[key]
-    //   }
-    // }
+    if (this.dependent) {
+      if (method === 'POST') {
+        console.log('pre key setting', result, this.dependent.key)
+        const key = (result as any)[this.dependent.key];
+        console.log('key is', key)
+        console.log('add dependent', this.dependent)
+        const match = cache.config[this.dependent.name].match;
+        (cache.cache[this.dependent.name] as any)[key] = new Resource({
+          url: `${this.url}/${key}`,
+          match
+        });
+      } else if (method === 'DELETE') {
+        console.log('pre key setting', result, this.dependent.key)
+        const key = (result as any)[this.dependent.key];
+        console.log('key is', key)
+        console.log('delete dependent', this.dependent)
+        console.log('deleting', this.dependent.name, key)
+        delete (cache.cache[this.dependent.name] as any)[key]
+      }
+    }
 
     const modFunc = dataHandlers[method];
     if (!modFunc) throw Error(`No modFunc found for ${method}`);
@@ -191,24 +227,25 @@ export class ClientHashCacheV5 {
   }
 
   init(config: Config): DataCache<Resource> {
-    const isDependent = new Set<string>();
-    const revDependencies = Object.keys(config).reduce((obj, key) => {
-      if (config[key].dependent) {
-        isDependent.add(key);
-        const dep = config[key].dependent!;
-        obj[dep.name] = { name: key, key: dep.key };
-      }
-      return obj;
-    }, {} as { [key: string]: Dependent });
+    // const isDependent = new Set<string>();
+    // const revDependencies = Object.keys(config).reduce((obj, key) => {
+    //   if (config[key].dependent) {
+    //     isDependent.add(key);
+    //     const dep = config[key].dependent!;
+    //     obj[dep.name] = { name: key, key: dep.key };
+    //   }
+    //   return obj;
+    // }, {} as { [key: string]: Dependent });
+    const { revDeps, dependents } = reverseDependencies(config);
 
     return Object.keys(config).reduce((cache, key) => {
-      if (isDependent.has(key)) {
+      if (dependents.has(key)) {
         cache[key] = {};
       } else {
         const url = config[key].url(this);
         cache[key] = new Resource({
           url,
-          dependent: revDependencies[key],
+          dependent: revDeps[key],
           match: config[key].match
         });
       }
@@ -419,9 +456,13 @@ export class ClientHashCacheV5 {
 
 export class ServerHashCacheV5 {
   cache: { [username: string]: DataCache<ServerResource> | undefined }
+  // config: Config
+  reverseDependencies: ReturnType<typeof reverseDependencies>
 
-  constructor() {
+  constructor(config: Config) {
     this.cache = {}
+    // this.config = config;
+    this.reverseDependencies = reverseDependencies(config);
   }
 
   getHashes(username: string): ServerResponse {
@@ -440,28 +481,62 @@ export class ServerHashCacheV5 {
     if (!this.cache[username]) this.cache[username] = {};
     const userHashes = this.cache[username]!;
     if (!userHashes[resource]) userHashes[resource] = {};
-    const res: ServerResource = keys.reduce((obj, key) => {
-      if (!obj[key]) obj[key] = {}
-      return (obj as any)[key];
-    }, userHashes[resource] as any);
+    const res: (DataCache<ServerResource> | ServerResource) = (
+      keys.reduce((obj, key) => {
+        if (!obj[key]) obj[key] = {}
+        return (obj as any)[key];
+      }, userHashes[resource] as any)
+    );
     // this needs to be cleaned up
     // if res does not exist create a new one and fill with url and dependent
     // otherwise just update the hash
-    if (method === 'GET') {
-      // console.log('SETTING', resource, keys)
-      res.hash = await hash(JSON.stringify(data));
-      res.url = new URL(req.url).pathname;
-      // console.log(userHashes)
+
+    if (isResource<ServerResource>(res)) {
+      // RESOURCE ALREADY EXISTS
+      if (method === 'GET') {
+        res.hash = await hash(JSON.stringify(data));
+      } else {
+        res.hash = await hash(`${res.hash},${method},${JSON.stringify(data)}`);
+        if (res.dependent) {
+          const key = (data as any)[res.dependent.key]
+          if (method === 'POST') {
+            console.log('adding dependent')
+            if (!userHashes[res.dependent.name]) {
+              userHashes[res.dependent.name] = {};
+            }
+            (userHashes[res.dependent.name] as any)[key] = {
+              isResource: true,
+              url: `${res.url}/${key}`,
+              hash: '',
+            }
+          } else if (method === 'DELETE') {
+            console.log('deleting dependent')
+            delete (userHashes[res.dependent.name] as any)[key]
+          }
+        }
+      }
+      console.log(userHashes)
     } else {
-      res.hash = await hash(`${res.hash},${method},${JSON.stringify(data)}`);
+      // MAKE RESOURCE
+      if (method !== 'GET') {
+        throw Error('new resources must be created with GET method');
+      }
+      (res as any).isResource = true;
+      (res as any).url = new URL(req.url).pathname;
+      (res as any).dependent = this.reverseDependencies.revDeps[resource];
+      (res as any).hash = await hash(JSON.stringify(data));
     }
+
+    // if (method === 'GET') {
+    //   // console.log('SETTING', resource, keys)
+    //   res.hash = await hash(JSON.stringify(data));
+    //   res.url = new URL(req.url).pathname;
+    //   // console.log(userHashes)
+    // } else {
+    //   res.hash = await hash(`${res.hash},${method},${JSON.stringify(data)}`);
+    // }
     console.log('FINISHED SETTING', username, resource, keys)
   }
-}
-
-export const serverHashCacheV5 = new ServerHashCacheV5();
-if (!(globalThis as any).serverHashCacheV5) {
-  (globalThis as any).serverHashCacheV5 = serverHashCacheV5;
 }
 
 const storageKey = 'media-tracker';
@@ -480,6 +555,11 @@ export const configV5 = {
   // }
 } as const satisfies Config
 
+export const serverHashCacheV5 = new ServerHashCacheV5(configV5);
+if (!(globalThis as any).serverHashCacheV5) {
+  (globalThis as any).serverHashCacheV5 = serverHashCacheV5;
+}
+
 type FillWith<T extends Partial<Record<Methods, any>>, F> = {
   [K in Methods]: K extends keyof T ? T[K] : F
 }
@@ -488,8 +568,8 @@ type ClientTypes<R extends Resources, M extends Methods> = {
   listnames: FillWith<{
     POST: { params: { listname: string } },
     PUT: { params: { listname: string, newListname: string, id: number } },
-    DELETE: { params: { listname: string } },
-    PATCH: { params: {listname: string } },
+    DELETE: { params: { id: number } },
+    PATCH: { params: { listname: string } },
   }, undefined>,
   listContents: FillWith<{
     POST: {
@@ -506,7 +586,7 @@ type ServerTypes<R extends Resources, M extends Methods> = {
     GET: Listname[],
     POST: Listname,
     PUT: Listname,
-    DELETE: { listname: string }
+    DELETE: { id: number }
   }, undefined>,
   listContents: FillWith<{
     GET: ListItem[],

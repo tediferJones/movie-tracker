@@ -149,26 +149,23 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
     return NextResponse.json('Unauthorized', { status: 401 });
   }
 
-  const listname = searchParams.get('listname')
-  if (!listname) {
+  const id = Number(searchParams.get('id'))
+  if (!id) {
     return NextResponse.json('Bad Request', { status: 400 });
   }
 
-  const valid = isValid({ listname });
-  if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
-  
-  console.log('DELETING', listname)
+  console.log('DELETING', id)
   // listnames will apparently cascade and delete all records in lists table with associated name
   await db.delete(listnames).where(
     and(
       eq(listnames.username, username),
-      eq(listnames.listname, listname),
+      eq(listnames.id, id),
     )
   );
   console.log('SUCCESSFULLY DELETED')
   // await hashTable.updateResource(username, 'listnames', 'DELETE', { listname })
-  await serverHashCacheV5.update(req, username, { listname }, 'DELETE', 'listnames');
-  return NextResponse.json({ listname })
+  await serverHashCacheV5.update(req, username, { id }, 'DELETE', 'listnames');
+  return NextResponse.json({ id });
 }
 
 export async function PATCH(req: Request, { params }: { params: Params }) {

@@ -28,10 +28,9 @@ type Listname = typeof listnames.$inferSelect
 export default function DefaultListManager() {
   const [listnames, setListnames] = useState<Listname[]>();
   const [defaultList, setDefaultList] = useState<Listname>();
-  // const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [buttonText, setButtonText] = useState('Waiting...');
   const [modalVisible, setModalVisible] = useState(false);
-  const [confirmList, setConfirmList] = useState('');
+  const [confirmList, setConfirmList] = useState<Listname>();
   const [renameList, setRenameList] = useState('');
   const [newListname, setNewListname] = useState('');
   const [showNewListnameInput, setShowNewListnameInput] = useState(false);
@@ -45,7 +44,7 @@ export default function DefaultListManager() {
     setListnames(listnames);
     setDefaultList(listnames.find(listname => listname.defaultList));
     setButtonText('');
-    setConfirmList('');
+    setConfirmList(undefined);
   }, [userData])
 
   function resetInput() {
@@ -67,10 +66,10 @@ export default function DefaultListManager() {
           </div>
           {!listnames.length ? <p className='text-center text-muted-foreground'>No Lists Found</p> :
             <div className='overflow-auto max-h-fit flex flex-col flex-1'>
-              {listnames.map(({ listname }) => (
-                <span key={listname} className='flex gap-4 justify-center px-4'>
+              {listnames.map(listname  => (
+                <span key={listname.id} className='flex gap-4 justify-center px-4'>
                   <Checkbox className='m-auto'
-                    checked={listname === defaultList?.listname}
+                    checked={listname.listname === defaultList?.listname}
                     onCheckedChange={(e) => {
                       const newDefaultListname = e ? listname : '';
                       // if (!user?.username) return;
@@ -86,13 +85,13 @@ export default function DefaultListManager() {
                       // }).then(() => setRefreshTrigger(!refreshTrigger));
                       if (!userData.current) return;
                       userData.current.update({
-                        params: { listname }
+                        params: { listname: listname.listname }
                       }, 'PATCH', 'listnames');
                     }}
                   />
                   <Link className='w-full text-center p-2 hover:underline hover:bg-secondary transition-all duration-500 rounded-lg truncate m-auto'
-                    href={`/users/${userData.current!.username}/${listname}`}
-                  >{listname}</Link>
+                    href={`/users/${userData.current!.username}/${listname.listname}`}
+                  >{listname.listname}</Link>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant='outline' className='m-2 p-2 aspect-square'>
@@ -103,8 +102,8 @@ export default function DefaultListManager() {
                       <DropdownMenuLabel>Options</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => {
-                        setNewListname(listname);
-                        setRenameList(listname);
+                        setNewListname(listname.listname);
+                        setRenameList(listname.listname);
                         setTimeout(() => {
                           if (!inputRef.current) throw Error('cannot find input ref');
                           setShowNewListnameInput(true);
@@ -139,7 +138,7 @@ export default function DefaultListManager() {
                 if (renameList) {
                   setButtonText(`Renaming ${renameList}...`);
                   const listId = listnames.find(list => list.listname === renameList);
-                  if (!listId) throw Error('could not find listId')
+                  if (!listId) throw Error('could not find listId');
                   await userData.current.update({
                     params: { listname: renameList, newListname, id: listId.id }
                   }, 'PUT', 'listnames');
@@ -188,13 +187,13 @@ export default function DefaultListManager() {
               if (!userData.current) return;
               setButtonText(`Deleting ${confirmList}...`);
               await userData.current.update({
-                params: { listname: confirmList }
+                params: confirmList 
               }, 'DELETE', 'listnames');
-              setConfirmList('');
+              setConfirmList(undefined);
             }}
           >
             <p>Are you sure you want to delete this list?  All of its contents will be lost.</p>
-            <p className='mx-auto'>{confirmList}</p>
+            <p className='mx-auto'>{confirmList?.listname || 'this is an error'}</p>
           </ConfirmModal>
         </>
       }

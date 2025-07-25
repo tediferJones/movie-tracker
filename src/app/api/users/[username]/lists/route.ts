@@ -10,6 +10,9 @@ import { serverHashCache } from '@/lib/hashCacheV4';
 import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 
 type Params = { username: string }
+type BooleanKeys<T> = {
+  [K in keyof T]: T[K] extends boolean ? K : never
+}[keyof T]
 
 export async function GET(req: Request, { params }: { params: Params }) {
   // return all listnames
@@ -185,10 +188,13 @@ export async function PATCH(req: Request, { params }: { params: Params }) {
   if (!set) {
     return NextResponse.json('Bad Request', { status: 400 });
   }
+  const val = searchParams.get('val');
+  if (!val) {
+    return NextResponse.json('Bad Request', { status: 400 });
+  }
+  const bool = val === 'true';
+  console.log('SETTING', username, listname, val, bool)
   
-  type BooleanKeys<T> = {
-    [K in keyof T]: T[K] extends boolean ? K : never
-  }[keyof T]
   const booleans = {
     defaultList: false
   } satisfies { [K in BooleanKeys<typeof listnames.$inferSelect>]: false }
@@ -199,12 +205,26 @@ export async function PATCH(req: Request, { params }: { params: Params }) {
 
   await db.update(listnames).set({ [set]: false, }).where(
     eq(listnames.username, username)
-  )
+  );
 
-  await db.update(listnames).set({ [set]: true }).where(
+  await db.update(listnames).set({ [set]: bool }).where(
     and(
       eq(listnames.username, username),
       eq(listnames.listname, listname),
     )
-  )
+  );
+
+  const newRecord = await db.select().from(listnames).where(
+    and(
+      eq(listnames.username, username),
+      eq(listnames.listname, listname),
+    )
+  ).get();
+  if (!newRecord) {
+    return NextResponse.json('Bad Request', { status: 400 });
+  }
+
+  await serverHashCacheV5.update(req, username, newRecord, 'PATCH', 'listnames');
+
+  return NextResponse.json(newRecord);
 }

@@ -206,10 +206,14 @@ export default function MyTable(
             filterable={{
               rated: {
                 values: [ ...metadata.current.ratingOpts ],
-                names: [ ...metadata.current.ratingOpts ].with(
-                  [ ...metadata.current.ratingOpts ].indexOf(null),
-                  'N/A'
-                ) as string[],
+                names: [ ...metadata.current.ratingOpts ] as string[],
+                // FIX ME
+                // This was probably like this for a reason,
+                // but I cannot tell what reason that is
+                // names: [ ...metadata.current.ratingOpts ].with(
+                //   [ ...metadata.current.ratingOpts ].indexOf(null),
+                //   'N/A'
+                // ) as string[],
               }
             }}
             rangeable={{

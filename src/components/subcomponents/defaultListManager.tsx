@@ -70,22 +70,16 @@ export default function DefaultListManager() {
                 <span key={listname.id} className='flex gap-4 justify-center px-4'>
                   <Checkbox className='m-auto'
                     checked={listname.listname === defaultList?.listname}
-                    onCheckedChange={(e) => {
-                      const newDefaultListname = e ? listname : '';
-                      // if (!user?.username) return;
+                    onCheckedChange={async () => {
                       if (buttonText) return;
                       setButtonText(`Setting default to ${listname}...`);
-                      // how do we want to handle setting default list with hashCacheV5?
-                      // will probably have to get rid of defaultList route
-                      // easyFetch({
-                      //   route: `/api/users/${user.username}/defaultList`,
-                      //   method: 'POST',
-                      //   params: { newDefaultListname },
-                      //   skipJSON: true,
-                      // }).then(() => setRefreshTrigger(!refreshTrigger));
                       if (!userData.current) return;
-                      userData.current.update({
-                        params: { listname: listname.listname }
+                      await userData.current.update({
+                        params: {
+                          listname: listname.listname,
+                          set: 'defaultList',
+                          val: defaultList?.id ? defaultList.id !== listname.id : true
+                        }
                       }, 'PATCH', 'listnames');
                     }}
                   />

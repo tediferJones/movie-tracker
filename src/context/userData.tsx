@@ -8,13 +8,18 @@ import {
   useState
 } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { ClientHashCacheV5, configV5, UserContext } from '@/lib/hashCacheV5';
+import { ClientHashCacheV5, configV5, SyncOpts, UserContext } from '@/lib/hashCacheV5';
 
 const UserDataContext = createContext<UserContext>({ current: null });
 
 export function UserDataProvider({ children }: { children: ReactNode }) {
   const { user } = useUser();
   const [hashCache, setHashCache] = useState<UserContext>({ current: null });
+  const [syncState, setSyncState] = useState<SyncOpts>('');
+
+  // useEffect(() => {
+  //   console.log('syncState change', syncState)
+  // }, [syncState])
 
   useEffect(() => {
     if (!user?.username) {
@@ -22,12 +27,19 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       return;
     }
     // new ClientHashCacheV4(configV2, user.username, setHashCache);
-    (window as any).hashCache = new ClientHashCacheV5(user.username, configV5, setHashCache);
+    (window as any).hashCache = new ClientHashCacheV5(
+      user.username,
+      configV5,
+      setHashCache,
+      setSyncState,
+    );
   }, [user?.username]);
 
   return (
     <UserDataContext.Provider value={hashCache}>
-      {children}
+      <SyncStatusContext.Provider value={syncState}>
+        {children}
+      </SyncStatusContext.Provider>
     </UserDataContext.Provider>
   )
 }
@@ -37,6 +49,9 @@ export function useUserData() {
   if (!context) throw new Error('useUserData must be used with UserDataProvider');
   return context;
 }
+
+const SyncStatusContext = createContext<SyncOpts>('');
+export const useSyncStatus = () => useContext(SyncStatusContext);
 
 // WORKING V4
 // import {

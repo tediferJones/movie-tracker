@@ -40,6 +40,7 @@ type ResourceArgs = {
 }
 export type UserContext = { current: ClientHashCacheV5 | null }
 type SetUserContext = Dispatch<SetStateAction<UserContext>>
+export type SyncOpts = 'notSynced' | 'syncing' | 'synced' | ''
 
 type Listname = typeof listnames.$inferSelect;
 type ListItem = typeof lists.$inferSelect;
@@ -71,6 +72,15 @@ const dataHandlers: { [M in Methods]?: (extData: any, newData: any, match?: Matc
     return extData.filter((data: any) => {
       return !match.every(key => data[key] === newData[key]);
     });
+  },
+  PATCH: (extData, newData, match) => {
+    if (!match) throw Error('no matcher found');
+    return extData.map((data: any) => {
+      if (match.every(key => data[key] === newData[key])) {
+        return newData
+      }
+      return data
+    })
   }
 }
 
@@ -118,6 +128,7 @@ class Resource<T = any> {
 
   async update(cache: ClientHashCacheV5, method: Methods, data?: EasyFetchData) {
     cache.isSynced = false;
+    cache.setSyncState('notSynced');
     const { params, body } = data || {};
     const result = await easyFetch({
       route: this.url,
@@ -216,15 +227,30 @@ export class ClientHashCacheV5 {
   setState: SetUserContext;
   config: Config;
   deferSync = false;
+  setSyncState: Dispatch<SetStateAction<SyncOpts>>;
 
-  constructor(username: string, config: Config, setState: SetUserContext) {
+  constructor(
+    username: string,
+    config: Config,
+    setState: SetUserContext,
+    setSyncState: Dispatch<SetStateAction<SyncOpts>>
+  ) {
     this.username = username;
     this.setState = setState;
     this.config = config;
+
+    this.setSyncState = setSyncState;
+    this.setSyncState('syncing');
+
     // load state from localStorage, if no state, build from config
     this.cache = this.load() || this.init(config);
     this.sync();
   }
+
+  // setSyncStatus(state: SyncOpts) {
+  //   this.isSynced = state;
+  //   this.setSyncState(state);
+  // }
 
   init(config: Config): DataCache<Resource> {
     // const isDependent = new Set<string>();
@@ -297,6 +323,10 @@ export class ClientHashCacheV5 {
 
     console.log('SYNCED V5')
     this.save();
+    this.setSyncState('synced');
+    setTimeout(() => {
+      this.setSyncState('');
+    }, 1500);
   }
 
   async getAll(cache = this.cache) {
@@ -569,7 +599,7 @@ type ClientTypes<R extends Resources, M extends Methods> = {
     POST: { params: { listname: string } },
     PUT: { params: { listname: string, newListname: string, id: number } },
     DELETE: { params: { id: number } },
-    PATCH: { params: { listname: string } },
+    PATCH: { params: { listname: string, set: string, val: boolean } },
   }, undefined>,
   listContents: FillWith<{
     POST: {
@@ -587,6 +617,7 @@ type ServerTypes<R extends Resources, M extends Methods> = {
     POST: Listname,
     PUT: Listname,
     DELETE: { id: number }
+    PATCH: Listname,
   }, undefined>,
   listContents: FillWith<{
     GET: ListItem[],

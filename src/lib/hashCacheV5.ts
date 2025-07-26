@@ -1,4 +1,4 @@
-import { listnames, lists } from '@/drizzle/schema';
+import { listnames, lists, watched } from '@/drizzle/schema';
 import easyFetch, { Methods } from '@/lib/easyFetch';
 import { Dispatch, SetStateAction } from 'react';
 
@@ -44,6 +44,7 @@ export type SyncOpts = 'notSynced' | 'syncing' | 'synced' | ''
 
 type Listname = typeof listnames.$inferSelect;
 type ListItem = typeof lists.$inferSelect;
+type WatchedRec = typeof watched.$inferSelect & { title: string }
 
 const testParams = { testType: 'userContext' }
 
@@ -477,6 +478,9 @@ export class ClientHashCacheV5 {
   }
 
   getResource<R extends Resources>(resource: R, ...keys: (string | number)[]) {
+    // this should return the resource's .data attribute, not the whole resource
+    // unless there is a reason to access other attributes client side
+    // but so far there is no need
     return keys.reduce((data, key) => {
       if (!data[key]) throw Error(`Key: ${key} does not exist`);
       return data[key]
@@ -507,7 +511,7 @@ export class ServerHashCacheV5 {
     resource: R,
     ...keys: (string | number)[]
   ) {
-    console.log('STARTED SETTING', username, resource, keys)
+    // console.log('STARTED SETTING', username, resource, keys)
     if (!this.cache[username]) this.cache[username] = {};
     const userHashes = this.cache[username]!;
     if (!userHashes[resource]) userHashes[resource] = {};
@@ -521,6 +525,7 @@ export class ServerHashCacheV5 {
     // if res does not exist create a new one and fill with url and dependent
     // otherwise just update the hash
 
+    console.log('SETTING', res, resource, keys)
     if (isResource<ServerResource>(res)) {
       // RESOURCE ALREADY EXISTS
       if (method === 'GET') {
@@ -545,7 +550,7 @@ export class ServerHashCacheV5 {
           }
         }
       }
-      console.log(userHashes)
+      // console.log(userHashes)
     } else {
       // MAKE RESOURCE
       if (method !== 'GET') {
@@ -556,6 +561,7 @@ export class ServerHashCacheV5 {
       (res as any).dependent = this.reverseDependencies.revDeps[resource];
       (res as any).hash = await hash(JSON.stringify(data));
     }
+    console.log('SET', userHashes)
 
     // if (method === 'GET') {
     //   // console.log('SETTING', resource, keys)
@@ -565,7 +571,7 @@ export class ServerHashCacheV5 {
     // } else {
     //   res.hash = await hash(`${res.hash},${method},${JSON.stringify(data)}`);
     // }
-    console.log('FINISHED SETTING', username, resource, keys)
+    // console.log('FINISHED SETTING', username, resource, keys)
   }
 }
 
@@ -580,14 +586,27 @@ export const configV5 = {
     dependent: { name: 'listnames', key: 'id' },
     url: (client, listId: number) => `/api/users/${client.username}/lists/${listId}`,
   },
-  // watched: {
-  //   url: (client) => `/api/users/${client.username}/watched`,
-  // }
+  watched: {
+    match: [ 'id' ],
+    url: (client) => `/api/users/${client.username}/watched`,
+  }
 } as const satisfies Config
 
-export const serverHashCacheV5 = new ServerHashCacheV5(configV5);
-if (!(globalThis as any).serverHashCacheV5) {
-  (globalThis as any).serverHashCacheV5 = serverHashCacheV5;
+// export const serverHashCacheV5 = new ServerHashCacheV5(configV5);
+// if (!(globalThis as any).serverHashCacheV5) {
+//   (globalThis as any).serverHashCacheV5 = serverHashCacheV5;
+// }
+
+// copy this pattern over to regular server cache if it proves to work correctly
+declare global {
+  var serverHashCacheV5: ServerHashCacheV5 | undefined;
+}
+export const serverHashCacheV5 = (
+  globalThis.serverHashCacheV5 || new ServerHashCacheV5(configV5)
+);
+if (!globalThis.serverHashCacheV5) {
+  console.log('SETTING HASH CACHE')
+  globalThis.serverHashCacheV5 = serverHashCacheV5;
 }
 
 type FillWith<T extends Partial<Record<Methods, any>>, F> = {
@@ -603,13 +622,16 @@ type ClientTypes<R extends Resources, M extends Methods> = {
   }, undefined>,
   listContents: FillWith<{
     POST: {
-      params: { listname: string, listId: number, imdbId: string }
-    }
+      params: { listname: string, listId: number, imdbId: string },
+    },
     DELETE: {
-      params: { listname: string, listId: number, imdbId: string }
-    }
+      params: { listname: string, listId: number, imdbId: string },
+    },
   }, undefined>,
-  watched: FillWith<{}, undefined>,
+  watched: FillWith<{
+    POST: { params: { imdbId: string } },
+    DELETE: { params: { id: number } },
+  }, undefined>,
 }[R][M]
 type ServerTypes<R extends Resources, M extends Methods> = {
   listnames: FillWith<{
@@ -623,7 +645,11 @@ type ServerTypes<R extends Resources, M extends Methods> = {
     GET: ListItem[],
     DELETE: { imdbId: string },
   }, undefined>,
-  watched: FillWith<{}, undefined>,
+  watched: FillWith<{
+    GET: WatchedRec[],
+    POST: WatchedRec,
+    DELETE: { id: number }
+  }, undefined>,
 }[R][M]
 // type Config = typeof config;
 

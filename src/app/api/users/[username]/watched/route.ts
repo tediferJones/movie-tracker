@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
 import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 import { hashTable } from '@/lib/hashCache';
+import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 
 type Params = { username: string }
 
@@ -44,13 +45,14 @@ export async function GET(req: Request, { params }: { params: Params }) {
 
     await getManyExistingMedia(watchRecs.map(watchRec => watchRec.imdbId));
 
+    // FIX ME, this is just ugly and needs to be simplified
     const result = watchRecs.map((watchRec: typeof watchRecs[number] & { title?: string }) => {
       watchRec.title = cache.get(watchRec.imdbId).title;
       if (!watchRec.title) throw Error('could not find title');
       return watchRec;
-    });
+    }) as (typeof watchRecs[number] & { title: string })[];
 
-    hashTable.setResource(username, 'watched', result);
+    await serverHashCacheV5.update(req, username, result, 'GET', 'watched');
     return NextResponse.json(result);
   }
 
@@ -136,9 +138,12 @@ export async function POST(req: Request, { params }: { params: Params }) {
     const { lastInsertRowid } = await db.insert(watched).values(preInsertRecord);
     const postInsertRecord = {
       id: Number(lastInsertRowid),
-      ...preInsertRecord
+      title: cache.get(imdbId).title,
+      ...preInsertRecord,
     }
-    hashTable.updateResource(username, 'watched', 'POST', postInsertRecord)
+    if (!postInsertRecord.title) throw Error('could not find title');
+    // hashTable.updateResource(username, 'watched', 'POST', postInsertRecord)
+    await serverHashCacheV5.update(req, username, postInsertRecord, 'POST', 'watched');
     cache.delete(`${username},${imdbId},watched`);
     cache.delete(`${username},watched`);
     return NextResponse.json(postInsertRecord);
@@ -182,7 +187,8 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
         eq(watched.id, id),
       )
     );
-    hashTable.updateResource(username, 'watched', 'DELETE', { id })
+    // hashTable.updateResource(username, 'watched', 'DELETE', { id })
+    await serverHashCacheV5.update(req, username, { id }, 'DELETE', 'watched');
     return NextResponse.json({ id })
   }
 

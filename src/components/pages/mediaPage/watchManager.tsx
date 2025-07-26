@@ -3,37 +3,36 @@ import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { watched } from '@/drizzle/schema';
-import { useUser } from '@clerk/nextjs';
 import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { formatTimestamp } from '@/lib/formatters';
-import easyFetch from '@/lib/easyFetch';
+import { useUserData } from '@/context/userData';
 
 type WatchRecord = typeof watched.$inferSelect
 
+// FIX ME
+// Either rename this to 'watchedManager' or rename 'watchedDisplay' to 'watchDisplay'
+
 export default function WatchManger({ imdbId }: { imdbId: string }) {
   const [watched, setWatched] = useState<WatchRecord[]>();
-  const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [record, setRecord] = useState<WatchRecord>();
   const [buttonText, setButtonText] = useState('Waiting...');
-  const { user } = useUser();
 
+  const userData = useUserData();
   useEffect(() => {
-    if (user?.username) {
-      easyFetch<WatchRecord[]>({
-        route: `/api/users/${user.username}/watched`,
-        method: 'GET',
-        params: { imdbId },
-      }).then(data => setWatched(data));
-      setButtonText('');
-    }
-  }, [refreshTrigger, user?.username]);
+    if (!userData.current) return;
+    const watchedRecs = userData.current.getResource('watched');
+    setWatched(
+      watchedRecs.data.filter(watchRec => watchRec.imdbId === imdbId)
+    );
+    setButtonText('');
+  }, [userData]);
 
   return (
     <div className='flex flex-col justify-between gap-4 p-4 text-center showOutline flex-1 max-h-96 min-w-72'>
       <h1 className='text-xl'>Watch Manager</h1>
-      {!watched || !user?.username ? <Loading /> : 
+      {!userData.current || !watched ? <Loading /> : 
         !watched.length ? <p className='text-muted-foreground'>No Watch History Found</p> :
           <div className='flex flex-col overflow-auto'>
             {watched.map(record => {
@@ -57,36 +56,22 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
           </div>
       }
       <Button onClick={async () => {
-        if (buttonText) return console.log('BUTTON DISABLED');
-        if (user?.username) {
-          setButtonText('Adding...');
-          easyFetch({
-            route: `/api/users/${user.username}/watched`,
-            method: 'POST',
-            params: { imdbId },
-            skipJSON: true,
-          }).then(() => {
-              setButtonText('');
-              setRefreshTrigger(!refreshTrigger);
-            });
-        }
+        if (buttonText) return;
+        if (!userData.current) return;
+        setButtonText('Adding...');
+        await userData.current.update({
+          params: { imdbId }
+        }, 'POST', 'watched');
       }}>{buttonText || 'Add New Record'}</Button>
       <ConfirmModal
         visible={modalVisible}
         setVisible={setModalVisible}
-        action={() => {
-          if (record) {
-            setButtonText('Deleting...');
-            easyFetch({
-              route: `/api/users/${user?.username}/watched`,
-              method: 'DELETE',
-              params: { id: record.id, imdbId },
-              skipJSON: true,
-            }).then(() => {
-                setButtonText('');
-                setRefreshTrigger(!refreshTrigger);
-              });
-          }
+        action={async () => {
+          if (!record) return;
+          if (!userData.current) return;
+          await userData.current.update({
+            params: { id: record.id }
+          }, 'DELETE', 'watched');
         }}
       >
         <>

@@ -75,3 +75,14 @@ export async function POST(req: Request) {
     needsSynced,
   })
 }
+
+export async function DELETE() {
+  const user = await currentUser();
+
+  if (!user?.username) {
+    return NextResponse.json('Unauthorized', { status: 401 });
+  }
+
+  delete serverHashCacheV5.cache[user.username];
+  return NextResponse.json('Success');
+}

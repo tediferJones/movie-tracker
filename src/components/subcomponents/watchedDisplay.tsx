@@ -1,51 +1,54 @@
 'use client';
 
-// import { ScrollArea } from '@/components/ui/scroll-area';
-
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { watched } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import easyFetch from '@/lib/easyFetch';
+import { useUserData } from '@/context/userData';
+import { useUser } from '@clerk/nextjs';
 
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 
-// type PageRes<T> = {
-//   total: number,
-//   result: T,
-// }
+function useIsSelf(username: string) {
+  const [isSelf, setIsSelf] = useState<null | boolean>(null);
+
+  const { user, isLoaded, isSignedIn } = useUser();
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (isSignedIn && user && user.username === username) {
+      setIsSelf(true);
+    } else {
+      setIsSelf(false);
+    }
+  }, [isLoaded, isSignedIn, user]);
+
+  return isSelf;
+}
 
 export default function WatchedDisplay({ username }: { username: string }) {
   const [watched, setWatched] = useState<WatchedRec[]>();
   const [page, setPage] = useState(1);
-  // const [total, setTotal] = useState(0);
   const pageSize = 25;
   const displayCount = page * pageSize;
+  const isSelf = useIsSelf(username);
 
-  // FIX ME
-  // i.e. delete me
+  const userData = useUserData();
   useEffect(() => {
-    easyFetch<WatchedRec[]>({
-      route: `/api/users/${username}/watched`,
-      method: 'GET',
-    }).then(data => setWatched(data));
-  }, []);
-
-  // useEffect(() => {
-  //   console.log('fetching', page)
-  //   easyFetch<PageRes<WatchedRec[]>>({
-  //     route: `/api/users/${username}/watched`,
-  //     method: 'GET',
-  //     params: new URLSearchParams({
-  //       page: page.toString(),
-  //       limit: limit.toString(),
-  //     })
-  //   }).then(({ result, total }) => {
-  //       setWatched(watched?.concat(result) || result);
-  //       setTotal(total);
-  //     });
-  // }, [page]);
+    if (isSelf === null) return;
+    if (isSelf) {
+      if (!userData.current) return;
+      console.log('using userData')
+      setWatched(userData.current.getResource('watched').data);
+    } else {
+      console.log('fetching')
+      easyFetch<WatchedRec[]>({
+        route: `/api/users/${username}/watched`,
+        method: 'GET',
+      }).then(data => setWatched(data));
+    }
+  }, [userData.current, isSelf]);
 
   return (
     <div className='showOutline p-4 flex-1 flex flex-col gap-4 max-h-96 min-w-72'>

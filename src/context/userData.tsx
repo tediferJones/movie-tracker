@@ -17,16 +17,11 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   const [hashCache, setHashCache] = useState<UserContext>({ current: null });
   const [syncState, setSyncState] = useState<SyncOpts>('');
 
-  // useEffect(() => {
-  //   console.log('syncState change', syncState)
-  // }, [syncState])
-
   useEffect(() => {
     if (!user?.username) {
       setHashCache({ current: null });
       return;
     }
-    // new ClientHashCacheV4(configV2, user.username, setHashCache);
     (window as any).hashCache = new ClientHashCacheV5(
       user.username,
       configV5,

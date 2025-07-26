@@ -26,7 +26,7 @@ export async function GET(req: Request) {
     return NextResponse.json(`URL parameter 'queryType' is required, options: ${acceptableQueryTypes.join(', ')}`, { status: 400 });
   }
 
-  const acceptableSearchTypes = ['movie', 'series', 'episode'];
+  const acceptableSearchTypes = ['movie', 'series', 'episode', 'game'];
   function searchTypeIsValid(searchType: string) {
     if (acceptableSearchTypes.includes(searchType)) return true;
     return !isNaN(Number(searchType));

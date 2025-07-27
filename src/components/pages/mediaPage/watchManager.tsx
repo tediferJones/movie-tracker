@@ -22,9 +22,11 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
   const userData = useUserData();
   useEffect(() => {
     if (!userData.current) return;
-    const watchedRecs = userData.current.getResource('watched');
+    const watchedRecs = userData.current.getResource('watched').data;
     setWatched(
-      watchedRecs.data.filter(watchRec => watchRec.imdbId === imdbId)
+      watchedRecs
+        .filter(watchRec => watchRec.imdbId === imdbId)
+        .sort((a, b) => b.date - a.date)
     );
     setButtonText('');
   }, [userData]);

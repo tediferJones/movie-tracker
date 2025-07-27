@@ -6,8 +6,8 @@ import { NextResponse } from 'next/server';
 import { isValid } from '@/lib/inputValidation';
 import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 import cache from '@/lib/cache';
-import { hashTable } from '@/lib/hashCache';
 import { ReviewBody } from '@/components/pages/mediaPage/reviewManager';
+import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 
 type Params = { username: string }
 
@@ -32,9 +32,11 @@ export async function GET(req: Request, { params }: { params: Params }) {
       review.title = cache.get(review.imdbId).title;
       if (!review.title) throw Error('could not find title');
       return review;
-    });
+    }) as (typeof allReviews[number] & { title: string })[];
+    ;
 
-    hashTable.setResource(username, 'reviews', result);
+    // hashTable.setResource(username, 'reviews', result);
+    await serverHashCacheV5.update(req, username, result, 'GET', 'reviews');
     return NextResponse.json(result);
   }
 
@@ -114,16 +116,16 @@ export async function POST(req: Request, { params }: { params: Params }) {
     // probably dont even have to do this, database should error out based on compound key
     // cannot have two records with same username and imdbId
     // or if review exists, just forward to PUT method
-    const exisitingReview = await db.select().from(reviews).where(
-      and(
-        eq(reviews.username, username),
-        eq(reviews.imdbId, imdbId),
-      )
-    ).get();
+    // const exisitingReview = await db.select().from(reviews).where(
+    //   and(
+    //     eq(reviews.username, username),
+    //     eq(reviews.imdbId, imdbId),
+    //   )
+    // ).get();
 
-    if (exisitingReview) {
-      return NextResponse.json('Review already exists', { status: 400 });
-    }
+    // if (exisitingReview) {
+    //   return NextResponse.json('Review already exists', { status: 400 });
+    // }
 
     const newRecord = {
       username,
@@ -134,9 +136,10 @@ export async function POST(req: Request, { params }: { params: Params }) {
     await db.insert(reviews).values(newRecord);
     // hashTable.setResource(username, 'reviews', result);
     if (!cache.get(imdbId)) await getManyExistingMedia([ imdbId ]);
-    const title = cache.get(imdbId).title;
+    const title: string = cache.get(imdbId).title;
     const newNewRecord = { ...newRecord, title }
-    hashTable.updateResource(username, 'reviews', 'POST', newNewRecord);
+    // hashTable.updateResource(username, 'reviews', 'POST', newNewRecord);
+    await serverHashCacheV5.update(req, username, newNewRecord, 'POST', 'reviews');
     cache.delete(`${imdbId},reviews`);
     return NextResponse.json(newNewRecord);
   }
@@ -205,6 +208,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
       ...review,
       date: Date.now()
     }
+    console.log('PUTTING', updatedReview)
     await db.update(reviews).set(updatedReview).where(
       and(
         eq(reviews.username, username),
@@ -214,7 +218,8 @@ export async function PUT(req: Request, { params }: { params: Params }) {
     if (!cache.get(imdbId)) await getManyExistingMedia([ imdbId ]);
     const title = cache.get(imdbId).title;
     const newNewRecord = { ...updatedReview, username, imdbId, title }
-    hashTable.updateResource(username, 'reviews', 'PUT', newNewRecord);
+    // hashTable.updateResource(username, 'reviews', 'PUT', newNewRecord);
+    await serverHashCacheV5.update(req, username, newNewRecord, 'PUT', 'reviews');
     cache.delete(`${imdbId},reviews`);
     return NextResponse.json(newNewRecord);
   }
@@ -268,7 +273,8 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
         eq(reviews.imdbId, imdbId),
       )
     );
-    hashTable.updateResource(username, 'reviews', 'DELETE', { imdbId });
+    // hashTable.updateResource(username, 'reviews', 'DELETE', { imdbId });
+    await serverHashCacheV5.update(req, username, { imdbId }, 'DELETE', 'reviews');
     cache.delete(`${imdbId},reviews`);
     return NextResponse.json({ imdbId });
   }

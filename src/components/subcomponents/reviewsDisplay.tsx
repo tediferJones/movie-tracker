@@ -11,6 +11,7 @@ import StarRating from '@/components/subcomponents/StarRating';
 import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp } from '@/lib/formatters';
 import { watchAgainConfig, ratingConfig } from '@/lib/reviewHelpers';
+import { useUserData } from '@/context/userData';
 
 type ExistingReview = typeof reviews.$inferSelect & { title?: string }
 
@@ -33,10 +34,15 @@ export default function ReviewsDisplay(
   const pageSize = 5;
   const displayType = username ? 'title' : 'username';
 
+  const userData = useUserData();
   useEffect(() => {
     // if imdbId exists, only fetch records related to imdbId
     // if no imdbId, fetch all records for user
-    if (username) {
+    if (userData.current && userData.current.username === username) {
+      const reviews = userData.current.getResource('reviews').data;
+      setReviews(reviews);
+      setAllReviews(reviews);
+    } else if (username) {
       easyFetch<ExistingReview[]>({
         route: `/api/users/${username}/reviews`,
         method: 'GET',
@@ -55,7 +61,7 @@ export default function ReviewsDisplay(
     } else {
       throw Error('reviewsDisplay requires an imdbId or a username');
     }
-  }, [extTrigger, username]);
+  }, [extTrigger, username, userData]);
 
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[90vh]'>

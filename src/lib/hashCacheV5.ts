@@ -1,4 +1,5 @@
-import { listnames, lists, watched } from '@/drizzle/schema';
+import { ReviewBody } from '@/components/pages/mediaPage/reviewManager';
+import { listnames, lists, reviews, watched } from '@/drizzle/schema';
 import easyFetch, { Methods } from '@/lib/easyFetch';
 import { Dispatch, SetStateAction } from 'react';
 
@@ -45,6 +46,7 @@ export type SyncOpts = 'notSynced' | 'syncing' | 'synced' | ''
 type Listname = typeof listnames.$inferSelect;
 type ListItem = typeof lists.$inferSelect;
 type WatchedRec = typeof watched.$inferSelect & { title: string }
+type Review = typeof reviews.$inferSelect & { title: string }
 
 const testParams = { testType: 'userContext' }
 
@@ -85,12 +87,6 @@ const dataHandlers: { [M in Methods]?: (extData: any, newData: any, match?: Matc
   }
 }
 
-// function isResource<T extends { isResource?: true }>(
-//   resource: T
-// ): resource is T {
-//   return (resource as any).isResource === true
-// }
-
 function isResource<T extends { isResource: true }>(
   value: T | DataCache<T>
 ): value is T {
@@ -117,7 +113,7 @@ class Resource<T = any> {
   dependent?: Dependent;
   isResource = true;
   lookupObj = {} as { [key: string]: { [key: string]: T } };
-  match?: Matcher 
+  match?: Matcher;
 
   constructor({ url, dependent, hash, data, match }: ResourceArgs) {
     this.url = url;
@@ -181,7 +177,7 @@ class Resource<T = any> {
     if (method === 'GET') {
       this.hash = await hash(JSON.stringify(this.data));
     } else {
-      this.hash = await hash(`${this.hash},${method},${result}`);
+      this.hash = await hash(`${this.hash},${method},${JSON.stringify(result)}`);
     }
     // console.log('SET NEW DATA', this.data)
     if (!cache.deferSync) {
@@ -322,12 +318,10 @@ export class ClientHashCacheV5 {
       return;
     }
 
-    console.log('SYNCED V5')
+    // console.log('SYNCED V5')
     this.save();
     this.setSyncState('synced');
-    setTimeout(() => {
-      this.setSyncState('');
-    }, 1500);
+    setTimeout(() => this.setSyncState(''), 1500);
   }
 
   async getAll(cache = this.cache) {
@@ -370,12 +364,12 @@ export class ClientHashCacheV5 {
         })
     )
 
-    console.log({ needsDeleted, needsAdded, needsSynced })
+    // console.log({ needsDeleted, needsAdded, needsSynced })
     if (needsDeleted.length) {
       console.log({ server, client })
       throw Error(`want to delete: ${needsDeleted.join(', ')}`)
     }
-    needsDeleted.forEach(key => delete client[key])
+    needsDeleted.forEach(key => delete client[key]);
     await Promise.all(
       needsAdded.map(async key => {
         console.log('server has new resource, adding and syncing')
@@ -385,7 +379,7 @@ export class ClientHashCacheV5 {
         client[key] = resource;
         await resource.update(this, 'GET');
       })
-    )
+    );
 
     await Promise.all(
       needsSynced.map(async key => {
@@ -398,10 +392,10 @@ export class ClientHashCacheV5 {
           await this.compare(
             server[key] as DataCache<ServerResource>,
             client[key] as DataCache<Resource>,
-          )
+          );
         }
       })
-    )
+    );
 
     // await Promise.all(
     //   Object.keys(server).map(async key => {
@@ -525,7 +519,7 @@ export class ServerHashCacheV5 {
     // if res does not exist create a new one and fill with url and dependent
     // otherwise just update the hash
 
-    console.log('SETTING', res, resource, keys)
+    // console.log('SETTING', res, resource, keys)
     if (isResource<ServerResource>(res)) {
       // RESOURCE ALREADY EXISTS
       if (method === 'GET') {
@@ -561,7 +555,7 @@ export class ServerHashCacheV5 {
       (res as any).dependent = this.reverseDependencies.revDeps[resource];
       (res as any).hash = await hash(JSON.stringify(data));
     }
-    console.log('SET', userHashes)
+    // console.log('SET', userHashes)
 
     // if (method === 'GET') {
     //   // console.log('SETTING', resource, keys)
@@ -589,6 +583,10 @@ export const configV5 = {
   watched: {
     match: [ 'id' ],
     url: (client) => `/api/users/${client.username}/watched`,
+  },
+  reviews: {
+    match: [ 'imdbId' ],
+    url: (client) => `/api/users/${client.username}/reviews`,
   }
 } as const satisfies Config
 
@@ -632,6 +630,17 @@ type ClientTypes<R extends Resources, M extends Methods> = {
     POST: { params: { imdbId: string } },
     DELETE: { params: { id: number } },
   }, undefined>,
+  reviews: FillWith<{
+    POST: {
+      params: { imdbId: string },
+      body: ReviewBody,
+    },
+    PUT: {
+      params: { imdbId: string },
+      body: ReviewBody,
+    },
+    DELETE: { params: { imdbId: string } },
+  }, undefined>,
 }[R][M]
 type ServerTypes<R extends Resources, M extends Methods> = {
   listnames: FillWith<{
@@ -649,6 +658,12 @@ type ServerTypes<R extends Resources, M extends Methods> = {
     GET: WatchedRec[],
     POST: WatchedRec,
     DELETE: { id: number }
+  }, undefined>,
+  reviews: FillWith<{
+    GET: Review[],
+    POST: Review,
+    PUT: Review,
+    DELETE: { imdbId: string },
   }, undefined>,
 }[R][M]
 // type Config = typeof config;

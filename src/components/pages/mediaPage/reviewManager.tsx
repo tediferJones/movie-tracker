@@ -6,15 +6,14 @@ import { Input } from '@/components/ui/input';
 
 import { useEffect, useRef, useState } from 'react';
 import { reviews } from '@/drizzle/schema';
-import { useUser } from '@clerk/nextjs';
 import { Eye, X } from 'lucide-react';
 import Loading from '@/components/subcomponents/loading';
 import ReviewsDisplay from '@/components/subcomponents/reviewsDisplay';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import StarRating from '@/components/subcomponents/StarRating';
 import { inputValidation } from '@/lib/inputValidation';
-import easyFetch from '@/lib/easyFetch';
 import { ratingConfig, watchAgainConfig } from '@/lib/reviewHelpers';
+import { useUserData } from '@/context/userData';
 
 type ExistingReview = typeof reviews.$inferSelect
 export type ReviewBody = {
@@ -26,7 +25,6 @@ export type ReviewBody = {
 export default function ReviewManager({ imdbId }: { imdbId: string }) {
   const [currentReview, setCurrentReview] = useState<ReviewBody>();
   const [existingReview, setExistingReview] = useState<ExistingReview>();
-  const [refreshTrigger, setRefreshTrigger] = useState<boolean>(false);
   const [buttonText, setButtonText] = useState('Waiting...');
   const [modalVisibile, setModalVisible] = useState(false);
   const [changeRating, setChangeRating] = useState(false);
@@ -34,7 +32,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
 
   const reviewMismatch = (
     JSON.stringify(existingReview) !== JSON.stringify(currentReview)
-  )
+  );
   const { starCount, maxRating, minRating, starValue } = ratingConfig;
   const defaultReview: ReviewBody = {
     review: null,
@@ -69,20 +67,22 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
     setCurrentReview({ ...currentReview, rating });
   }
 
-  const { user } = useUser();
+  const userData = useUserData();
   useEffect(() => {
-    if (user?.username) {
-      easyFetch<ExistingReview | undefined>({
-        route: `/api/users/${user.username}/reviews`,
-        method: 'GET',
-        params: { imdbId },
-      }).then(data => {
-          setCurrentReview(data || defaultReview);
-          setExistingReview(data);
-          setButtonText(data ? 'Update Review' : 'Submit Review');
-        });
-    }
-  }, [refreshTrigger, user?.username]);
+    if (!userData.current) return;
+    const reviews = userData.current.getResource('reviews').data;
+    const review = reviews.find(review => review.imdbId === imdbId);
+    setCurrentReview(!review ? defaultReview : {
+      review: review.review,
+      rating: review.rating,
+      watchAgain: review.watchAgain,
+    });
+    setExistingReview(review);
+    setButtonText('');
+  }, [userData]);
+  const defaultButtonText = (
+    existingReview?.username ? 'Update Review' : 'Submit Review'
+  );
 
   return !currentReview ? <Loading /> :
     <>
@@ -181,37 +181,34 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
 
         <Button
           disabled={!reviewMismatch}
-          onClick={() => {
-            if (user?.username) {
-              setButtonText(existingReview ? 'Updating Review...' : 'Adding Review...');
-              easyFetch({
-                route: `/api/users/${user.username}/reviews`,
-                method: existingReview?.username ? 'PUT' : 'POST',
-                params: { imdbId },
-                body: currentReview,
-                skipJSON: true,
-              }).then(() => setRefreshTrigger(!refreshTrigger));
-            }
+          onClick={async () => {
+            console.log(buttonText);
+            if (buttonText) return;
+            if (!userData.current) return;
+            setButtonText(existingReview ? 'Updating Review...' : 'Adding Review...');
+            await userData.current.update({
+              params: { imdbId },
+              body: currentReview,
+            },
+              existingReview?.username ? 'PUT' : 'POST',
+              'reviews',
+            );
           }}
-        >{buttonText}</Button>
+        >{buttonText || defaultButtonText}</Button>
       </div>
       <ConfirmModal
         visible={modalVisibile}
         setVisible={setModalVisible}
-        action={() => {
-          if (user?.username) {
-            setButtonText('Deleting Review...');
-            easyFetch({
-              route: `/api/users/${user.username}/reviews`,
-              method: 'DELETE',
-              params: { imdbId },
-              skipJSON: true,
-            }).then(() => setRefreshTrigger(!refreshTrigger));
-          }
+        action={async () => {
+          if (buttonText) return;
+          if (!userData.current) return;
+          await userData.current.update({
+            params: { imdbId }
+          }, 'DELETE', 'reviews');
         }}
       >
         <p>Are you sure you want to delete this review?</p>
       </ConfirmModal>
-      <ReviewsDisplay imdbId={imdbId} extTrigger={refreshTrigger} />
+      <ReviewsDisplay imdbId={imdbId} />
     </>
 }

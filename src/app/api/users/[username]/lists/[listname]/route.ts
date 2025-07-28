@@ -7,7 +7,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
 import { serverHashCache } from '@/lib/hashCacheV4';
-import { serverHashCacheV5 } from '@/lib/hashCacheV5';
+import { ListItem, serverHashCacheV5 } from '@/lib/hashCacheV5';
 
 type Params = { username: string, listname: string }
 
@@ -21,10 +21,16 @@ export async function GET(req: Request, { params }: { params: Params }) {
     const listRecords = await db.select().from(lists).where(
       eq(lists.listnameId, listId),
     );
+    await getManyExistingMedia(listRecords.map(listRec => listRec.imdbId));
+    const result = listRecords.map(listRec => {
+      const temp = listRec as ListItem;
+      temp.mediaInfo = cache.get(listRec.imdbId);
+      return temp;
+    })
     await serverHashCacheV5.update(
       req,
       username,
-      listRecords,
+      result,
       'GET',
       'listContents',
       listId.toString()
@@ -49,8 +55,10 @@ export async function GET(req: Request, { params }: { params: Params }) {
           eq(lists.listname, listname),
         )
       ).orderBy(desc(lists.date));
+      console.log('LIST ITEMS', listRecords)
 
       const listData = await getManyExistingMedia(listRecords.map(rec => rec.imdbId));
+      console.log('LIST ITEMS INFO', listData)
       cache.set(cacheStr, listData);
     } catch {
       return NextResponse.json('Failed to process request, database error', { status: 500 });
@@ -260,7 +268,7 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
     const listId = searchParams.get('listId');
     if (!imdbId) throw Error('could not get imdbId param');
     if (!listId) throw Error('could not get listId param');
-  console.log('DELETE', username, listname, imdbId)
+    console.log('DELETE', username, listname, imdbId)
     const temp = await db.delete(lists).where(
       and(
         eq(lists.username, username),
@@ -325,6 +333,33 @@ export async function PATCH(req: Request, { params }: { params: Params }) {
     return NextResponse.json('Bad Request', { status: 400 });
   }
   const imdbId = searchParams.get('imdbId')!;
+
+  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+    const date = Date.now();
+    await db.update(lists).set({ date }).where(
+      and(
+        eq(lists.username, username),
+        eq(lists.listname, listname),
+        eq(lists.imdbId, imdbId)
+      )
+    );
+    cache.delete(`${username},${imdbId},lists`);
+    cache.delete(`${username},${listname}`);
+
+    const newEntry = await db.select().from(lists).where(
+      and(
+        eq(lists.username, username),
+        eq(lists.listname, listname),
+        eq(lists.imdbId, imdbId)
+      )
+    ).get();
+    if (!newEntry) throw Error('entry does not exist');
+    const withMediaInfo = newEntry as ListItem;
+    withMediaInfo.mediaInfo = cache.get(imdbId);
+    if (withMediaInfo.mediaInfo) throw Error('no media info added');
+    await serverHashCacheV5.update(req, username, withMediaInfo, 'PATCH', 'listContents');
+    return NextResponse.json(newEntry);
+  }
 
   try {
     await db.update(lists).set({ date: Date.now() }).where(

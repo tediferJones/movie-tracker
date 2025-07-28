@@ -1,6 +1,7 @@
 import { ReviewBody } from '@/components/pages/mediaPage/reviewManager';
 import { listnames, lists, reviews, watched } from '@/drizzle/schema';
 import easyFetch, { Methods } from '@/lib/easyFetch';
+import { ExistingMediaInfo } from '@/types';
 import { Dispatch, SetStateAction } from 'react';
 
 type EasyFetchData = Omit<
@@ -44,7 +45,9 @@ type SetUserContext = Dispatch<SetStateAction<UserContext>>
 export type SyncOpts = 'notSynced' | 'syncing' | 'synced' | ''
 
 type Listname = typeof listnames.$inferSelect;
-type ListItem = typeof lists.$inferSelect;
+// type ListItem = typeof lists.$inferSelect;
+// type ListItem = (ExistingMediaInfo & { listData: number })[]
+export type ListItem = (typeof lists.$inferSelect) & { mediaInfo: ExistingMediaInfo };
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 type Review = typeof reviews.$inferSelect & { title: string }
 
@@ -625,6 +628,7 @@ type ClientTypes<R extends Resources, M extends Methods> = {
     DELETE: {
       params: { listname: string, listId: number, imdbId: string },
     },
+    PATCH: { params: { imdbId: string } },
   }, undefined>,
   watched: FillWith<{
     POST: { params: { imdbId: string } },
@@ -651,7 +655,10 @@ type ServerTypes<R extends Resources, M extends Methods> = {
     PATCH: Listname,
   }, undefined>,
   listContents: FillWith<{
+    // GET: ListItem[],
+    // GET: ExistingMediaInfo[],
     GET: ListItem[],
+    PATCH: ListItem,
     DELETE: { imdbId: string },
   }, undefined>,
   watched: FillWith<{

@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { inputValidation } from '@/lib/inputValidation';
-import easyFetch from '@/lib/easyFetch';
+// import easyFetch from '@/lib/easyFetch';
 import { useUserData } from '@/context/userData';
 import { listnames } from '@/drizzle/schema';
 
@@ -25,7 +25,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const [matchingLists, setMatchingLists] = useState<Listname[]>();
   const [currentList, setCurrentList] = useState<string>(illegalListname);
   const [allListnames, setAllListnames] = useState<Listname[]>();
-  const [refreshTrigger, setRefreshTrigger] = useState(false);
+  // const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmList, setConfirmList] = useState('');
   const [buttonText, setButtonText] = useState('Waiting...');
@@ -74,7 +74,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         const list = allListnames.find(list => list.listname === listname);
         if (!list) throw Error(`No listId for ${currentList}`);
         await userData.current.update({
-          params: { listname, listId: list.id, imdbId  }
+          params: { listname, listId: list.id, imdbId }
         }, 'POST', 'listContents', list.id);
         // FIX ME
         // WHAT DOES THIS DO
@@ -90,14 +90,19 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
                 <button className='relative hover:ring-ring hover:ring-2 rounded-lg p-2'
                   type='button'
                   onClick={() => {
+                    if (buttonText) return;
                     console.log(`bumping ${imdbId} in ${listname}`)
                     setButtonText(`Bumping ${listname}...`);
-                    easyFetch({
-                      route: `/api/users/${userData.current!.username}/lists/${listname}`,
-                      method: 'PATCH',
-                      params: { imdbId },
-                      skipJSON: true,
-                    }).then(() => setRefreshTrigger(!refreshTrigger));
+                    if (!userData.current) return;
+                    userData.current.update({
+                      params: { imdbId }
+                    }, 'PATCH', 'listContents');
+                    // easyFetch({
+                    //   route: `/api/users/${userData.current!.username}/lists/${listname}`,
+                    //   method: 'PATCH',
+                    //   params: { imdbId },
+                    //   skipJSON: true,
+                    // }).then(() => setRefreshTrigger(!refreshTrigger));
                   }}
                 >
                   <span className='sr-only'>Bump {listname}</span>

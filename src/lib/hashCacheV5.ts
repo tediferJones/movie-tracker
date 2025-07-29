@@ -47,7 +47,8 @@ export type SyncOpts = 'notSynced' | 'syncing' | 'synced' | ''
 type Listname = typeof listnames.$inferSelect;
 // type ListItem = typeof lists.$inferSelect;
 // type ListItem = (ExistingMediaInfo & { listData: number })[]
-export type ListItem = (typeof lists.$inferSelect) & { mediaInfo: ExistingMediaInfo };
+// export type ListItem = (typeof lists.$inferSelect) & { mediaInfo: ExistingMediaInfo };
+export type ListItem = (ExistingMediaInfo & { dateAdded: number })
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 type Review = typeof reviews.$inferSelect & { title: string }
 

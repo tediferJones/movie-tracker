@@ -8,6 +8,7 @@ import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
 import { serverHashCache } from '@/lib/hashCacheV4';
 import { ListItem, serverHashCacheV5 } from '@/lib/hashCacheV5';
+import { ExistingMediaInfo } from '@/types';
 
 type Params = { username: string, listname: string }
 
@@ -22,10 +23,18 @@ export async function GET(req: Request, { params }: { params: Params }) {
       eq(lists.listnameId, listId),
     );
     await getManyExistingMedia(listRecords.map(listRec => listRec.imdbId));
-    const result = listRecords.map(listRec => {
-      const temp = listRec as ListItem;
-      temp.mediaInfo = cache.get(listRec.imdbId);
-      return temp;
+    // const result = listRecords.map(listRec => {
+    //   const temp = listRec as ListItem;
+    //   // temp.mediaInfo = cache.get(listRec.imdbId);
+    //   return temp;
+    // })
+    const result = listRecords.map(({ imdbId, date }) => {
+      const mediaInfo: ExistingMediaInfo = cache.get(imdbId);
+      if (!mediaInfo) throw Error('could not find media info');
+      return {
+        ...mediaInfo,
+        dateAdded: date,
+      }
     })
     await serverHashCacheV5.update(
       req,
@@ -43,7 +52,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
     //   listRecords as any,
     //   listId.toString(),
     // );
-    return NextResponse.json(listRecords);
+    return NextResponse.json(result);
   }
   
   const cacheStr = `${username},${listname}`;
@@ -346,19 +355,24 @@ export async function PATCH(req: Request, { params }: { params: Params }) {
     cache.delete(`${username},${imdbId},lists`);
     cache.delete(`${username},${listname}`);
 
-    const newEntry = await db.select().from(lists).where(
-      and(
-        eq(lists.username, username),
-        eq(lists.listname, listname),
-        eq(lists.imdbId, imdbId)
-      )
-    ).get();
-    if (!newEntry) throw Error('entry does not exist');
-    const withMediaInfo = newEntry as ListItem;
-    withMediaInfo.mediaInfo = cache.get(imdbId);
-    if (withMediaInfo.mediaInfo) throw Error('no media info added');
-    await serverHashCacheV5.update(req, username, withMediaInfo, 'PATCH', 'listContents');
-    return NextResponse.json(newEntry);
+    // const newEntry = await db.select().from(lists).where(
+    //   and(
+    //     eq(lists.username, username),
+    //     eq(lists.listname, listname),
+    //     eq(lists.imdbId, imdbId)
+    //   )
+    // ).get();
+    // if (!newEntry) throw Error('entry does not exist');
+    // const withMediaInfo = newEntry as ListItem;
+    // withMediaInfo.mediaInfo = cache.get(imdbId);
+    // if (withMediaInfo.mediaInfo) throw Error('no media info added');
+    const mediaInfo = cache.get(imdbId);
+    const result: ListItem = {
+      ...mediaInfo,
+      dateAdded: date,
+    } satisfies ListItem
+    await serverHashCacheV5.update(req, username, result, 'PATCH', 'listContents');
+    return NextResponse.json(result);
   }
 
   try {

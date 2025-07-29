@@ -32,11 +32,13 @@ export default function MyTable(
     children,
     linkPrefix,
     useScrollArea,
+    listItem,
   }: {
     data: ExistingMediaInfo[],
     children?: ReactNode,
     linkPrefix: string,
     useScrollArea?: boolean,
+    listItem?: boolean,
   }
 ) {
   const [sortedAndFiltered, setSortedAndFiltered] = useState(data);
@@ -194,6 +196,7 @@ export default function MyTable(
               'language',
             ]}
             sortable={{
+              ...(listItem ? { dateAdded: sortNums } : {}),
               updatedAt: sortNums,
               title: sortChars, 
               rated: sortChars,

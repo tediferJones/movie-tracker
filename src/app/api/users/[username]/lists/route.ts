@@ -3,10 +3,8 @@ import { listnames, lists } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import cache from '@/lib/cache';
-import { hashTable } from '@/lib/hashCache';
 import { currentUser } from '@clerk/nextjs';
 import { isValid } from '@/lib/inputValidation';
-import { serverHashCache } from '@/lib/hashCacheV4';
 import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 
 type Params = { username: string }
@@ -35,27 +33,28 @@ export async function GET(req: Request, { params }: { params: Params }) {
   // there will be loads of duplicates
   try {
     if (searchParams.has('imdbId')) {
-      const imdbId = searchParams.get('imdbId')!
-      const cacheStr = `${username},${imdbId},lists`
+      const imdbId = searchParams.get('imdbId')!;
+      const cacheStr = `${username},${imdbId},lists`;
       if (!cache.get(cacheStr)) {
         const listnames = await db.select({ listname: lists.listname }).from(lists).where(
           and(
             eq(lists.imdbId, imdbId),
             eq(lists.username, username),
           )
-        )
-        cache.set(cacheStr, listnames.map(listRec => listRec.listname))
+        );
+        // cache.set(cacheStr, listnames.map(listRec => listRec.listname))
+        cache.set(cacheStr, listnames);
       }
-      return NextResponse.json(cache.get(cacheStr))
+      return NextResponse.json(cache.get(cacheStr));
     } else {
-      const cacheStr = `${username},lists`
+      const cacheStr = `${username},lists`;
       if (!cache.get(cacheStr)) {
         const listRecs = await db.select().from(listnames).where(
           eq(listnames.username, username)
-        )
-        cache.set(cacheStr, listRecs.map(listRec => listRec.listname))
+        );
+        cache.set(cacheStr, listRecs);
       }
-      return NextResponse.json(cache.get(cacheStr))
+      return NextResponse.json(cache.get(cacheStr));
     }
   } catch {
     return NextResponse.json('Failed to process request, database error', { status: 500 });

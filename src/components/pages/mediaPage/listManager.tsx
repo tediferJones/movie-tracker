@@ -35,21 +35,11 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
     if (!userData.current) return console.log('no current');
     if (!userData.current.isSynced) return console.log('out of sync');
     const listnames = userData.current.getResource('listnames');
-    const listContents = userData.current.getResource('listContents');
 
-    // FIX ME, this is kinda ugly and not very intuitive
-    // at least try to fix the @ts-ignores
-    const { included, excluded } = listnames.data.reduce((obj, listname) => {
-      // @ts-ignore
-      const found = listContents[listname.id].data.find(
-        // @ts-ignore
-        listItem => listItem.imdbId === imdbId
-      );
-      if (found) {
-        obj.included.push(listname);
-      } else {
-        obj.excluded.push(listname);
-      }
+    const { included, excluded } = listnames.reduce((obj, listname) => {
+      if (!userData.current) throw Error('Cannot find userData');
+      const found = userData.current.getResource('listContents', listname.id);
+      obj[found ? 'included' : 'excluded'].push(listname);
       return obj;
     }, { included: [] as Listname[], excluded: [] as Listname[] });
 

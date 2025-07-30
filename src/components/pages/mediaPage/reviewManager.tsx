@@ -70,7 +70,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   const userData = useUserData();
   useEffect(() => {
     if (!userData.current) return;
-    const reviews = userData.current.getResource('reviews').data;
+    const reviews = userData.current.getResource('reviews');
     const review = reviews.find(review => review.imdbId === imdbId);
     setCurrentReview(!review ? defaultReview : {
       review: review.review,

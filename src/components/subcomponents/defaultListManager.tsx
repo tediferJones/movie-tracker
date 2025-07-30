@@ -38,7 +38,7 @@ export default function DefaultListManager() {
   const userData = useUserData();
   useEffect(() => {
     if (!userData.current) return;
-    const listnames = userData.current.getResource('listnames').data;
+    const listnames = userData.current.getResource('listnames');
     setListnames(listnames);
     setDefaultList(listnames.find(listname => listname.defaultList));
     setButtonText('');

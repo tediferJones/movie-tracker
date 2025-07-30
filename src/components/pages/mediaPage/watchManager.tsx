@@ -22,7 +22,7 @@ export default function WatchManger({ imdbId }: { imdbId: string }) {
   const userData = useUserData();
   useEffect(() => {
     if (!userData.current) return;
-    const watchedRecs = userData.current.getResource('watched').data;
+    const watchedRecs = userData.current.getResource('watched');
     setWatched(
       watchedRecs
         .filter(watchRec => watchRec.imdbId === imdbId)

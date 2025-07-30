@@ -479,10 +479,15 @@ export class ClientHashCacheV5 {
     // this should return the resource's .data attribute, not the whole resource
     // unless there is a reason to access other attributes client side
     // but so far there is no need
-    return keys.reduce((data, key) => {
+    // return keys.reduce((data, key) => {
+    //   if (!data[key]) throw Error(`Key: ${key} does not exist`);
+    //   return data[key]
+    // }, this.cache[resource] as { [key: string]: any }) as Resource<ServerTypes<R, 'GET'>>
+    const res = keys.reduce((data, key) => {
       if (!data[key]) throw Error(`Key: ${key} does not exist`);
       return data[key]
     }, this.cache[resource] as { [key: string]: any }) as Resource<ServerTypes<R, 'GET'>>
+    return res.data;
   }
 }
 
@@ -523,7 +528,7 @@ export class ServerHashCacheV5 {
     // if res does not exist create a new one and fill with url and dependent
     // otherwise just update the hash
 
-    // console.log('SETTING', res, resource, keys)
+    console.log('SETTING', res, resource, keys)
     if (isResource<ServerResource>(res)) {
       // RESOURCE ALREADY EXISTS
       if (method === 'GET') {
@@ -601,14 +606,14 @@ export const configV5 = {
 
 // copy this pattern over to regular server cache if it proves to work correctly
 declare global {
-  var serverHashCacheV5: ServerHashCacheV5 | undefined;
+  var serverHashCacheGlobal: ServerHashCacheV5 | undefined;
 }
 export const serverHashCacheV5 = (
-  globalThis.serverHashCacheV5 || new ServerHashCacheV5(configV5)
+  globalThis.serverHashCacheGlobal || new ServerHashCacheV5(configV5)
 );
-if (!globalThis.serverHashCacheV5) {
+if (!globalThis.serverHashCacheGlobal) {
   console.log('SETTING HASH CACHE')
-  globalThis.serverHashCacheV5 = serverHashCacheV5;
+  globalThis.serverHashCacheGlobal = serverHashCacheV5;
 }
 
 type FillWith<T extends Partial<Record<Methods, any>>, F> = {

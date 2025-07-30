@@ -40,7 +40,7 @@ export default function WatchedDisplay({ username }: { username: string }) {
     if (isSelf) {
       if (!userData.current) return;
       console.log('using userData')
-      setWatched(userData.current.getResource('watched').data);
+      setWatched(userData.current.getResource('watched'));
     } else {
       console.log('fetching')
       easyFetch<WatchedRec[]>({

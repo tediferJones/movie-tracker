@@ -39,7 +39,7 @@ export default function ReviewsDisplay(
     // if imdbId exists, only fetch records related to imdbId
     // if no imdbId, fetch all records for user
     if (userData.current && userData.current.username === username) {
-      const reviews = userData.current.getResource('reviews').data;
+      const reviews = userData.current.getResource('reviews');
       setReviews(reviews);
       setAllReviews(reviews);
     } else if (username) {

@@ -1,34 +1,23 @@
 import { db } from '@/drizzle/db';
 import { media, watched } from '@/drizzle/schema';
 import { currentUser } from '@clerk/nextjs';
-import { and,/* count,*/ desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
-import cache from '@/lib/cache';
-import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
-import { hashTable } from '@/lib/hashCache';
+import cache, { addTitleV2, apiHandler } from '@/lib/cache';
+import { getManyExistingMedia, getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
 import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 
 type Params = { username: string }
 
-function addTitle(records: { imdbId: string }[]) {
-  return records.map((watchRec: typeof records[number] & { title?: string }) => {
-    watchRec.title = cache.get(watchRec.imdbId).title;
-    if (!watchRec.title) {
-      console.log('cant find title')
-      throw Error('could not find title');
-    }
-    return watchRec;
-  })
-}
-
-// FIX ME
-// async function getCount(cacheStr: string, query: Function) {
-//   // this is being added to the cache, so anytime watch records are modified, it needs to be cleared
-//   const cacheStrCount = `${cacheStr},count`;
-//   if (!cache.get(cacheStrCount)) {
-//     cache.set(cacheStrCount, await query());
-//   }
-//   return cache.get(cacheStrCount);
+// function addTitle(records: { imdbId: string }[]) {
+//   return records.map((watchRec: typeof records[number] & { title?: string }) => {
+//     watchRec.title = cache.get(watchRec.imdbId).title;
+//     if (!watchRec.title) {
+//       console.log('cant find title')
+//       throw Error('could not find title');
+//     }
+//     return watchRec;
+//   })
 // }
 
 export async function GET(req: Request, { params }: { params: Params }) {
@@ -36,6 +25,14 @@ export async function GET(req: Request, { params }: { params: Params }) {
   // if urlParams has imdbId, only return records related to that imdbId
   const { username } = params;
   const { searchParams } = new URL(req.url);
+
+  return await apiHandler(req, 'users', username, 'watched', async () => {
+    const watchRecs = await db.select().from(watched).where(
+      eq(watched.username, username)
+    ).orderBy(desc(watched.date));
+    await getManyExistingMediaV2(watchRecs.map(rec => rec.imdbId));
+    return addTitleV2(watchRecs);
+  });
 
   // TESTING
   if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {

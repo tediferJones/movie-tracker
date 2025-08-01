@@ -4,7 +4,7 @@ import { listnames, reviews, watched } from '@/drizzle/schema';
 import { Methods } from '@/lib/easyFetch';
 import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 import { ExistingMediaInfo } from '@/types';
-import { getManyExistingMedia } from './getManyExistingMedia';
+import { getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
 
 class Cache {
   cache: Record<string, { data: any, date: number }>
@@ -59,7 +59,7 @@ const cacheDataSymbol = Symbol('isCacheData');
 class CacheData<T> {
   data: T;
   date = Date.now();
-  isCacheData = cacheDataSymbol;
+  [cacheDataSymbol] = true;
 
   constructor(data: T) {
     this.data = data;
@@ -118,7 +118,7 @@ class CacheV2 {
     K extends keyof CacheType[T],
     R extends keyof CacheType[T][K],
     V extends CacheType[T][K][R] & CacheData<unknown>
-  >(type: T, key: K, resource: R, dbQuery: () => Promise<V['data']>) {
+  >(type: T, key: K, resource: R, dbQuery: (() => Promise<V['data']>) | (() => V['data'])) {
     // if (!this.cache[type]?.[key]?.[resource]) {
     //   this.cache[type][key][resource] = {
     //     date: Date.now(),
@@ -129,40 +129,46 @@ class CacheV2 {
     // if (!this.cache[type][key]) this.cache[type][key] = {}
     // this.cache[type][key] ??= {} as NonNullable<CacheType[T][K]>
     // const keyObj = this.cache[type][key] as NonNullable<CacheType[T][K]>
-    const keyObj = this.getKeyObj(type, key);
-    if (!keyObj[resource]) {
-      keyObj[resource] = new CacheData(await dbQuery());
+    // const keyObj = this.getKeyObj(type, key);
+    // if (!keyObj[resource]) {
+    //   keyObj[resource] = new CacheData(await dbQuery());
+    // }
+    // return keyObj[resource];
+    if (!this.get(type, key, resource)) {
+      this.set(type, key, resource, await dbQuery());
     }
-    return keyObj[resource];
+    return this.get(type, key, resource)!;
   }
 
-  private getKeyObj<
-    T extends keyof CacheType,
-    K extends keyof CacheType[T]
-  >(type: T, key: K) {
-    this.cache[type][key] ??= {} as NonNullable<CacheType[T][K]>;
-    // return this.cache[type][key] as NonNullable<CacheType[T][K]>;
-    return this.cache[type][key] as any;
-  }
+  // private getKeyObj<
+  //   T extends keyof CacheType,
+  //   K extends keyof CacheType[T]
+  // >(type: T, key: K) {
+  //   this.cache[type][key] ??= {} as NonNullable<CacheType[T][K]>;
+  //   // return this.cache[type][key] as NonNullable<CacheType[T][K]>;
+  //   return this.cache[type][key] as any;
+  // }
 
   clearKey<
     T extends keyof CacheType,
     K extends keyof CacheType[T],
     R extends keyof CacheType[T][K],
   >(type: T, key: K, resource: R) {
-    const keyObj = this.getKeyObj(type, key);
-    if (keyObj[resource]) delete keyObj[resource];
-    // delete this.cache[type][key][resource];
+    // const keyObj = this.getKeyObj(type, key);
+    // if (keyObj[resource]) delete keyObj[resource];
+    delete this.cache[type][key][resource];
   }
 
-  forceSet<
+  set<
     T extends keyof CacheType,
     K extends keyof CacheType[T],
     R extends keyof CacheType[T][K],
     V extends CacheType[T][K][R] & CacheData<unknown>
   >(type: T, key: K, resource: R, value: V['data']) {
-    const keyObj = this.getKeyObj(type, key);
-    keyObj[resource] = new CacheData(value);
+    // const keyObj = this.getKeyObj(type, key);
+    // keyObj[resource] = new CacheData(value);
+    if (!this.cache[type][key]) this.cache[type][key] = {} as any;
+    this.cache[type][key][resource] = new CacheData(value) as any;
   }
 
   autoDelete(time: number, cache = this.cache as any) {
@@ -192,8 +198,16 @@ class CacheV2 {
     // return ((this.cache[type]?.[key])?.[resource] as CacheData<CacheType[T][K][R]>)?.data;
     // return (this.cache[type]?.[key]?.[resource] as CacheData<CacheType[T][K][R]> | undefined)?.data;
     // return this.cache[type]?.[key]?.[resource]?.data;
-    const entry = this.cache[type]?.[key]?.[resource] as CacheData<unknown>;
-    return entry?.data as UnwrapCacheData<CacheType[T][K][R]> | undefined;
+    // const entry = this.cache[type]?.[key]?.[resource] as CacheData<unknown>;
+    // console.log('GET', entry);
+    // return entry?.data as UnwrapCacheData<CacheType[T][K][R]> | undefined;
+    // console.log(this.cache)
+    // console.log(this.cache[type])
+    // console.log(this.cache[type][key])
+    // console.log(this.cache[type][key][resource])
+    return (this.cache[type]?.[key]?.[resource] as any)?.data;
+    // console.log(this.cache)
+    // throw Error('fucking WHY')
   }
 }
 
@@ -203,6 +217,58 @@ class CacheV2 {
 //   'listnames',
 //   'listContents',
 // ]
+
+// export async function apiHandler<
+//   T extends keyof CacheType,
+//   K extends keyof CacheType[T],
+//   R extends keyof CacheType[T][K],
+//   V extends CacheType[T][K][R] & CacheData<unknown>
+// >(
+//   req: Request,
+//   type: T,
+//   key: K,
+//   resource: R,
+//   dbQuery: () => Promise<V['data']>,
+//   username: string,
+// ) {
+//   const method = req.method as Methods;
+// 
+//   // types for data and resource should be tied to those of serverHashCache
+//   try {
+//     if (method === 'GET') {
+//       const data = await cacheV2.getSet(type, key, resource, dbQuery);
+//       await serverHashCacheV5.update(
+//         req,
+//         username,
+//         data as any,
+//         method,
+//         resource as any
+//       );
+//       return NextResponse.json(data);
+//     } else {
+//       if (type === 'users') {
+//         // trying to modify user data, make sure user is self
+//         const user = await currentUser();
+//         if (!user?.username || user.username !== username) {
+//           return NextResponse.json('Unauthorized', { status: 401 });
+//         }
+//       }
+// 
+//       cacheV2.clearKey(type, key, resource);
+//       const data = await dbQuery();
+//       await serverHashCacheV5.update(
+//         req,
+//         username,
+//         data as any,
+//         method,
+//         resource as any
+//       );
+//       return NextResponse.json(data);
+//     }
+//   } catch {
+//     return NextResponse.json('Failed to process request, database error', { status: 500 });
+//   }
+// }
 
 export async function apiHandler<
   T extends keyof CacheType,
@@ -215,51 +281,53 @@ export async function apiHandler<
   key: K,
   resource: R,
   dbQuery: () => Promise<V['data']>,
-  username: string,
+  opts: { needsAuth?: boolean } = {},
 ) {
+  // types for data and resource should be tied to those of serverHashCache
+  // if type === 'users' then key is username
+
   const method = req.method as Methods;
 
-  // types for data and resource should be tied to those of serverHashCache
+  if (opts.needsAuth) {
+    // trying to modify user data, make sure user is self
+    const user = await currentUser();
+    if (!user?.username || user.username !== key) {
+      return NextResponse.json('Unauthorized', { status: 401 });
+    }
+  }
+
+  let data: V['data'];
   try {
     if (method === 'GET') {
-      const data = await cacheV2.getSet(type, key, resource, dbQuery);
-      await serverHashCacheV5.update(
-        req,
-        username,
-        data as any,
-        method,
-        resource as any
-      );
-      return NextResponse.json(data);
+      data = await cacheV2.getSet(type, key, resource, dbQuery);
     } else {
-      if (type === 'users') {
-        // trying to modify user data, make sure user is self
-        const user = await currentUser();
-        if (!user?.username || user.username !== username) {
-          return NextResponse.json('Unauthorized', { status: 401 });
-        }
-      }
-
       cacheV2.clearKey(type, key, resource);
-      const data = await dbQuery();
-      await serverHashCacheV5.update(
-        req,
-        username,
-        data as any,
-        method,
-        resource as any
-      );
-      return NextResponse.json(data);
+      data = await dbQuery();
     }
   } catch {
-    return NextResponse.json('Failed to process request, database error', { status: 500 });
+    return NextResponse.json(
+      'Failed to process request, database error',
+      { status: 500 }
+    );
   }
+
+  if (type === 'users') {
+    await serverHashCacheV5.update(
+      req,
+      key as string, // if type is 'users' then key is username
+      data as any,
+      method,
+      resource as any
+    );
+  }
+
+  return NextResponse.json(data);
 }
 
-async function addTitleV2<T extends { imdbId: string }>(
+export async function addTitleV2<T extends { imdbId: string }>(
   arr: T[]
 ): Promise<(T & { title: string })[]> {
-  await getManyExistingMedia(arr.map(item => item.imdbId));
+  await getManyExistingMediaV2(arr.map(item => item.imdbId));
   return arr.map(item => {
     const mediaInfo = cacheV2.get('media', item.imdbId, 'mediaInfo');
     if (!mediaInfo) throw Error('could not find media info');
@@ -289,3 +357,6 @@ if (!globalThis.cacheV2Global) {
 //   return db.select().from(listnames)
 // })
 // const testTitle = cacheV2.get('media', 'imdbId', 'mediaInfo').data.title
+// cacheV2.set('users', 'me', 'watched', () => ('test' as any));
+// const result = cacheV2.get('users', 'me', 'watched');
+// console.log('GET', result);

@@ -116,96 +116,126 @@ export async function GET(req: Request, { params }: { params: Params }) {
 export async function POST(req: Request, { params }: { params: Params }) {
   // add watched record for user and imdbId
   const { username } = params;
-  const { searchParams } = new URL(req.url);
 
-  const user = await currentUser()
-  if (!user?.username || user.username !== username) {
-    return NextResponse.json('Unauthorized', { status: 401 });
-  }
-
-  if (!searchParams.has('imdbId')) {
-    return NextResponse.json('Bad request, no imdbId', { status: 400 });
-  }
-
-  // TESTING
-  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
-    const imdbId = searchParams.get('imdbId')!;
-    console.log('POST WATCHED TEST', imdbId)
+  return await apiHandler(req, 'users', username, 'watched', async (imdbId: string) => {
     const preInsertRecord = { username, imdbId, date: Date.now() };
     const { lastInsertRowid } = await db.insert(watched).values(preInsertRecord);
+    const [ mediaInfo ] = await getManyExistingMediaV2([ imdbId ]);
     const postInsertRecord = {
       id: Number(lastInsertRowid),
-      title: cache.get(imdbId).title,
+      title: mediaInfo.title,
       ...preInsertRecord,
     }
-    if (!postInsertRecord.title) throw Error('could not find title');
-    // hashTable.updateResource(username, 'watched', 'POST', postInsertRecord)
-    await serverHashCacheV5.update(req, username, postInsertRecord, 'POST', 'watched');
-    cache.delete(`${username},${imdbId},watched`);
-    cache.delete(`${username},watched`);
-    return NextResponse.json(postInsertRecord);
-  }
+    return postInsertRecord;
+  }, {
+      needsAuth: true,
+      requiredParams: { imdbId: 'string' }
+    });
 
-  const imdbId = searchParams.get('imdbId')!;
-  const imdbIdExists = db.select().from(media).where(eq(media.imdbId, imdbId)).get();
-  if (!imdbIdExists) {
-    return NextResponse.json('ImdbId not found', { status: 404 });
-  }
+  // const { searchParams } = new URL(req.url);
 
-  try {
-    await db.insert(watched).values({ username, imdbId, date: Date.now() });
-    cache.delete(`${username},${imdbId},watched`);
-    cache.delete(`${username},watched`);
-    return new NextResponse();
-  } catch {
-    return NextResponse.json('Failed to process request, database error', { status: 500 });
-  }
+  // const user = await currentUser()
+  // if (!user?.username || user.username !== username) {
+  //   return NextResponse.json('Unauthorized', { status: 401 });
+  // }
+
+  // if (!searchParams.has('imdbId')) {
+  //   return NextResponse.json('Bad request, no imdbId', { status: 400 });
+  // }
+
+  // // TESTING
+  // if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+  //   const imdbId = searchParams.get('imdbId')!;
+  //   console.log('POST WATCHED TEST', imdbId)
+  //   const preInsertRecord = { username, imdbId, date: Date.now() };
+  //   const { lastInsertRowid } = await db.insert(watched).values(preInsertRecord);
+  //   const postInsertRecord = {
+  //     id: Number(lastInsertRowid),
+  //     title: cache.get(imdbId).title,
+  //     ...preInsertRecord,
+  //   }
+  //   if (!postInsertRecord.title) throw Error('could not find title');
+  //   // hashTable.updateResource(username, 'watched', 'POST', postInsertRecord)
+  //   await serverHashCacheV5.update(req, username, postInsertRecord, 'POST', 'watched');
+  //   cache.delete(`${username},${imdbId},watched`);
+  //   cache.delete(`${username},watched`);
+  //   return NextResponse.json(postInsertRecord);
+  // }
+
+  // const imdbId = searchParams.get('imdbId')!;
+  // const imdbIdExists = db.select().from(media).where(eq(media.imdbId, imdbId)).get();
+  // if (!imdbIdExists) {
+  //   return NextResponse.json('ImdbId not found', { status: 404 });
+  // }
+
+  // try {
+  //   await db.insert(watched).values({ username, imdbId, date: Date.now() });
+  //   cache.delete(`${username},${imdbId},watched`);
+  //   cache.delete(`${username},watched`);
+  //   return new NextResponse();
+  // } catch {
+  //   return NextResponse.json('Failed to process request, database error', { status: 500 });
+  // }
 }
 
 export async function DELETE(req: Request, { params }: { params: Params }) {
   // Delete watch record for a given user and id
   const { username } = params;
-  const { searchParams } = new URL(req.url);
 
-  const user = await currentUser();
-  if (!user?.username || user.username !== username) {
-    return NextResponse.json('Unauthorized', { status: 401 });
-  }
-
-  if (!searchParams.has('id')) {
-    return NextResponse.json('Bad request, no id', { status: 400 });
-  }
-
-  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
-    const id = Number(searchParams.get('id'));
+  return await apiHandler(req, 'users', username, 'watched', async (id: number) => {
     await db.delete(watched).where(
       and(
         eq(watched.username, username),
         eq(watched.id, id),
       )
     );
-    // hashTable.updateResource(username, 'watched', 'DELETE', { id })
-    await serverHashCacheV5.update(req, username, { id }, 'DELETE', 'watched');
-    return NextResponse.json({ id })
-  }
+    return { id };
+  }, {
+      needsAuth: true,
+      requiredParams: { id: 'number' }
+    });
 
-  if (!searchParams.has('imdbId')) {
-    return NextResponse.json('Bad request, no imdbId', { status: 400 });
-  }
+  // const { searchParams } = new URL(req.url);
 
-  const id = searchParams.get('id')!;
-  const imdbId = searchParams.get('imdbId')!;
-  try {
-    await db.delete(watched).where(
-      and(
-        eq(watched.username, username),
-        eq(watched.id, Number(id)),
-      )
-    );
-    cache.delete(`${username},${imdbId},watched`);
-    cache.delete(`${username},watched`);
-    return new NextResponse();
-  } catch {
-    return NextResponse.json('Failed to process request, database error', { status: 500 });
-  }
+  // const user = await currentUser();
+  // if (!user?.username || user.username !== username) {
+  //   return NextResponse.json('Unauthorized', { status: 401 });
+  // }
+
+  // if (!searchParams.has('id')) {
+  //   return NextResponse.json('Bad request, no id', { status: 400 });
+  // }
+
+  // if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+  //   const id = Number(searchParams.get('id'));
+  //   await db.delete(watched).where(
+  //     and(
+  //       eq(watched.username, username),
+  //       eq(watched.id, id),
+  //     )
+  //   );
+  //   // hashTable.updateResource(username, 'watched', 'DELETE', { id })
+  //   await serverHashCacheV5.update(req, username, { id }, 'DELETE', 'watched');
+  //   return NextResponse.json({ id })
+  // }
+
+  // if (!searchParams.has('imdbId')) {
+  //   return NextResponse.json('Bad request, no imdbId', { status: 400 });
+  // }
+
+  // const id = searchParams.get('id')!;
+  // const imdbId = searchParams.get('imdbId')!;
+  // try {
+  //   await db.delete(watched).where(
+  //     and(
+  //       eq(watched.username, username),
+  //       eq(watched.id, Number(id)),
+  //     )
+  //   );
+  //   cache.delete(`${username},${imdbId},watched`);
+  //   cache.delete(`${username},watched`);
+  //   return new NextResponse();
+  // } catch {
+  //   return NextResponse.json('Failed to process request, database error', { status: 500 });
+  // }
 }

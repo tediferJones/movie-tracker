@@ -104,10 +104,7 @@ type UnwrapCacheData<T> = T extends CacheData<infer U> ? U : never;
 class CacheV2 {
   cache: CacheType;
   constructor() {
-    this.cache = {
-      media: {},
-      users: {},
-    }
+    this.cache = { media: {}, users: {} };
     setInterval(() => this.autoDelete(Date.now()), maxTime);
   }
 
@@ -119,44 +116,18 @@ class CacheV2 {
     R extends keyof CacheType[T][K],
     V extends CacheType[T][K][R] & CacheData<unknown>
   >(type: T, key: K, resource: R, dbQuery: (() => Promise<V['data']>) | (() => V['data'])) {
-    // if (!this.cache[type]?.[key]?.[resource]) {
-    //   this.cache[type][key][resource] = {
-    //     date: Date.now(),
-    //     data: await dbQuery(),
-    //   } as V;
-    // }
-    // return this.cache[type][key][resource];
-    // if (!this.cache[type][key]) this.cache[type][key] = {}
-    // this.cache[type][key] ??= {} as NonNullable<CacheType[T][K]>
-    // const keyObj = this.cache[type][key] as NonNullable<CacheType[T][K]>
-    // const keyObj = this.getKeyObj(type, key);
-    // if (!keyObj[resource]) {
-    //   keyObj[resource] = new CacheData(await dbQuery());
-    // }
-    // return keyObj[resource];
     if (!this.get(type, key, resource)) {
       this.set(type, key, resource, await dbQuery());
     }
     return this.get(type, key, resource)!;
   }
 
-  // private getKeyObj<
-  //   T extends keyof CacheType,
-  //   K extends keyof CacheType[T]
-  // >(type: T, key: K) {
-  //   this.cache[type][key] ??= {} as NonNullable<CacheType[T][K]>;
-  //   // return this.cache[type][key] as NonNullable<CacheType[T][K]>;
-  //   return this.cache[type][key] as any;
-  // }
-
-  clearKey<
+  get<
     T extends keyof CacheType,
     K extends keyof CacheType[T],
     R extends keyof CacheType[T][K],
-  >(type: T, key: K, resource: R) {
-    // const keyObj = this.getKeyObj(type, key);
-    // if (keyObj[resource]) delete keyObj[resource];
-    delete this.cache[type][key][resource];
+  >(type: T, key: K, resource: R): UnwrapCacheData<CacheType[T][K][R]> | undefined {
+    return (this.cache[type]?.[key]?.[resource] as any)?.data;
   }
 
   set<
@@ -165,10 +136,16 @@ class CacheV2 {
     R extends keyof CacheType[T][K],
     V extends CacheType[T][K][R] & CacheData<unknown>
   >(type: T, key: K, resource: R, value: V['data']) {
-    // const keyObj = this.getKeyObj(type, key);
-    // keyObj[resource] = new CacheData(value);
     if (!this.cache[type][key]) this.cache[type][key] = {} as any;
     this.cache[type][key][resource] = new CacheData(value) as any;
+  }
+
+  delete<
+    T extends keyof CacheType,
+    K extends keyof CacheType[T],
+    R extends keyof CacheType[T][K],
+  >(type: T, key: K, resource: R) {
+    delete this.cache[type][key]?.[resource];
   }
 
   autoDelete(time: number, cache = this.cache as any) {
@@ -181,94 +158,14 @@ class CacheV2 {
       }
     });
   }
-
-  // has<
-  //   T extends keyof CacheType,
-  //   K extends keyof CacheType[T],
-  //   R extends keyof CacheType[T][K],
-  // >(type: T, key: K, resource: R) {
-  //   return !!(this.cache[type]?.[key])?.[resource];
-  // }
-
-  get<
-    T extends keyof CacheType,
-    K extends keyof CacheType[T],
-    R extends keyof CacheType[T][K],
-  >(type: T, key: K, resource: R): UnwrapCacheData<CacheType[T][K][R]> | undefined {
-    // return ((this.cache[type]?.[key])?.[resource] as CacheData<CacheType[T][K][R]>)?.data;
-    // return (this.cache[type]?.[key]?.[resource] as CacheData<CacheType[T][K][R]> | undefined)?.data;
-    // return this.cache[type]?.[key]?.[resource]?.data;
-    // const entry = this.cache[type]?.[key]?.[resource] as CacheData<unknown>;
-    // console.log('GET', entry);
-    // return entry?.data as UnwrapCacheData<CacheType[T][K][R]> | undefined;
-    // console.log(this.cache)
-    // console.log(this.cache[type])
-    // console.log(this.cache[type][key])
-    // console.log(this.cache[type][key][resource])
-    return (this.cache[type]?.[key]?.[resource] as any)?.data;
-    // console.log(this.cache)
-    // throw Error('fucking WHY')
-  }
 }
 
-// const needsAuthed: (keyof CacheType['users'][string])[] = [
-//   'reviews',
-//   'watched',
-//   'listnames',
-//   'listContents',
-// ]
-
-// export async function apiHandler<
-//   T extends keyof CacheType,
-//   K extends keyof CacheType[T],
-//   R extends keyof CacheType[T][K],
-//   V extends CacheType[T][K][R] & CacheData<unknown>
-// >(
-//   req: Request,
-//   type: T,
-//   key: K,
-//   resource: R,
-//   dbQuery: () => Promise<V['data']>,
-//   username: string,
-// ) {
-//   const method = req.method as Methods;
-// 
-//   // types for data and resource should be tied to those of serverHashCache
-//   try {
-//     if (method === 'GET') {
-//       const data = await cacheV2.getSet(type, key, resource, dbQuery);
-//       await serverHashCacheV5.update(
-//         req,
-//         username,
-//         data as any,
-//         method,
-//         resource as any
-//       );
-//       return NextResponse.json(data);
-//     } else {
-//       if (type === 'users') {
-//         // trying to modify user data, make sure user is self
-//         const user = await currentUser();
-//         if (!user?.username || user.username !== username) {
-//           return NextResponse.json('Unauthorized', { status: 401 });
-//         }
-//       }
-// 
-//       cacheV2.clearKey(type, key, resource);
-//       const data = await dbQuery();
-//       await serverHashCacheV5.update(
-//         req,
-//         username,
-//         data as any,
-//         method,
-//         resource as any
-//       );
-//       return NextResponse.json(data);
-//     }
-//   } catch {
-//     return NextResponse.json('Failed to process request, database error', { status: 500 });
-//   }
-// }
+type ParamTypes = 'string' | 'number' | 'boolean'
+const paramConverters: { [key in ParamTypes]: (arg: string) => any } = {
+  string: (arg) => String(arg),
+  number: (arg) => Number(arg),
+  boolean: (arg) => arg === 'true'
+}
 
 export async function apiHandler<
   T extends keyof CacheType,
@@ -280,13 +177,25 @@ export async function apiHandler<
   type: T,
   key: K,
   resource: R,
-  dbQuery: () => Promise<V['data']>,
-  opts: { needsAuth?: boolean } = {},
+  dbQuery: (...args: any[]) => Promise<any>,
+  opts: {
+    needsAuth?: boolean,
+    requiredParams?: { [param: string]: ParamTypes }, 
+  } = {},
 ) {
   // types for data and resource should be tied to those of serverHashCache
   // if type === 'users' then key is username
 
   const method = req.method as Methods;
+  const { searchParams } = new URL(req.url);
+  const requiredParams = (
+    Object.keys(opts.requiredParams || {}).map(param => {
+      const type = opts.requiredParams![param];
+      const paramVal = searchParams.get(param);
+      if (!paramVal) throw Error(`Could not find param: ${param}`);
+      return paramConverters[type](paramVal);
+    })
+  );
 
   if (opts.needsAuth) {
     // trying to modify user data, make sure user is self
@@ -297,14 +206,21 @@ export async function apiHandler<
   }
 
   let data: V['data'];
+  // if (method === 'GET') {
+  //   data = await cacheV2.getSet(type, key, resource, dbQuery);
+  // } else {
+  //   cacheV2.delete(type, key, resource);
+  //   data = await dbQuery();
+  // }
   try {
     if (method === 'GET') {
       data = await cacheV2.getSet(type, key, resource, dbQuery);
     } else {
-      cacheV2.clearKey(type, key, resource);
-      data = await dbQuery();
+      cacheV2.delete(type, key, resource);
+      data = await dbQuery(...requiredParams);
     }
-  } catch {
+  } catch (error) {
+    console.log('ERROR', error)
     return NextResponse.json(
       'Failed to process request, database error',
       { status: 500 }

@@ -47,16 +47,21 @@ export default function MultiTable({ username }: { username: string }) {
       setSelectedLists([ initialSelect || listnames[0] ]);
     } else {
       // fetch list data
-      easyFetch<Listname[]>({
-        route: `/api/users/${username}/lists`,
-        method: 'GET',
-      }).then(listnames => {
-          console.log('listnames', listnames)
-          setAllListnames(listnames);
-          const defaultList = listnames.find(listname => listname.defaultList);
-          const autoSelect = defaultList || listnames[0];
-          if (autoSelect) setSelectedLists([ autoSelect ]);
-        });
+      // FIX ME, this interferes with fetching listnames from hashCache
+      // needs to be delayed until hashCache is settled
+      // (i.e. user login state has been determined)
+      // alternatively, would making it so that serverHashCache only gets
+      // updated by the logged in user get around this?
+      // easyFetch<Listname[]>({
+      //   route: `/api/users/${username}/lists`,
+      //   method: 'GET',
+      // }).then(listnames => {
+      //     // console.log('listnames', listnames)
+      //     setAllListnames(listnames);
+      //     const defaultList = listnames.find(listname => listname.defaultList);
+      //     const autoSelect = defaultList || listnames[0];
+      //     if (autoSelect) setSelectedLists([ autoSelect ]);
+      //   });
     }
   }, [userData]);
 
@@ -67,12 +72,12 @@ export default function MultiTable({ username }: { username: string }) {
       return;
     }
     if (userData.current && userData.current.username === username) {
-      console.log(selectedLists)
+      // console.log(selectedLists)
       const newListData = selectedLists.flatMap(list => {
         if (!userData.current) throw Error('no userData');
         return userData.current.getResource('listContents', list.id);
       })
-      console.log(newListData)
+      // console.log(newListData)
       setListData(keepNewest(newListData));
       setFakeKey(fakeKey + 1);
     } else {
@@ -80,7 +85,7 @@ export default function MultiTable({ username }: { username: string }) {
         const obj: { [listname: string]: ListItem[] } = Object.fromEntries(
           await Promise.all(
             selectedLists.map(async ({ listname, id }) => {
-              console.log(`/api/users/${username}/lists/${listname}`)
+              // console.log(`/api/users/${username}/lists/${listname}`)
               if (storedLists.current[id]) {
                 return [ listname, storedLists.current[id] ];
               } else {
@@ -94,14 +99,14 @@ export default function MultiTable({ username }: { username: string }) {
             })
           )
         );
-        console.log(obj);
+        // console.log(obj);
         setListData(keepNewest(Object.values(obj).flat()));
         setFakeKey(fakeKey + 1);
       })();
     }
   }, [selectedLists]);
 
-  console.log(selectedLists)
+  // console.log(selectedLists)
   return <div className='showOutline p-4'>
     {!allListnames || !listData ? <Loading /> :
       <MyTable data={listData}

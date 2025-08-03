@@ -64,10 +64,10 @@ export async function GET(req: Request, { params }: { params: Params }) {
           eq(lists.listname, listname),
         )
       ).orderBy(desc(lists.date));
-      console.log('LIST ITEMS', listRecords)
+      // console.log('LIST ITEMS', listRecords)
 
       const listData = await getManyExistingMedia(listRecords.map(rec => rec.imdbId));
-      console.log('LIST ITEMS INFO', listData)
+      // console.log('LIST ITEMS INFO', listData)
       cache.set(cacheStr, listData);
     } catch {
       return NextResponse.json('Failed to process request, database error', { status: 500 });

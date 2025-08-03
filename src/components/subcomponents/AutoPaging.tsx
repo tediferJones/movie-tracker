@@ -19,7 +19,8 @@ export default function AutoPaging(
 
   useEffect(() => {
     // if (!ref.current) throw Error('cant find ref');
-    if (!ref.current) return console.log(ref.current);
+    // if (!ref.current) return console.log(ref.current);
+    if (!ref.current) return;
     const observer = new IntersectionObserver(
       ([ entry ]) => {
         if (entry.isIntersecting) {

@@ -1,11 +1,7 @@
 import { db } from '@/drizzle/db';
-import { listnames, lists } from '@/drizzle/schema';
+import { listnames } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
-import { NextResponse } from 'next/server';
-import cache from '@/lib/cache';
-import { currentUser } from '@clerk/nextjs';
-import { isValid } from '@/lib/inputValidation';
-import { serverHashCacheV5 } from '@/lib/hashCacheV5';
+import { useCache } from '@/lib/cache';
 
 type Params = { username: string }
 type BooleanKeys<T> = {
@@ -16,214 +12,133 @@ export async function GET(req: Request, { params }: { params: Params }) {
   // return all listnames
   // if url has imdbId param, return listnames for lists that contain imdbId
   const { username } = params;
-  const { searchParams } = new URL(req.url)
 
-  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
-    const listnameRecs = await db.select().from(listnames).where(
+  return await useCache(req, 'GET', 'users', username, 'listnames', async () => {
+    return await db.select().from(listnames).where(
       eq(listnames.username, username)
     );
-    // hashTable.setResource(username, 'listnames', listnameRecs);
-    // await serverHashCache.updateHash(username, ['listnames'], 'GET', listnameRecs);
-    await serverHashCacheV5.update(req, username, listnameRecs, 'GET', 'listnames');
-    return NextResponse.json(listnameRecs);
-  }
-
-  // this makes absolutely no sense,
-  // why are we scanning listnames from the lists table?
-  // there will be loads of duplicates
-  try {
-    if (searchParams.has('imdbId')) {
-      const imdbId = searchParams.get('imdbId')!;
-      const cacheStr = `${username},${imdbId},lists`;
-      if (!cache.get(cacheStr)) {
-        const listnames = await db.select({ listname: lists.listname }).from(lists).where(
-          and(
-            eq(lists.imdbId, imdbId),
-            eq(lists.username, username),
-          )
-        );
-        // cache.set(cacheStr, listnames.map(listRec => listRec.listname))
-        cache.set(cacheStr, listnames);
-      }
-      return NextResponse.json(cache.get(cacheStr));
-    } else {
-      const cacheStr = `${username},lists`;
-      if (!cache.get(cacheStr)) {
-        const listRecs = await db.select().from(listnames).where(
-          eq(listnames.username, username)
-        );
-        cache.set(cacheStr, listRecs);
-      }
-      return NextResponse.json(cache.get(cacheStr));
-    }
-  } catch {
-    return NextResponse.json('Failed to process request, database error', { status: 500 });
-  }
+  });
 }
 
 export async function POST(req: Request, { params }: { params: Params }) {
-  const { username} = params;
-  const { searchParams } = new URL(req.url);
+  const { username } = params;
 
-  const user = await currentUser();
-  if (!user?.username || user.username !== username) {
-    return NextResponse.json('Unauthorized', { status: 401 });
-  }
+  return await useCache(req, 'POST', 'users', username, 'listnames', async (listname: string) => {
+    const preInsertRecord = {
+      username,
+      listname,
+      defaultList: false,
+      date: Date.now(),
+    }
 
-  const listname = searchParams.get('listname');
-  if (!listname) {
-    return NextResponse.json('Bad Request', { status: 400 });
-  }
-
-  const valid = isValid({ listname });
-  if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
-
-  const newRecord = {
-    username,
-    listname,
-    defaultList: false,
-    date: Date.now(),
-  }
-
-  const { lastInsertRowid } = await db.insert(listnames).values(newRecord);
-  const withId = {
-    ...newRecord,
-    id: Number(lastInsertRowid),
-  }
-  await serverHashCacheV5.update(req, username, withId, 'POST', 'listnames');
-  return NextResponse.json(withId);
+    const { lastInsertRowid } = await db.insert(listnames).values(preInsertRecord);
+    return {
+      ...preInsertRecord,
+      id: Number(lastInsertRowid),
+    }
+  }, {
+      needsAuth: true,
+      requiredParams: { listname: 'string' },
+      validate: { listname: 'listname' },
+    });
 }
 
 export async function PUT(req: Request, { params }: { params: Params }) {
-  const { username} = params;
-  const { searchParams } = new URL(req.url);
+  const { username } = params;
 
-  const user = await currentUser();
-  if (!user?.username || user.username !== username) {
-    return NextResponse.json('Unauthorized', { status: 401 });
-  }
-
-  const listId = searchParams.get('id');
-  if (!listId) {
-    return NextResponse.json('Bad Request', { status: 400 });
-  }
-
-  const listname = searchParams.get('listname');
-  if (!listname) {
-    return NextResponse.json('Bad Request', { status: 400 });
-  }
-  const listnameValid = isValid({ listname });
-  if (!listnameValid) return NextResponse.json('listname is not valid', { status: 422 });
-  
-  const newListname = searchParams.get('newListname');
-  if (!newListname) {
-    return NextResponse.json('Bad Request', { status: 400 });
-  }
-  const newListnameValid = isValid({ listname: newListname });
-  if (!newListnameValid) return NextResponse.json('new listname is not valid', { status: 422 });
-
-  const result = await db.update(listnames).set({ listname: newListname }).where(
-    and(
-      eq(listnames.username, username),
-      eq(listnames.listname, listname),
-    )
+  return await useCache(req, 'PUT', 'users', username, 'listnames', async (
+    listname: string,
+    newListname: string
+  ) => {
+      await db.update(listnames).set({ listname: newListname }).where(
+        and(
+          eq(listnames.username, username),
+          eq(listnames.listname, listname),
+        )
+      );
+      return await db.select().from(listnames).where(
+        and(
+          eq(listnames.username, username),
+          eq(listnames.listname, newListname),
+        )
+      ).get();
+    }, {
+      needsAuth: true,
+      requiredParams: {
+        listname: 'string',
+        newListname: 'string',
+      },
+      validate: {
+        listname: 'listname',
+        newListname: 'listname',
+      }
+    }
   );
-  console.log('UPDATED', result);
-  // await hashTable.updateResource(username, 'listnames', 'PUT', { listname, newListname });
-  const newRecord = await db.select().from(listnames).where(
-    and(
-      eq(listnames.username, username),
-      eq(listnames.listname, listname),
-    )
-  ).get();
-  if (!newRecord) throw Error('PUT used on record that does not exist')
-  await serverHashCacheV5.update(req, username, newRecord, 'PUT', 'listnames');
-
-  return NextResponse.json(newRecord);
 }
 
 export async function DELETE(req: Request, { params }: { params: Params }) {
-  const { username} = params;
-  const { searchParams } = new URL(req.url);
+  const { username } = params;
 
-  const user = await currentUser();
-  if (!user?.username || user.username !== username) {
-    return NextResponse.json('Unauthorized', { status: 401 });
-  }
-
-  const id = Number(searchParams.get('id'))
-  if (!id) {
-    return NextResponse.json('Bad Request', { status: 400 });
-  }
-
-  console.log('DELETING', id)
-  // listnames will apparently cascade and delete all records in lists table with associated name
-  await db.delete(listnames).where(
-    and(
-      eq(listnames.username, username),
-      eq(listnames.id, id),
-    )
-  );
-  console.log('SUCCESSFULLY DELETED')
-  // await hashTable.updateResource(username, 'listnames', 'DELETE', { listname })
-  await serverHashCacheV5.update(req, username, { id }, 'DELETE', 'listnames');
-  return NextResponse.json({ id });
+  return await useCache(req, 'DELETE', 'users', username, 'listnames', async (id: number) => {
+    await db.delete(listnames).where(
+      and(
+        eq(listnames.username, username),
+        eq(listnames.id, id),
+      )
+    );
+    return { id };
+  }, {
+      needsAuth: true,
+      requiredParams: { id: 'number' }
+    });
 }
 
 export async function PATCH(req: Request, { params }: { params: Params }) {
-  const { username} = params;
-  const { searchParams } = new URL(req.url);
+  const { username } = params;
 
-  const user = await currentUser();
-  if (!user?.username || user.username !== username) {
-    return NextResponse.json('Unauthorized', { status: 401 });
-  }
+  // this works but clientHashCache patch modFunc will need fixed
+  // right now patch just finds a matching record and replaces it,
+  // but when setting default list we need to update the current record (already being done)
+  // BUT we also need to upate the old record
+  // Would it be possible to just return two record? And run them both through patch?
+  // then the old record and new record should both match what is in the db
+  return await useCache(req, 'PATCH', 'users', username, 'listnames', async (
+    listname: string,
+    set: string,
+    val: boolean
+  ) => {
+      const booleans = {
+        defaultList: false
+      } satisfies { [K in BooleanKeys<typeof listnames.$inferSelect>]: false }
 
-  const listname = searchParams.get('listname');
-  if (!listname) {
-    return NextResponse.json('Bad Request', { status: 400 });
-  }
-  const set = searchParams.get('set');
-  if (!set) {
-    return NextResponse.json('Bad Request', { status: 400 });
-  }
-  const val = searchParams.get('val');
-  if (!val) {
-    return NextResponse.json('Bad Request', { status: 400 });
-  }
-  const bool = val === 'true';
-  console.log('SETTING', username, listname, val, bool)
-  
-  const booleans = {
-    defaultList: false
-  } satisfies { [K in BooleanKeys<typeof listnames.$inferSelect>]: false }
+      if (!(set in booleans)) {
+        throw Error(`Invalid set param: ${set}`);
+      }
 
-  if (!(set in booleans)) {
-    return NextResponse.json('Bad Request', { status: 400 });
-  }
+      await db.update(listnames).set({ [set]: false, }).where(
+        eq(listnames.username, username)
+      );
 
-  await db.update(listnames).set({ [set]: false, }).where(
-    eq(listnames.username, username)
+      await db.update(listnames).set({ [set]: val }).where(
+        and(
+          eq(listnames.username, username),
+          eq(listnames.listname, listname),
+        )
+      );
+
+      return await db.select().from(listnames).where(
+        and(
+          eq(listnames.username, username),
+          eq(listnames.listname, listname),
+        )
+      ).get();
+    }, {
+      requiredParams: {
+        listname: 'string',
+        set: 'string',
+        val: 'boolean',
+      },
+      validate: { listname: 'listname' }
+    }
   );
-
-  await db.update(listnames).set({ [set]: bool }).where(
-    and(
-      eq(listnames.username, username),
-      eq(listnames.listname, listname),
-    )
-  );
-
-  const newRecord = await db.select().from(listnames).where(
-    and(
-      eq(listnames.username, username),
-      eq(listnames.listname, listname),
-    )
-  ).get();
-  if (!newRecord) {
-    return NextResponse.json('Bad Request', { status: 400 });
-  }
-
-  await serverHashCacheV5.update(req, username, newRecord, 'PATCH', 'listnames');
-
-  return NextResponse.json(newRecord);
 }

@@ -95,12 +95,13 @@ type CacheType = {
     [username: string]: {
       reviews: CacheData<UserReview[]>,
       listnames: CacheData<Listname[]>,
-      listContents: CacheData<ListItem[]>,
+      listContents: { [key: (string | number)] : CacheData<ListItem[]> },
       watched: CacheData<WatchedRec[]>,
     }
   }
 }
 type UnwrapCacheData<T> = T extends CacheData<infer U> ? U : never;
+type ExtraKeys = (string | number)[]
 
 class CacheV2 {
   cache: CacheType;
@@ -116,19 +117,37 @@ class CacheV2 {
     K extends keyof CacheType[T],
     R extends keyof CacheType[T][K],
     V extends CacheType[T][K][R] & CacheData<unknown>
-  >(type: T, key: K, resource: R, dbQuery: (() => Promise<V['data']>) | (() => V['data'])) {
-    if (!this.get(type, key, resource)) {
-      this.set(type, key, resource, await dbQuery());
+  >(
+    type: T,
+    key: K,
+    resource: R,
+    dbQuery: (() => Promise<V['data']>) | (() => V['data']),
+    ...extraKeys: ExtraKeys
+  ) {
+    if (!this.get(type, key, resource, ...extraKeys)) {
+      this.set(type, key, resource, await dbQuery(), ...extraKeys);
     }
-    return this.get(type, key, resource)!;
+    return this.get(type, key, resource, ...extraKeys)!;
   }
 
   get<
     T extends keyof CacheType,
     K extends keyof CacheType[T],
     R extends keyof CacheType[T][K],
-  >(type: T, key: K, resource: R): UnwrapCacheData<CacheType[T][K][R]> | undefined {
-    return (this.cache[type]?.[key]?.[resource] as any)?.data;
+  >(
+    type: T,
+    key: K,
+    resource: R,
+    ...extraKeys: ExtraKeys
+  ): UnwrapCacheData<CacheType[T][K][R]> | undefined {
+    // return (this.cache[type]?.[key]?.[resource] as any)?.data;
+    const result = (this.cache[type]?.[key]?.[resource] as any);
+    // console.log('initial', result)
+    return extraKeys.reduce((obj, key) => {
+      // console.log('CRAWLING', obj, key)
+      if (obj === undefined) return undefined;
+      return obj[key];
+    }, result)?.data;
   }
 
   set<
@@ -136,9 +155,18 @@ class CacheV2 {
     K extends keyof CacheType[T],
     R extends keyof CacheType[T][K],
     V extends CacheType[T][K][R] & CacheData<unknown>
-  >(type: T, key: K, resource: R, value: V['data']) {
-    if (!this.cache[type][key]) this.cache[type][key] = {} as any;
-    this.cache[type][key][resource] = new CacheData(value) as any;
+  >(type: T, key: K, resource: R, value: V['data'], ...extraKeys: ExtraKeys) {
+    // if (!this.cache[type][key]) this.cache[type][key] = {} as any;
+    // this.cache[type][key][resource] = new CacheData(value) as any;
+
+    [ type, key, resource, ...extraKeys ].reduce((obj, key, i, arr) => {
+      if (i === arr.length - 1) {
+        obj[key] = new CacheData(value);
+      } else if (!obj[key]) {
+        obj[key] = {};
+      }
+      return obj[key];
+    }, this.cache as any);
   }
 
   delete<
@@ -182,8 +210,16 @@ export async function useCache<
   dbQuery: (...args: any[]) => Promise<any>,
   opts: {
     needsAuth?: boolean,
-    requiredParams?: { [param: string]: ParamTypes },
-    validate?: { [param: string]: string },
+    // requiredParams?: { [param: string]: ParamTypes },
+    // validate?: { [param: string]: string },
+    extraKeys?: ExtraKeys,
+    params?: {
+      [param: string]: {
+        type: ParamTypes,
+        validator?: string,
+        required?: boolean,
+      }
+    }
   } = {},
 ) {
   // types for data and resource should be tied to those of serverHashCache
@@ -191,53 +227,74 @@ export async function useCache<
 
   // const method = req.method as Methods;
   const { searchParams } = new URL(req.url);
-  const requiredParams = (
-    // Object.keys(opts.requiredParams || {}).map(param => {
-    //   const type = opts.requiredParams![param];
-    //   const paramVal = searchParams.get(param);
-    //   if (!paramVal) throw Error(`Could not find param: ${param}`);
-    //   return paramConverters[type](paramVal);
-    // })
-    Object.keys(opts.requiredParams || {}).reduce((formattedParams, param) => {
-      const type = opts.requiredParams![param];
-      const paramVal = searchParams.get(param);
-      if (!paramVal) throw Error(`Could not find param: ${param}`);
-      formattedParams[param] = paramConverters[type](paramVal);
-      return formattedParams;
-    }, {} as { [param: string]: any })
-  );
+  const useHashCache = searchParams.get('useHashCache') === 'true';
+  const extraKeys = opts.extraKeys || [];
+  // const requiredParams = (
+  //   // Object.keys(opts.requiredParams || {}).map(param => {
+  //   //   const type = opts.requiredParams![param];
+  //   //   const paramVal = searchParams.get(param);
+  //   //   if (!paramVal) throw Error(`Could not find param: ${param}`);
+  //   //   return paramConverters[type](paramVal);
+  //   // })
+  //   Object.keys(opts.requiredParams || {}).reduce((formattedParams, param) => {
+  //     const type = opts.requiredParams![param];
+  //     const paramVal = searchParams.get(param);
+  //     if (!paramVal) throw Error(`Could not find param: ${param}`);
+  //     formattedParams[param] = paramConverters[type](paramVal);
+  //     return formattedParams;
+  //   }, {} as { [param: string]: any })
+  // );
 
-  console.log(requiredParams)
-  // throw Error('those be the required params')
+  // should probably wrap this in try catch,
+  // throw error with reason for failure and status code,
+  // return error as NextResponse
+  const params = Object.keys(opts.params || {}).reduce((params, param) => {
+    const paramObj = opts.params![param];
+    const paramStr = searchParams.get(param);
+    if (!paramStr) {
+      if (paramObj.required) {
+        throw Error(`Param ${param} is required`);
+      } else {
+        // param does not exist but isn't required, so just do nothing
+        return params;
+      }
+    }
+    // param exists
+    const paramVal = paramConverters[paramObj.type](paramStr);
 
-  if (opts.validate) {
-    const allValid = Object.keys(opts.validate).every(paramName => {
-      const paramVal = requiredParams[paramName];
-      if (paramVal === undefined) throw Error('could not find paramVal');
-      console.log('validating', paramName, paramVal);
-      return isValid({ [paramName]: paramVal });
-    })
-    if (!allValid) return NextResponse.json(
-      'inputs are not valid',
-      { status: 422 }
-    );
-  }
+    // validate
+    if (paramObj.validator && !isValid({ [paramObj.validator]: paramVal })) {
+      throw Error(`Param ${param} is not valid`);
+    }
+
+    params[param] = paramVal;
+    return params;
+  }, {} as { [param: string]: any });
+  console.log('ParamsResult', params);
+
+  // console.log(requiredParams)
+  // // throw Error('those be the required params')
+
+  // if (opts.validate) {
+  //   const allValid = Object.keys(opts.validate).every(paramName => {
+  //     const paramVal = requiredParams[paramName];
+  //     if (paramVal === undefined) throw Error('could not find paramVal');
+  //     console.log('validating', paramName, paramVal);
+  //     return isValid({ [paramName]: paramVal });
+  //   })
+  //   if (!allValid) return NextResponse.json(
+  //     'inputs are not valid',
+  //     { status: 422 }
+  //   );
+  // }
   // const valid = isValid({ listname });
   // if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
 
   // this gets paired with updating serverHashCache, if user is not self, do not update serverHashCache
-  // const user = await currentUser();
-  // const isSelf = !user?.username || user.username !== key;
-  // if (opts.needsAuth && !isSelf) {
-  //   return NextResponse.json('Unauthorized', { status: 401 });
-  // }
-
-  if (opts.needsAuth) {
-    // trying to modify user data, make sure user is self
-    const user = await currentUser();
-    if (!user?.username || user.username !== key) {
-      return NextResponse.json('Unauthorized', { status: 401 });
-    }
+  const user = await currentUser();
+  const isSelf = user?.username && user.username === key;
+  if (opts.needsAuth && !isSelf) {
+    return NextResponse.json('Unauthorized', { status: 401 });
   }
 
   let data: V['data'];
@@ -249,10 +306,17 @@ export async function useCache<
   // }
   try {
     if (method === 'GET') {
-      data = await cacheV2.getSet(type, key, resource, dbQuery);
+      data = await cacheV2.getSet(
+        type,
+        key,
+        resource,
+        dbQuery,
+        ...extraKeys,
+      );
     } else {
       cacheV2.delete(type, key, resource);
-      data = await dbQuery(...Object.values(requiredParams));
+      // data = await dbQuery(...Object.values(requiredParams));
+      data = await dbQuery(...Object.values(params));
     }
   } catch (error) {
     console.log('ERROR', error)
@@ -262,16 +326,18 @@ export async function useCache<
     );
   }
 
-  if (type === 'users') {
+  if (isSelf && useHashCache) {
     await serverHashCacheV5.update(
       req,
       key as string, // if type is 'users' then key is username
       data as any,
       method,
-      resource as any
+      resource as any,
+      ...extraKeys,
     );
   }
 
+  // console.log('returing', data)
   return NextResponse.json(data);
 }
 
@@ -311,3 +377,9 @@ if (!globalThis.cacheV2Global) {
 // cacheV2.set('users', 'me', 'watched', () => ('test' as any));
 // const result = cacheV2.get('users', 'me', 'watched');
 // console.log('GET', result);
+
+// const testCache = new CacheV2();
+// testCache.set('users', 'username', 'listContents', [ 'yes' ] as any, '1')
+// const result = testCache.get('users', 'username', 'listContents', '1')
+// console.log('GET RESULT', result)
+// console.log(testCache.cache.users.username)

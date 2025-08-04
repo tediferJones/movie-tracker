@@ -38,8 +38,9 @@ export async function POST(req: Request, { params }: { params: Params }) {
     }
   }, {
       needsAuth: true,
-      requiredParams: { listname: 'string' },
-      validate: { listname: 'listname' },
+      params: {
+        listname: { type: 'string', required: true, validator: 'listname' },
+      }
     });
 }
 
@@ -64,13 +65,9 @@ export async function PUT(req: Request, { params }: { params: Params }) {
       ).get();
     }, {
       needsAuth: true,
-      requiredParams: {
-        listname: 'string',
-        newListname: 'string',
-      },
-      validate: {
-        listname: 'listname',
-        newListname: 'listname',
+      params: {
+        listname: { type: 'string', required: true, validator: 'listname' },
+        newListname: { type: 'string', required: true, validator: 'listname' },
       }
     }
   );
@@ -89,7 +86,7 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
     return { id };
   }, {
       needsAuth: true,
-      requiredParams: { id: 'number' }
+      params: { id: { type: 'number', required: true } },
     });
 }
 
@@ -102,6 +99,11 @@ export async function PATCH(req: Request, { params }: { params: Params }) {
   // BUT we also need to upate the old record
   // Would it be possible to just return two record? And run them both through patch?
   // then the old record and new record should both match what is in the db
+  //
+  // Easiest fix: Do not allow users to auto switch listTypes
+  // i.e. users must manually uncheck defaultList and then check the new defaultList
+  // users CANNOT check a diffent default list and have it un-defaultList the first
+  // and set second as defaultList
   return await useCache(req, 'PATCH', 'users', username, 'listnames', async (
     listname: string,
     set: string,
@@ -133,12 +135,11 @@ export async function PATCH(req: Request, { params }: { params: Params }) {
         )
       ).get();
     }, {
-      requiredParams: {
-        listname: 'string',
-        set: 'string',
-        val: 'boolean',
-      },
-      validate: { listname: 'listname' }
+      params: {
+        listname: { type: 'string', required: true, validator: 'listname' },
+        set: { type: 'string', required: true },
+        val: { type: 'boolean', required: true },
+      }
     }
   );
 }

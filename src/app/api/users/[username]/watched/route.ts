@@ -36,7 +36,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
     return postInsertRecord;
   }, {
       needsAuth: true,
-      requiredParams: { imdbId: 'string' }
+      params: { imdbId: { type: 'string', required: true } },
     });
 }
 
@@ -54,6 +54,6 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
     return { id };
   }, {
       needsAuth: true,
-      requiredParams: { id: 'number' }
+      params: { id: { type: 'number', required: true } },
     });
 }

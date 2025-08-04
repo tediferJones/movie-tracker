@@ -47,21 +47,16 @@ export default function MultiTable({ username }: { username: string }) {
       setSelectedLists([ initialSelect || listnames[0] ]);
     } else {
       // fetch list data
-      // FIX ME, this interferes with fetching listnames from hashCache
-      // needs to be delayed until hashCache is settled
-      // (i.e. user login state has been determined)
-      // alternatively, would making it so that serverHashCache only gets
-      // updated by the logged in user get around this?
-      // easyFetch<Listname[]>({
-      //   route: `/api/users/${username}/lists`,
-      //   method: 'GET',
-      // }).then(listnames => {
-      //     // console.log('listnames', listnames)
-      //     setAllListnames(listnames);
-      //     const defaultList = listnames.find(listname => listname.defaultList);
-      //     const autoSelect = defaultList || listnames[0];
-      //     if (autoSelect) setSelectedLists([ autoSelect ]);
-      //   });
+      easyFetch<Listname[]>({
+        route: `/api/users/${username}/lists`,
+        method: 'GET',
+      }).then(listnames => {
+          // console.log('listnames', listnames)
+          setAllListnames(listnames);
+          const defaultList = listnames.find(listname => listname.defaultList);
+          const autoSelect = defaultList || listnames[0];
+          if (autoSelect) setSelectedLists([ autoSelect ]);
+        });
     }
   }, [userData]);
 
@@ -90,7 +85,7 @@ export default function MultiTable({ username }: { username: string }) {
                 return [ listname, storedLists.current[id] ];
               } else {
                 const listContents = await easyFetch<ListItem[]>({
-                  route: `/api/users/${username}/lists/${listname}`,
+                  route: `/api/users/${username}/lists/${id}`,
                   method: 'GET',
                 });
                 storedLists.current[id] = listContents;

@@ -134,7 +134,7 @@ class Resource<T = any> {
     const result = await easyFetch({
       route: this.url,
       method,
-      params: { ...testParams, ...params },
+      params: { ...testParams, ...params, useHashCache: true },
       body: body,
     });
 
@@ -378,6 +378,7 @@ export class ClientHashCacheV5 {
       needsAdded.map(async key => {
         console.log('server has new resource, adding and syncing')
         const url = server[key].url;
+        console.log(server, key, url)
         if (typeof url !== 'string') throw Error('Url is not a string');
         const resource = new Resource({ url });
         client[key] = resource;

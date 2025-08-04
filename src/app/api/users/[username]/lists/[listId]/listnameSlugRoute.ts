@@ -1,80 +1,98 @@
 import { db } from '@/drizzle/db';
 import { listnames, lists, media } from '@/drizzle/schema';
-import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
+import { getManyExistingMedia, getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
 import { isValid } from '@/lib/inputValidation';
 import { currentUser } from '@clerk/nextjs';
 import { and, desc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
-import cache from '@/lib/cache';
+import cache, { cacheV2, useCache } from '@/lib/cache';
 import { serverHashCache } from '@/lib/hashCacheV4';
 import { ListItem, serverHashCacheV5 } from '@/lib/hashCacheV5';
 import { ExistingMediaInfo } from '@/types';
 
 type Params = { username: string, listname: string }
+type ParamsV2 = { username: string, listId: number }
 
-export async function GET(req: Request, { params }: { params: Params }) {
+export async function GET(req: Request, { params }: { params: ParamsV2 }) {
   // Get full media data for every item in list
-  const { username, listname } = params;
+  const { username, listId } = params;
+  if (typeof listId !== 'number') {
+    throw Error(`listId is of type: ${typeof listId}`)
+  } 
 
-  const { searchParams } = new URL(req.url);
-  if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
-    const listId = Number(listname);
+  return await useCache(req, 'GET', 'users', username, 'listContents', async () => {
+    // decide if this operating my listname or listId, we already have username
     const listRecords = await db.select().from(lists).where(
       eq(lists.listnameId, listId),
     );
-    await getManyExistingMedia(listRecords.map(listRec => listRec.imdbId));
-    // const result = listRecords.map(listRec => {
-    //   const temp = listRec as ListItem;
-    //   // temp.mediaInfo = cache.get(listRec.imdbId);
-    //   return temp;
-    // })
+    await getManyExistingMediaV2(listRecords.map(rec => rec.imdbId));
     const result = listRecords.map(({ imdbId, date }) => {
-      const mediaInfo: ExistingMediaInfo = cache.get(imdbId);
+      const mediaInfo = cacheV2.get('media', imdbId, 'mediaInfo');
       if (!mediaInfo) throw Error('could not find media info');
-      return {
-        ...mediaInfo,
-        dateAdded: date,
-      }
-    })
-    await serverHashCacheV5.update(
-      req,
-      username,
-      result,
-      'GET',
-      'listContents',
-      listId.toString()
-    );
-    // await serverHashCache.updateHash(
-    //   username,
-    //   'listContents',
-    //   // ['listContents', listId],
-    //   'GET',
-    //   listRecords as any,
-    //   listId.toString(),
-    // );
-    return NextResponse.json(result);
-  }
-  
-  const cacheStr = `${username},${listname}`;
-  if (!cache.get(cacheStr)) {
-    try {
-      const listRecords = await db.select().from(lists).where(
-        and(
-          eq(lists.username, username),
-          eq(lists.listname, listname),
-        )
-      ).orderBy(desc(lists.date));
-      // console.log('LIST ITEMS', listRecords)
+      return { ...mediaInfo, dateAdded: date };
+    });
+    return result;
+  }, { extraKeys: [ listId ] });
 
-      const listData = await getManyExistingMedia(listRecords.map(rec => rec.imdbId));
-      // console.log('LIST ITEMS INFO', listData)
-      cache.set(cacheStr, listData);
-    } catch {
-      return NextResponse.json('Failed to process request, database error', { status: 500 });
-    }
-  }
+  // const { searchParams } = new URL(req.url);
+  // if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
+  //   const listId = Number(listname);
+  //   const listRecords = await db.select().from(lists).where(
+  //     eq(lists.listnameId, listId),
+  //   );
+  //   await getManyExistingMedia(listRecords.map(listRec => listRec.imdbId));
+  //   // const result = listRecords.map(listRec => {
+  //   //   const temp = listRec as ListItem;
+  //   //   // temp.mediaInfo = cache.get(listRec.imdbId);
+  //   //   return temp;
+  //   // })
+  //   const result = listRecords.map(({ imdbId, date }) => {
+  //     const mediaInfo: ExistingMediaInfo = cache.get(imdbId);
+  //     if (!mediaInfo) throw Error('could not find media info');
+  //     return {
+  //       ...mediaInfo,
+  //       dateAdded: date,
+  //     }
+  //   })
+  //   await serverHashCacheV5.update(
+  //     req,
+  //     username,
+  //     result,
+  //     'GET',
+  //     'listContents',
+  //     listId.toString()
+  //   );
+  //   // await serverHashCache.updateHash(
+  //   //   username,
+  //   //   'listContents',
+  //   //   // ['listContents', listId],
+  //   //   'GET',
+  //   //   listRecords as any,
+  //   //   listId.toString(),
+  //   // );
+  //   return NextResponse.json(result);
+  // }
+  // 
+  // const cacheStr = `${username},${listname}`;
+  // if (!cache.get(cacheStr)) {
+  //   try {
+  //     const listRecords = await db.select().from(lists).where(
+  //       and(
+  //         eq(lists.username, username),
+  //         eq(lists.listname, listname),
+  //       )
+  //     ).orderBy(desc(lists.date));
+  //     // console.log('LIST ITEMS', listRecords)
 
-  return NextResponse.json(cache.get(cacheStr));
+  //     const listData = await getManyExistingMedia(listRecords.map(rec => rec.imdbId));
+  //     // console.log('LIST ITEMS INFO', listData)
+  //     cache.set(cacheStr, listData);
+  //   } catch {
+  //     return NextResponse.json('Failed to process request, database error', { status: 500 });
+  //   }
+  // }
+
+  // return NextResponse.json(cache.get(cacheStr));
 }
 
 export async function POST(req: Request, { params }: { params: Params }) {

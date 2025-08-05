@@ -1,355 +1,103 @@
 import { db } from '@/drizzle/db';
-import { listnames, lists, media } from '@/drizzle/schema';
-import { getManyExistingMedia, getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
-import { isValid } from '@/lib/inputValidation';
-import { currentUser } from '@clerk/nextjs';
-import { and, desc, eq } from 'drizzle-orm';
-import { NextResponse } from 'next/server';
-import cache, { cacheV2, useCache } from '@/lib/cache';
-import { serverHashCache } from '@/lib/hashCacheV4';
-import { ListItem, serverHashCacheV5 } from '@/lib/hashCacheV5';
-import { ExistingMediaInfo } from '@/types';
+import { lists } from '@/drizzle/schema';
+import { and, eq } from 'drizzle-orm';
+import { cacheV2, useCache } from '@/lib/cache';
+import { getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
 
 type Params = { username: string, listId: number }
 
 export async function GET(req: Request, { params }: { params: Params }) {
-  // Get full media data for every item in list
+  // get full media data for every item in list
   const { username, listId } = params;
 
-  return await useCache(req, 'GET', 'users', username, 'listContents', async () => {
-    const listRecords = await db.select().from(lists).where(
-      eq(lists.listnameId, listId),
-    );
-    await getManyExistingMediaV2(listRecords.map(rec => rec.imdbId));
-    const result = listRecords.map(({ imdbId, date }) => {
-      const mediaInfo = cacheV2.get('media', imdbId, 'mediaInfo');
-      if (!mediaInfo) throw Error('could not find media info');
-      return { ...mediaInfo, dateAdded: date };
-    });
-    return result;
-  }, { extraKeys: [ listId ] });
+  return await useCache(req, 'GET', 'users', username, 'listContents',
+    async () => {
+      const listRecords = await db.select().from(lists).where(
+        eq(lists.listnameId, listId),
+      );
+      await getManyExistingMediaV2(listRecords.map(rec => rec.imdbId));
+      return listRecords.map(({ imdbId, date }) => {
+        const mediaInfo = cacheV2.get('media', imdbId, 'mediaInfo');
+        if (!mediaInfo) throw Error('could not find media info');
+        return { ...mediaInfo, dateAdded: date };
+      });
+    }, {
+      extraKeys: [ listId ]
+    }
+  );
 }
 
 export async function POST(req: Request, { params }: { params: Params }) {
-  // create new list with listname
-  // if req has imdbId param, also add imdbId to listname
+  // add imdbId to list
   const { username, listId } = params;
 
-  return await useCache(req, 'POST', 'users', username, 'listContents', async () => {
-
-  }, {
+  return await useCache(req, 'POST', 'users', username, 'listContents',
+    async (listname: string, listId: number, imdbId: string) => {
+      const date = Date.now();
+      const newRecord = {
+        username,
+        listname,
+        imdbId,
+        date,
+        listnameId: listId,
+      }
+      await db.insert(lists).values(newRecord);
+      const [ mediaInfo ] = await getManyExistingMediaV2([ imdbId ]);
+      return { ...mediaInfo, dateAdded: date };
+    }, {
       needsAuth: true,
       extraKeys: [ listId ],
-      params: {},
-    });
-
-  // const { searchParams } = new URL(req.url);
-
-  // const user = await currentUser();
-  // if (!user?.username || user.username !== username) {
-  //   return NextResponse.json('Unauthorized', { status: 401 });
-  // }
-
-  // const valid = isValid({ listname });
-  // if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
-
-  // if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
-  //   if (!searchParams.get('imdbId')) throw Error('no imdbId');
-  //   if (!searchParams.get('listId')) throw Error('no listId');
-  //   if (!searchParams.get('listname')) throw Error('no listname');
-  //   const imdbId = searchParams.get('imdbId')!;
-  //   const listId = searchParams.get('listId')!;
-  //   const listname = searchParams.get('listname')!;
-  //   const newRecord = {
-  //     username,
-  //     listname,
-  //     imdbId,
-  //     date: Date.now(),
-  //     listnameId: Number(listId),
-  //   }
-  //   console.log('INSERTING', newRecord)
-  //   console.log(cache.cache)
-  //   await db.insert(lists).values(newRecord);
-  //   const newRecordV2 = cache.get(imdbId);
-  //   if (!newRecordV2) throw Error('cannot find media info');
-  //   await serverHashCache.updateHash(
-  //     username,
-  //     // `list-${listId}`,
-  //     // ['listContents', listId],
-  //     'listContents',
-  //     'POST',
-  //     newRecordV2,
-  //     listId.toString(),
-  //   );
-  //   cache.delete(`${username},${imdbId},lists`);
-  //   cache.delete(`${username},${listname}`);
-  //   return NextResponse.json(newRecord);
-  // }
-
-  // try {
-  //   const alreadyExists = await db.select().from(listnames).where(
-  //     and(
-  //       eq(listnames.username, username),
-  //       eq(listnames.listname, listname),
-  //     )
-  //   ).get();
-
-  //   if (!alreadyExists) {
-  //     // if list doesnt exist, create it
-  //     await db.insert(listnames).values({
-  //       username,
-  //       listname,
-  //       defaultList: false,
-  //       date: Date.now(),
-  //     });
-  //     cache.delete(`${username},lists`);
-  //   }
-
-  //   if (searchParams.has('imdbId')) {
-  //     const imdbId = searchParams.get('imdbId')!;
-
-  //     // FIX ME
-  //     // this should probably just be handled by foreign keys
-  //     // const imdbIdExists = await db.select().from(media).where(
-  //     //   eq(media.imdbId, imdbId)
-  //     // ).get();
-  //     // if (!imdbIdExists) {
-  //     //   return NextResponse.json('ImdbId does not exist in media table', { status: 400 });
-  //     // }
-
-  //     // Probably dont need this either
-  //     // const alreadyInList = await db.select().from(lists).where(
-  //     //   and(
-  //     //     eq(lists.username, username),
-  //     //     eq(lists.listname, listname),
-  //     //     eq(lists.imdbId, imdbId),
-  //     //   )
-  //     // ).get();
-  //     // if (!alreadyInList) {
-  //     //   await db.insert(lists).values({
-  //     //     username,
-  //     //     listname,
-  //     //     imdbId,
-  //     //     date: Date.now(),
-  //     //   });
-  //     //   // cache.delete(`${username},${imdbId},lists`);
-  //     //   // cache.delete(`${username},${listname}`);
-  //     // } else {
-  //     //   // if imdbID already exists in list, then we "bump" the list item by updating the record's date column
-  //     //   // It might make more sense to move this to a different route
-  //     //   // maybe create a new route like /api/users/${username}/lists/${listname}/items/${imdbId}
-  //     //   // POST could add records
-  //     //   // PUT/PATCH could bump records
-  //     //   await db.update(lists).set({ date: Date.now() }).where(
-  //     //     and(
-  //     //       eq(lists.username, username),
-  //     //       eq(lists.listname, listname),
-  //     //       eq(lists.imdbId, imdbId)
-  //     //     )
-  //     //   );
-  //     //   // cache.delete(`${username},${imdbId},lists`);
-  //     //   // cache.delete(`${username},${listname}`);
-  //     // }
-
-  //     const listnameRec = await db.select().from(listnames).where(
-  //       and(
-  //         eq(listnames.username, username),
-  //         eq(listnames.listname, listname),
-  //       )
-  //     ).get();
-  //     if (!listnameRec) throw Error('could not find listnameRec');
-
-  //     await db.insert(lists).values({
-  //       username,
-  //       listname,
-  //       imdbId,
-  //       date: Date.now(),
-  //       listnameId: listnameRec.id,
-  //     });
-  //     cache.delete(`${username},${imdbId},lists`);
-  //     cache.delete(`${username},${listname}`);
-  //   }
-
-  //   return new NextResponse();
-  // } catch {
-  //   return NextResponse.json('Failed to process request, database error', { status: 500 });
-  // }
+      params: {
+        listname: { type: 'string', required: true, validator: 'listname' },
+        listId: { type: 'number', required: true },
+        imdbId: { type: 'string', required: true },
+      },
+    }
+  );
 }
 
-// // use PUT /users/[username]/lists/[listname]/default to set default lists
-// // we still need to figure out how we want to bump list items, and set default list
-// export async function PUT(req: Request, { params }: { params: Params }) {
-//   // change listname
-//   const { username, listname } = params;
-//   const { newListname } = await req.json();
-//   
-//   if (!newListname) {
-//     return NextResponse.json('Bad Request', { status: 400 });
-//   }
-// 
-//   const user = await currentUser();
-//   if (!user?.username || user.username !== username) {
-//     return NextResponse.json('Unauthorized', { status: 401 });
-//   }
-// 
-//   if (listname === newListname) {
-//     return new NextResponse();
-//   }
-// 
-//   const valid = isValid({ listname: newListname });
-//   if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
-// 
-//   try {
-//     await db.update(listnames).set({ listname: newListname }).where(
-//       and(
-//         eq(listnames.username, username),
-//         eq(listnames.listname, listname),
-//       )
-//     );
-// 
-//     await db.update(lists).set({ listname: newListname }).where(
-//       and(
-//         eq(lists.username, username),
-//         eq(lists.listname, listname),
-//       )
-//     );
-//     cache.set(`${username},${newListname}`, cache.get(`${username},${listname}`));
-//     cache.delete(`${username},${listname}`);
-//     cache.delete(`${username},lists`);
-// 
-//     return new NextResponse();
-//   } catch {
-//     return NextResponse.json('Failed to process request, database error', { status: 500 });
-//   }
-// }
-// 
-// export async function DELETE(req: Request, { params }: { params: Params }) {
-//   // delete entire list
-//   // if req has imdbId param, only delete imdbId from list
-//   const { username, listname } = params;
-//   const { searchParams } = new URL(req.url);
-// 
-//   const user = await currentUser();
-//   if (!user?.username || user.username !== username) {
-//     return NextResponse.json('Unauthorized', { status: 401 });
-//   }
-// 
-//   if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
-//     const imdbId = searchParams.get('imdbId');
-//     const listId = searchParams.get('listId');
-//     if (!imdbId) throw Error('could not get imdbId param');
-//     if (!listId) throw Error('could not get listId param');
-//     console.log('DELETE', username, listname, imdbId)
-//     const temp = await db.delete(lists).where(
-//       and(
-//         eq(lists.username, username),
-//         eq(lists.listnameId, Number(listname)),
-//         eq(lists.imdbId, imdbId)
-//       )
-//     );
-//     console.log('DELETED', temp.rowsAffected)
-//     serverHashCacheV5.update(req, username, { imdbId }, 'DELETE', 'listContents', listId);
-//     cache.delete(`${username},${imdbId},lists`);
-//     cache.delete(`${username},${listname}`);
-//     return NextResponse.json({ imdbId });
-//   }
-// 
-//   try {
-//     if (searchParams.has('imdbId')) {
-//       const imdbId = searchParams.get('imdbId')!;
-//       await db.delete(lists).where(
-//         and(
-//           eq(lists.username, username),
-//           eq(lists.listname, listname),
-//           eq(lists.imdbId, imdbId)
-//         )
-//       );
-//       cache.delete(`${username},${imdbId},lists`);
-//       cache.delete(`${username},${listname}`);
-//     } else {
-//       await db.delete(listnames).where(
-//         and(
-//           eq(listnames.username, username),
-//           eq(listnames.listname, listname),
-//         )
-//       );
-//       await db.delete(lists).where(
-//         and(
-//           eq(lists.username, username),
-//           eq(lists.listname, listname),
-//         )
-//       );
-//       cache.delete(`${username},lists`);
-//       cache.delete(`${username},${listname}`);
-//     }
-//     return new NextResponse();
-//   } catch {
-//     return NextResponse.json('Failed to process request, database error', { status: 500 });
-//   }
-// }
-// 
-// export async function PATCH(req: Request, { params }: { params: Params }) {
-//   const { username, listname } = params;
-//   const { searchParams } = new URL(req.url);
-// 
-//   const user = await currentUser();
-//   if (!user?.username || user.username !== username) {
-//     return NextResponse.json('Unauthorized', { status: 401 });
-//   }
-// 
-//   const valid = isValid({ listname });
-//   if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
-//   
-//   if (!searchParams.has('imdbId')) {
-//     return NextResponse.json('Bad Request', { status: 400 });
-//   }
-//   const imdbId = searchParams.get('imdbId')!;
-// 
-//   if (searchParams.has('testType') && searchParams.get('testType') === 'userContext') {
-//     const date = Date.now();
-//     await db.update(lists).set({ date }).where(
-//       and(
-//         eq(lists.username, username),
-//         eq(lists.listname, listname),
-//         eq(lists.imdbId, imdbId)
-//       )
-//     );
-//     cache.delete(`${username},${imdbId},lists`);
-//     cache.delete(`${username},${listname}`);
-// 
-//     // const newEntry = await db.select().from(lists).where(
-//     //   and(
-//     //     eq(lists.username, username),
-//     //     eq(lists.listname, listname),
-//     //     eq(lists.imdbId, imdbId)
-//     //   )
-//     // ).get();
-//     // if (!newEntry) throw Error('entry does not exist');
-//     // const withMediaInfo = newEntry as ListItem;
-//     // withMediaInfo.mediaInfo = cache.get(imdbId);
-//     // if (withMediaInfo.mediaInfo) throw Error('no media info added');
-//     const mediaInfo = cache.get(imdbId);
-//     const result: ListItem = {
-//       ...mediaInfo,
-//       dateAdded: date,
-//     } satisfies ListItem
-//     await serverHashCacheV5.update(req, username, result, 'PATCH', 'listContents');
-//     return NextResponse.json(result);
-//   }
-// 
-//   try {
-//     await db.update(lists).set({ date: Date.now() }).where(
-//       and(
-//         eq(lists.username, username),
-//         eq(lists.listname, listname),
-//         eq(lists.imdbId, imdbId)
-//       )
-//     );
-//     cache.delete(`${username},${imdbId},lists`);
-//     cache.delete(`${username},${listname}`);
-// 
-//     return new NextResponse();
-//   } catch {
-//     return NextResponse.json('Failed to process request, database error', { status: 500 });
-//   }
-// }
+export async function DELETE(req: Request, { params }: { params: Params }) {
+  // Delete imdbId from list
+  const { username, listId } = params;
+
+  return await useCache(req, 'DELETE', 'users', username, 'listContents',
+    async (imdbId: string) => {
+      await db.delete(lists).where(
+        and(
+          eq(lists.username, username),
+          eq(lists.listnameId, listId),
+          eq(lists.imdbId, imdbId),
+        )
+      );
+      return { imdbId };
+    }, {
+      needsAuth: true,
+      extraKeys: [ listId ],
+      params: { imdbId: { type: 'string', required: true } },
+    }
+  );
+}
+
+export async function PATCH(req: Request, { params }: { params: Params }) {
+  // bump list item to top of list
+  const { username, listId } = params;
+
+  return await useCache(req, 'PATCH', 'users', username, 'listContents',
+    async (imdbId: string) => {
+      const date = Date.now();
+      await db.update(lists).set({ date }).where(
+        and(
+          eq(lists.username, username),
+          eq(lists.listnameId, listId),
+          eq(lists.imdbId, imdbId)
+        )
+      );
+      const [ mediaInfo ] = await getManyExistingMediaV2([ imdbId ]);
+      return { ...mediaInfo, dateAdded: date };
+    }, {
+      needsAuth: true,
+      extraKeys: [ listId ],
+      params: { imdbId: { type: 'string', required: true } },
+    }
+  );
+}

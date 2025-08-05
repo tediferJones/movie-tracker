@@ -5,7 +5,7 @@ import { Methods } from '@/lib/easyFetch';
 import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 import { ExistingMediaInfo } from '@/types';
 import { getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
-import { isValid } from './inputValidation';
+import { isValid } from '@/lib/inputValidation';
 
 class Cache {
   cache: Record<string, { data: any, date: number }>
@@ -210,8 +210,6 @@ export async function useCache<
   dbQuery: (...args: any[]) => Promise<any>,
   opts: {
     needsAuth?: boolean,
-    // requiredParams?: { [param: string]: ParamTypes },
-    // validate?: { [param: string]: string },
     extraKeys?: ExtraKeys,
     params?: {
       [param: string]: {
@@ -225,25 +223,9 @@ export async function useCache<
   // types for data and resource should be tied to those of serverHashCache
   // if type === 'users' then key is username
 
-  // const method = req.method as Methods;
   const { searchParams } = new URL(req.url);
   const useHashCache = searchParams.get('useHashCache') === 'true';
   const extraKeys = opts.extraKeys || [];
-  // const requiredParams = (
-  //   // Object.keys(opts.requiredParams || {}).map(param => {
-  //   //   const type = opts.requiredParams![param];
-  //   //   const paramVal = searchParams.get(param);
-  //   //   if (!paramVal) throw Error(`Could not find param: ${param}`);
-  //   //   return paramConverters[type](paramVal);
-  //   // })
-  //   Object.keys(opts.requiredParams || {}).reduce((formattedParams, param) => {
-  //     const type = opts.requiredParams![param];
-  //     const paramVal = searchParams.get(param);
-  //     if (!paramVal) throw Error(`Could not find param: ${param}`);
-  //     formattedParams[param] = paramConverters[type](paramVal);
-  //     return formattedParams;
-  //   }, {} as { [param: string]: any })
-  // );
 
   // should probably wrap this in try catch,
   // throw error with reason for failure and status code,
@@ -272,25 +254,6 @@ export async function useCache<
   }, {} as { [param: string]: any });
   console.log('ParamsResult', params);
 
-  // console.log(requiredParams)
-  // // throw Error('those be the required params')
-
-  // if (opts.validate) {
-  //   const allValid = Object.keys(opts.validate).every(paramName => {
-  //     const paramVal = requiredParams[paramName];
-  //     if (paramVal === undefined) throw Error('could not find paramVal');
-  //     console.log('validating', paramName, paramVal);
-  //     return isValid({ [paramName]: paramVal });
-  //   })
-  //   if (!allValid) return NextResponse.json(
-  //     'inputs are not valid',
-  //     { status: 422 }
-  //   );
-  // }
-  // const valid = isValid({ listname });
-  // if (!valid) return NextResponse.json('inputs are not valid', { status: 422 });
-
-  // this gets paired with updating serverHashCache, if user is not self, do not update serverHashCache
   const user = await currentUser();
   const isSelf = user?.username && user.username === key;
   if (opts.needsAuth && !isSelf) {
@@ -298,12 +261,6 @@ export async function useCache<
   }
 
   let data: V['data'];
-  // if (method === 'GET') {
-  //   data = await cacheV2.getSet(type, key, resource, dbQuery);
-  // } else {
-  //   cacheV2.delete(type, key, resource);
-  //   data = await dbQuery();
-  // }
   try {
     if (method === 'GET') {
       data = await cacheV2.getSet(
@@ -315,7 +272,6 @@ export async function useCache<
       );
     } else {
       cacheV2.delete(type, key, resource);
-      // data = await dbQuery(...Object.values(requiredParams));
       data = await dbQuery(...Object.values(params));
     }
   } catch (error) {
@@ -337,7 +293,6 @@ export async function useCache<
     );
   }
 
-  // console.log('returing', data)
   return NextResponse.json(data);
 }
 

@@ -11,12 +11,11 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { ChevronUp, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { listnames } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { inputValidation } from '@/lib/inputValidation';
-// import easyFetch from '@/lib/easyFetch';
 import { useUserData } from '@/context/userData';
-import { listnames } from '@/drizzle/schema';
 
 type Listname = typeof listnames.$inferSelect;
 
@@ -25,7 +24,6 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const [matchingLists, setMatchingLists] = useState<Listname[]>();
   const [currentList, setCurrentList] = useState<string>(illegalListname);
   const [allListnames, setAllListnames] = useState<Listname[]>();
-  // const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmList, setConfirmList] = useState('');
   const [buttonText, setButtonText] = useState('Waiting...');
@@ -38,11 +36,13 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
 
     const { included, excluded } = listnames.reduce((obj, listname) => {
       if (!userData.current) throw Error('Cannot find userData');
-      const found = userData.current.getResource('listContents', listname.id);
+      const listContents = userData.current.getResource('listContents', listname.id);
+      const found = listContents.find(listRec => listRec.imdbId === imdbId);
       obj[found ? 'included' : 'excluded'].push(listname);
       return obj;
     }, { included: [] as Listname[], excluded: [] as Listname[] });
 
+    console.log({ listnames, included, excluded })
     setMatchingLists(included); // already contains imdbId
     setAllListnames(excluded); // available lists
     const defaultList = excluded.find(list => list.defaultList);
@@ -86,13 +86,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
                     if (!userData.current) return;
                     userData.current.update({
                       params: { imdbId }
-                    }, 'PATCH', 'listContents');
-                    // easyFetch({
-                    //   route: `/api/users/${userData.current!.username}/lists/${listname}`,
-                    //   method: 'PATCH',
-                    //   params: { imdbId },
-                    //   skipJSON: true,
-                    // }).then(() => setRefreshTrigger(!refreshTrigger));
+                    }, 'PATCH', 'listContents', id);
                   }}
                 >
                   <span className='sr-only'>Bump {listname}</span>

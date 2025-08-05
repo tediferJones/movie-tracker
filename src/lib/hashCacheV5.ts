@@ -1,5 +1,5 @@
 import { ReviewBody } from '@/components/pages/mediaPage/reviewManager';
-import { listnames, lists, reviews, watched } from '@/drizzle/schema';
+import { listnames, reviews, watched } from '@/drizzle/schema';
 import easyFetch, { Methods } from '@/lib/easyFetch';
 import { ExistingMediaInfo } from '@/types';
 import { Dispatch, SetStateAction } from 'react';
@@ -44,11 +44,8 @@ export type UserContext = { current: ClientHashCacheV5 | null }
 type SetUserContext = Dispatch<SetStateAction<UserContext>>
 export type SyncOpts = 'notSynced' | 'syncing' | 'synced' | ''
 
-type Listname = typeof listnames.$inferSelect;
-// type ListItem = typeof lists.$inferSelect;
-// type ListItem = (ExistingMediaInfo & { listData: number })[]
-// export type ListItem = (typeof lists.$inferSelect) & { mediaInfo: ExistingMediaInfo };
-export type ListItem = (ExistingMediaInfo & { dateAdded: number })
+type Listname = typeof listnames.$inferSelect
+export type ListItem = ExistingMediaInfo & { dateAdded: number }
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 type Review = typeof reviews.$inferSelect & { title: string }
 
@@ -69,9 +66,9 @@ const dataHandlers: { [M in Methods]?: (extData: any, newData: any, match?: Matc
     if (!match) throw Error('no matcher found');
     return extData.map((data: any) => {
       if (match.every(key => data[key] === newData[key])) {
-        return newData
+        return newData;
       }
-      return data
+      return data;
     })
   },
   DELETE: (extData, newData, match) => {
@@ -84,9 +81,9 @@ const dataHandlers: { [M in Methods]?: (extData: any, newData: any, match?: Matc
     if (!match) throw Error('no matcher found');
     return extData.map((data: any) => {
       if (match.every(key => data[key] === newData[key])) {
-        return newData
+        return newData;
       }
-      return data
+      return data;
     })
   }
 }
@@ -107,7 +104,7 @@ function reverseDependencies(config: Config) {
     }
     return obj;
   }, {} as { [key: string]: Dependent });
-  return { dependents, revDeps }
+  return { dependents, revDeps };
 }
 
 class Resource<T = any> {
@@ -378,7 +375,7 @@ export class ClientHashCacheV5 {
       needsAdded.map(async key => {
         console.log('server has new resource, adding and syncing')
         const url = server[key].url;
-        console.log(server, key, url)
+        // console.log(server, key, url)
         if (typeof url !== 'string') throw Error('Url is not a string');
         const resource = new Resource({ url });
         client[key] = resource;
@@ -662,9 +659,8 @@ type ServerTypes<R extends Resources, M extends Methods> = {
     PATCH: Listname,
   }, undefined>,
   listContents: FillWith<{
-    // GET: ListItem[],
-    // GET: ExistingMediaInfo[],
     GET: ListItem[],
+    POST: ListItem,
     PATCH: ListItem,
     DELETE: { imdbId: string },
   }, undefined>,

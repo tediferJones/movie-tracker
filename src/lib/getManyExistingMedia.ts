@@ -114,7 +114,7 @@ export async function getManyExistingMediaV2(imdbIds: string[]): Promise<Existin
         country: processedData.countryObj[imdbId] || [],
         language: processedData.languageObj[imdbId] || [],
         ...processedData.peopleObj[imdbId],
-      } as ExistingMediaInfo));
+      } as ExistingMediaInfo), { body: undefined, params: {} });
     })
   );
 }

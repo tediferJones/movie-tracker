@@ -52,7 +52,7 @@ export default cache;
 
 type MediaReview = typeof reviews.$inferSelect
 type Listname = typeof listnames.$inferSelect
-type ListItem = (ExistingMediaInfo & { dateAdded: number })
+type ListItem = ExistingMediaInfo & { dateAdded: number }
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 type UserReview = typeof reviews.$inferSelect & { title: string }
 
@@ -100,8 +100,13 @@ type CacheType = {
     }
   }
 }
-type UnwrapCacheData<T> = T extends CacheData<infer U> ? U : never;
+type UnwrapCacheData<T> = T extends CacheData<infer U> ? U : never
 type ExtraKeys = (string | number)[]
+// type DbArgs = { body?: any, params?: Record<string, any> }
+type DbArgs<P extends Record<string, ParamConfig> = {}> = {
+  body?: any,
+  params?: InferredParams<P>,
+}
 
 class CacheV2 {
   cache: CacheType;
@@ -116,16 +121,18 @@ class CacheV2 {
     T extends keyof CacheType,
     K extends keyof CacheType[T],
     R extends keyof CacheType[T][K],
-    V extends CacheType[T][K][R] & CacheData<unknown>
+    V extends CacheType[T][K][R] & CacheData<unknown>,
+    P extends Record<string, ParamConfig> = {},
   >(
     type: T,
     key: K,
     resource: R,
-    dbQuery: (() => Promise<V['data']>) | (() => V['data']),
+    dbQuery: ((args: Required<DbArgs<P>>) => Promise<V['data']> | V['data']),
+    dbArgs: Required<DbArgs<P>>,
     ...extraKeys: ExtraKeys
   ) {
     if (!this.get(type, key, resource, ...extraKeys)) {
-      this.set(type, key, resource, await dbQuery(), ...extraKeys);
+      this.set(type, key, resource, await dbQuery(dbArgs), ...extraKeys);
     }
     return this.get(type, key, resource, ...extraKeys)!;
   }
@@ -189,39 +196,64 @@ class CacheV2 {
   }
 }
 
-type ParamTypes = 'string' | 'number' | 'boolean'
-const paramConverters: { [key in ParamTypes]: (arg: string) => any } = {
+type ParamTypes = keyof TypeMap
+type TypeMap = {
+  string: string,
+  number: number,
+  boolean: boolean,
+}
+const paramConverters: { [K in ParamTypes]: (arg: string) => TypeMap[K] } = {
   string: (arg) => String(arg),
   number: (arg) => Number(arg),
-  boolean: (arg) => arg === 'true'
+  boolean: (arg) => arg === 'true',
+}
+
+const bodyConverters = {
+  json: async (req: Request) => await req.json(),
+}
+
+type ParamConfig = {
+  type: ParamTypes,
+  validator?: string,
+  required?: boolean,
+}
+
+type InferredParams<T extends Record<string, ParamConfig>> = {
+  [K in keyof T]: T[K]['required'] extends true ? TypeMap[T[K]['type']]
+    : TypeMap[T[K]['type']] | undefined
 }
 
 export async function useCache<
   T extends keyof CacheType,
   K extends keyof CacheType[T],
   R extends keyof CacheType[T][K],
-  V extends CacheType[T][K][R] & CacheData<unknown>
+  V extends CacheType[T][K][R] & CacheData<unknown>,
+  P extends { [param: string]: ParamConfig } = {},
 >(
   req: Request,
   method: Methods,
   type: T,
   key: K,
   resource: R,
-  dbQuery: (...args: any[]) => Promise<any>,
+  dbQuery: (args: Required<DbArgs<P>>) => Promise<any>,
   opts: {
     needsAuth?: boolean,
     extraKeys?: ExtraKeys,
-    params?: {
-      [param: string]: {
-        type: ParamTypes,
-        validator?: string,
-        required?: boolean,
-      }
+    params?: P,
+    body?: {
+      type: keyof typeof bodyConverters,
+      validate?: boolean,
     }
   } = {},
 ) {
   // types for data and resource should be tied to those of serverHashCache
   // if type === 'users' then key is username
+
+  const user = await currentUser();
+  const isSelf = user?.username && user.username === key;
+  if (opts.needsAuth && !isSelf) {
+    return NextResponse.json('Unauthorized', { status: 401 });
+  }
 
   const { searchParams } = new URL(req.url);
   const useHashCache = searchParams.get('useHashCache') === 'true';
@@ -251,13 +283,21 @@ export async function useCache<
 
     params[param] = paramVal;
     return params;
-  }, {} as { [param: string]: any });
+  }, {} as { [param: string]: any }) as InferredParams<P>;
   console.log('ParamsResult', params);
 
-  const user = await currentUser();
-  const isSelf = user?.username && user.username === key;
-  if (opts.needsAuth && !isSelf) {
-    return NextResponse.json('Unauthorized', { status: 401 });
+  let parsedBody;
+  if (opts.body) {
+    const result = await bodyConverters[opts.body.type](req);
+    if (opts.body.validate && !isValid(result)) {
+      throw Error('body invalid');
+    }
+    parsedBody = result;
+  }
+
+  const dbArgs: Required<DbArgs<P>> = {
+    body: parsedBody || undefined,
+    params,
   }
 
   let data: V['data'];
@@ -268,11 +308,12 @@ export async function useCache<
         key,
         resource,
         dbQuery,
+        dbArgs,
         ...extraKeys,
       );
     } else {
       cacheV2.delete(type, key, resource);
-      data = await dbQuery(...Object.values(params));
+      data = await dbQuery(dbArgs);
     }
   } catch (error) {
     console.log('ERROR', error)
@@ -303,10 +344,7 @@ export async function addTitleV2<T extends { imdbId: string }>(
   return arr.map(item => {
     const mediaInfo = cacheV2.get('media', item.imdbId, 'mediaInfo');
     if (!mediaInfo) throw Error('could not find media info');
-    return {
-      ...item,
-      title: mediaInfo.title,
-    }
+    return { ...item, title: mediaInfo.title };
   });
 }
 

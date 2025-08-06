@@ -26,7 +26,8 @@ export async function POST(req: Request, { params }: { params: Params }) {
   const { username } = params;
 
   return await useCache(req, 'POST', 'users', username, 'listnames',
-    async (listname: string) => {
+    async ({ params }) => {
+      const { listname } = params;
       const preInsertRecord = {
         username,
         listname,
@@ -53,7 +54,8 @@ export async function PUT(req: Request, { params }: { params: Params }) {
   const { username } = params;
 
   return await useCache(req, 'PUT', 'users', username, 'listnames',
-    async (listname: string, newListname: string) => {
+    async ({ params }) => {
+      const { listname, newListname } = params;
       await db.update(listnames).set({ listname: newListname }).where(
         and(
           eq(listnames.username, username),
@@ -81,7 +83,8 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
   const { username } = params;
 
   return await useCache(req, 'DELETE', 'users', username, 'listnames',
-    async (id: number) => {
+    async ({ params }) => {
+      const { id } = params;
       await db.delete(listnames).where(
         and(
           eq(listnames.username, username),
@@ -112,7 +115,8 @@ export async function PATCH(req: Request, { params }: { params: Params }) {
   // users CANNOT check a diffent default list and have it un-defaultList the first
   // and set second as defaultList
   return await useCache(req, 'PATCH', 'users', username, 'listnames',
-    async (listname: string, set: string, val: boolean) => {
+    async ({ params }) => {
+      const { listname, set, val } = params;
       const booleans = {
         defaultList: false
       } satisfies { [K in BooleanKeys<typeof listnames.$inferSelect>]: false }

@@ -32,7 +32,8 @@ export async function POST(req: Request, { params }: { params: Params }) {
   const { username, listId } = params;
 
   return await useCache(req, 'POST', 'users', username, 'listContents',
-    async (listname: string, listId: number, imdbId: string) => {
+    async ({ params }) => {
+      const { listname, listId, imdbId } = params;
       const date = Date.now();
       const newRecord = {
         username,
@@ -61,7 +62,8 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
   const { username, listId } = params;
 
   return await useCache(req, 'DELETE', 'users', username, 'listContents',
-    async (imdbId: string) => {
+    async ({ params }) => {
+      const { imdbId } = params;
       await db.delete(lists).where(
         and(
           eq(lists.username, username),
@@ -83,7 +85,8 @@ export async function PATCH(req: Request, { params }: { params: Params }) {
   const { username, listId } = params;
 
   return await useCache(req, 'PATCH', 'users', username, 'listContents',
-    async (imdbId: string) => {
+    async ({ params }) => {
+      const { imdbId } = params;
       const date = Date.now();
       await db.update(lists).set({ date }).where(
         and(

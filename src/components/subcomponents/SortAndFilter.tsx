@@ -131,7 +131,7 @@ export default function SortAndFilter<T>(
     // }
     const { cacheStr, cacheVal } = checkCache();
     if (cacheVal) {
-      setSubsetData(cacheVal)
+      setSubsetData(cacheVal);
     } else {
       const result = sortAndFilter(allData);
       cache.current[cacheStr] = result;

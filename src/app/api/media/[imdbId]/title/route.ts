@@ -1,14 +1,9 @@
-import cache from '@/lib/cache';
-import { NextResponse } from 'next/server';
-import { GET as MediaGet } from '@/app/api/media/[imdbId]/route';
+import { getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
 
 type Params = { imdbId: string }
 
 export async function GET(req: Request, { params }: { params: Params }) {
   const { imdbId } = params;
-
-  if (!cache.get(imdbId)) {
-    await MediaGet(req, { params });
-  }
-  return NextResponse.json(cache.get(imdbId).title);
+  const [ mediaInfo ] = await getManyExistingMediaV2([ imdbId ]);
+  return mediaInfo.title;
 }

@@ -334,7 +334,7 @@ export async function useCache<
     );
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json(data || 'Operation Successful');
 }
 
 export async function addTitleV2<T extends { imdbId: string }>(
@@ -376,3 +376,6 @@ if (!globalThis.cacheV2Global) {
 // const result = testCache.get('users', 'username', 'listContents', '1')
 // console.log('GET RESULT', result)
 // console.log(testCache.cache.users.username)
+
+// ROUTE THAT CAN PROBABLY BE DELETED
+// /api/users/[username]/defaultList (deprecated by PATCH /api/users/[username]/lists/[listId])

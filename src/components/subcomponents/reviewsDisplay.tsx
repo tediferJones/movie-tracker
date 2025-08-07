@@ -38,6 +38,11 @@ export default function ReviewsDisplay(
   useEffect(() => {
     // if imdbId exists, only fetch records related to imdbId
     // if no imdbId, fetch all records for user
+
+    // FIX ME, this is going to cause problems for users that are not logged in
+    // use the useIsSelf hook, that might be a good fix
+    if (userData.current?.isSynced !== true) return console.log('waiting'); 
+
     if (userData.current && userData.current.username === username) {
       const reviews = userData.current.getResource('reviews');
       setReviews(reviews);

@@ -17,14 +17,25 @@ function useIsSelf(username: string) {
   const { user, isLoaded, isSignedIn } = useUser();
   useEffect(() => {
     if (!isLoaded) return;
-    if (isSignedIn && user && user.username === username) {
-      setIsSelf(true);
-    } else {
-      setIsSelf(false);
-    }
+    setIsSelf(isSignedIn && user && user.username === username);
   }, [isLoaded, isSignedIn, user]);
 
   return isSelf;
+}
+
+type GetNumberKeys<T> = {
+  [K in keyof T]: T[K] extends number ? K : never
+}[keyof T];
+function shallowSort<T, K extends GetNumberKeys<T>>(
+  arr: T[],
+  sortBy: K,
+  dir: 'asc' | 'desc'
+) {
+  const sorted = [ ...arr ].sort(
+    (a, b) => (a[sortBy] as number) - (b[sortBy] as number)
+  );
+  if (dir === 'desc') sorted.reverse();
+  return sorted;
 }
 
 export default function WatchedDisplay({ username }: { username: string }) {
@@ -39,14 +50,14 @@ export default function WatchedDisplay({ username }: { username: string }) {
     if (isSelf === null) return;
     if (isSelf) {
       if (!userData.current) return;
-      console.log('using userData')
-      setWatched(userData.current.getResource('watched'));
+      setWatched(
+        shallowSort(userData.current.getResource('watched'), 'date', 'desc')
+      );
     } else {
-      console.log('fetching')
       easyFetch<WatchedRec[]>({
         route: `/api/users/${username}/watched`,
         method: 'GET',
-      }).then(data => setWatched(data));
+      }).then(data => setWatched(shallowSort(data, 'date', 'desc')));
     }
   }, [userData.current, isSelf]);
 

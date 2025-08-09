@@ -11,6 +11,7 @@ import { useUser } from '@clerk/nextjs';
 
 type WatchedRec = typeof watched.$inferSelect & { title: string }
 
+// FIX ME, move this to it's own hook, use in reviewsDisplay
 function useIsSelf(username: string) {
   const [isSelf, setIsSelf] = useState<null | boolean>(null);
 

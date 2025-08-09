@@ -604,14 +604,14 @@ export const configV5 = {
 
 // copy this pattern over to regular server cache if it proves to work correctly
 declare global {
-  var serverHashCacheGlobal: ServerHashCacheV5 | undefined;
+  var serverHashCacheGlobalV5: ServerHashCacheV5 | undefined;
 }
 export const serverHashCacheV5 = (
-  globalThis.serverHashCacheGlobal || new ServerHashCacheV5(configV5)
+  globalThis.serverHashCacheGlobalV5 || new ServerHashCacheV5(configV5)
 );
 if (!globalThis.serverHashCacheGlobal) {
   console.log('SETTING HASH CACHE')
-  globalThis.serverHashCacheGlobal = serverHashCacheV5;
+  globalThis.serverHashCacheGlobalV5 = serverHashCacheV5;
 }
 
 type FillWith<T extends Partial<Record<Methods, any>>, F> = {

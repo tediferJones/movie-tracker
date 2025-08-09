@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs';
 import { listnames, reviews, watched } from '@/drizzle/schema';
-import { Methods } from '@/lib/easyFetch';
-import { serverHashCacheV5 } from '@/lib/hashCacheV5';
-import { ExistingMediaInfo } from '@/types';
 import { getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
 import { isValid } from '@/lib/inputValidation';
+import { Methods } from '@/lib/easyFetch';
+import { ServerTypes } from '@/lib/hashCache/config';
+import { FillWith } from '@/lib/hashCache/types';
+import { serverHashCacheV5 } from '@/lib/hashCacheV5';
+import { ExistingMediaInfo } from '@/types';
 
 class Cache {
   cache: Record<string, { data: any, date: number }>
@@ -84,6 +86,25 @@ class CacheData<T> {
 //     } | undefined
 //   }
 // }
+
+type ResTypes = {
+  media: {
+    mediaInfo: FillWith<{
+      GET: ExistingMediaInfo,
+    }, void>,
+    reviews: FillWith<{
+      GET: MediaReview[],
+    }, void>,
+  },
+  users: ServerTypes,
+}
+
+type GetResType<
+  T extends keyof ResTypes,
+  R extends keyof ResTypes[T],
+  M extends keyof ResTypes[T][R],
+> = ResTypes[T][R][M]
+
 type CacheType = {
   media: {
     [imdbId: string]: {
@@ -100,6 +121,7 @@ type CacheType = {
     }
   }
 }
+
 type UnwrapCacheData<T> = T extends CacheData<infer U> ? U : never
 type ExtraKeys = (string | number)[]
 // type DbArgs = { body?: any, params?: Record<string, any> }
@@ -223,19 +245,22 @@ type InferredParams<T extends Record<string, ParamConfig>> = {
     : TypeMap[T[K]['type']] | undefined
 }
 
+// Move this to its own lib file
 export async function useCache<
+  M extends Methods & keyof ResTypes[T][R],
   T extends keyof CacheType,
   K extends keyof CacheType[T],
-  R extends keyof CacheType[T][K],
+  R extends keyof CacheType[T][K] & keyof ResTypes[T],
   V extends CacheType[T][K][R] & CacheData<unknown>,
   P extends { [param: string]: ParamConfig } = {},
 >(
   req: Request,
-  method: Methods,
+  method: M,
   type: T,
   key: K,
   resource: R,
-  dbQuery: (args: Required<DbArgs<P>>) => Promise<any>,
+  // dbQuery: (args: Required<DbArgs<P>>) => Promise<any>,
+  dbQuery: (args: Required<DbArgs<P>>) => Promise<GetResType<T, R, M>>,
   opts: {
     needsAuth?: boolean,
     extraKeys?: ExtraKeys,
@@ -307,7 +332,7 @@ export async function useCache<
         type,
         key,
         resource,
-        dbQuery,
+        dbQuery as any,
         dbArgs,
         ...extraKeys,
       );
@@ -337,6 +362,7 @@ export async function useCache<
   return NextResponse.json(data || 'Operation Successful');
 }
 
+// Move this to its own lib file
 export async function addTitleV2<T extends { imdbId: string }>(
   arr: T[]
 ): Promise<(T & { title: string })[]> {

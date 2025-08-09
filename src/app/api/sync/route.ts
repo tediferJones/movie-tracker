@@ -6,6 +6,7 @@ import { hashTable } from '@/lib/hashCache';
 import { serverHashCache } from '@/lib/hashCacheV4';
 import { serverHashCacheV5 } from '@/lib/hashCacheV5';
 
+// FIX ME, we should only need GET and maybe DELETE, we also don't need hashTable or hashCacheV4
 export async function GET(req: Request) {
   const user = await currentUser();
 

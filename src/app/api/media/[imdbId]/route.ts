@@ -5,6 +5,7 @@ import { useCache } from '@/lib/cache';
 import easyFetch from '@/lib/easyFetch';
 import formatMediaInfo from '@/lib/formatMediaInfo';
 import { StrIdxRawMedia } from '@/types';
+import { getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
 
 type Params = { imdbId: string }
 
@@ -13,9 +14,8 @@ export async function GET(req: Request, { params }: { params: Params }) {
 
   return await useCache(req, 'GET', 'media', imdbId, 'mediaInfo',
     async () => {
-      return await db.select().from(media).where(
-        eq(media.imdbId, imdbId)
-      ).get();
+      const [ mediaInfo ] = await getManyExistingMediaV2([ imdbId ]);
+      return mediaInfo;
     }
   );
 }

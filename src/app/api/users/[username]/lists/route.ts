@@ -62,12 +62,14 @@ export async function PUT(req: Request, { params }: { params: Params }) {
           eq(listnames.listname, listname),
         )
       );
-      return await db.select().from(listnames).where(
+      const record = await db.select().from(listnames).where(
         and(
           eq(listnames.username, username),
           eq(listnames.listname, newListname),
         )
       ).get();
+      if (!record) throw Error('no record to update');
+      return record;
     }, {
       needsAuth: true,
       params: {
@@ -136,12 +138,14 @@ export async function PATCH(req: Request, { params }: { params: Params }) {
         )
       );
 
-      return await db.select().from(listnames).where(
+      const record = await db.select().from(listnames).where(
         and(
           eq(listnames.username, username),
           eq(listnames.listname, listname),
         )
       ).get();
+      if (!record) throw Error('no record to patch');
+      return record;
     }, {
       params: {
         listname: { type: 'string', required: true, validator: 'listname' },

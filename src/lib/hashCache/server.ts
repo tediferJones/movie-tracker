@@ -10,7 +10,6 @@ import {
   isResource,
   reverseDependencies
 } from '@/lib/hashCache/helpers';
-import { Methods } from '@/lib/easyFetch';
 import { ServerTypes } from '@/lib/hashCache/config';
 
 export default class ServerHashCache {
@@ -26,10 +25,20 @@ export default class ServerHashCache {
     return this.cache[username] || null;
   }
 
-  async update<R extends Resources, M extends Methods>(
+  // async update<R extends Resources, M extends Methods>(
+  //   req: Request,
+  //   username: string,
+  //   data: ServerTypes<R, M>,
+  //   method: M,
+  //   resource: R,
+  //   ...keys: (string | number)[]
+  async update<
+    R extends Resources,
+    M extends keyof ServerTypes[R]
+  >(
     req: Request,
     username: string,
-    data: ServerTypes<R, M>,
+    data: ServerTypes[R][M],
     method: M,
     resource: R,
     ...keys: (string | number)[]
@@ -55,7 +64,9 @@ export default class ServerHashCache {
       if (method === 'GET') {
         res.hash = await hash(JSON.stringify(data));
       } else {
-        res.hash = await hash(`${res.hash},${method},${JSON.stringify(data)}`);
+        res.hash = await hash(
+          `${res.hash},${method.toString()},${JSON.stringify(data)}`
+        );
         if (res.dependent) {
           const key = (data as any)[res.dependent.key]
           if (method === 'POST') {

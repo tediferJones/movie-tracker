@@ -2,6 +2,7 @@ import {
   Config,
   DataCache,
   Dependent,
+  EasyFetchData,
   Resources,
   ServerResource,
   ServerResponse,
@@ -259,8 +260,10 @@ export default class ClientHashCache {
     }, {} as DataCache<Resource>);
   }
 
-  async update<R extends Resources, M extends Methods>(
-    data: ClientTypes<R, M>,
+  // async update<R extends Resources, M extends Methods>(
+  //   data: ClientTypes<R, M>,
+  async update<R extends Resources, M extends keyof ClientTypes[R] & Methods>(
+    data: ClientTypes[R][M] & EasyFetchData,
     method: M,
     resource: R,
     ...keys: (string | number)[]
@@ -291,7 +294,8 @@ export default class ClientHashCache {
     const res = keys.reduce((data, key) => {
       if (!data[key]) throw Error(`Key: ${key} does not exist`);
       return data[key]
-    }, this.cache[resource] as { [key: string]: any }) as Resource<ServerTypes<R, 'GET'>>
+    // }, this.cache[resource] as { [key: string]: any }) as Resource<ServerTypes<R, 'GET'>>
+    }, this.cache[resource] as { [key: string]: any }) as Resource<ServerTypes[R]['GET']>
     return res.data;
   }
 }

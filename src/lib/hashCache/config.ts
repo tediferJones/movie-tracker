@@ -162,10 +162,10 @@ export const config = {
 declare global {
   var serverHashCacheGlobal: ServerHashCache | undefined;
 }
-export const serverHashCacheV5 = (
+export const serverHashCache = (
   globalThis.serverHashCacheGlobal || new ServerHashCache(config)
 );
 if (!globalThis.serverHashCacheGlobal) {
   console.log('SETTING HASH CACHE')
-  globalThis.serverHashCacheGlobal = serverHashCacheV5;
+  globalThis.serverHashCacheGlobal = serverHashCache;
 }

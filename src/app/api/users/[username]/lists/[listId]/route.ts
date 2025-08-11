@@ -1,8 +1,9 @@
 import { db } from '@/drizzle/db';
 import { lists } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
-import { cacheV2, useCache } from '@/lib/cache';
-import { getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
+import { cache } from '@/lib/dataCache/config';
+import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
+import { useCache } from '@/lib/useCache';
 
 type Params = { username: string, listId: number }
 
@@ -15,9 +16,9 @@ export async function GET(req: Request, { params }: { params: Params }) {
       const listRecords = await db.select().from(lists).where(
         eq(lists.listnameId, listId),
       );
-      await getManyExistingMediaV2(listRecords.map(rec => rec.imdbId));
+      await getManyExistingMedia(listRecords.map(rec => rec.imdbId));
       return listRecords.map(({ imdbId, date }) => {
-        const mediaInfo = cacheV2.get('media', imdbId, 'mediaInfo');
+        const mediaInfo = cache.get('media', imdbId, 'mediaInfo');
         if (!mediaInfo) throw Error('could not find media info');
         return { ...mediaInfo, dateAdded: date };
       });
@@ -43,7 +44,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
         listnameId: listId,
       }
       await db.insert(lists).values(newRecord);
-      const [ mediaInfo ] = await getManyExistingMediaV2([ imdbId ]);
+      const [ mediaInfo ] = await getManyExistingMedia([ imdbId ]);
       return { ...mediaInfo, dateAdded: date };
     }, {
       needsAuth: true,
@@ -95,7 +96,7 @@ export async function PATCH(req: Request, { params }: { params: Params }) {
           eq(lists.imdbId, imdbId)
         )
       );
-      const [ mediaInfo ] = await getManyExistingMediaV2([ imdbId ]);
+      const [ mediaInfo ] = await getManyExistingMedia([ imdbId ]);
       return { ...mediaInfo, dateAdded: date };
     }, {
       needsAuth: true,

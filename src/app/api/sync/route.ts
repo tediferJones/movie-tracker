@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
-// import { Hashes, isNormalResource, isSpecialResource, ListContentType, Resources, resources, SyncResponse } from '@/lib/hashCache';
-import { Hashes, resources, SyncResponse } from '@/lib/hashCache';
 import { currentUser } from '@clerk/nextjs';
-import { hashTable } from '@/lib/hashCache';
-import { serverHashCache } from '@/lib/hashCacheV4';
-import { serverHashCacheV5 } from '@/lib/hashCacheV5';
+import { serverHashCache } from '@/lib/hashCache/config';
 
 // FIX ME, we should only need GET and maybe DELETE, we also don't need hashTable or hashCacheV4
 export async function GET(req: Request) {
@@ -16,65 +12,11 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   if (searchParams.get('v') === '5') {
-    console.log('V5 detected', serverHashCacheV5.getHashes(user.username))
-    return NextResponse.json(serverHashCacheV5.getHashes(user.username));
+    console.log('V5 detected', serverHashCache.getHashes(user.username))
+    return NextResponse.json(serverHashCache.getHashes(user.username));
   }
 
   return NextResponse.json(serverHashCache.cache[user.username] || null);
-}
-
-export async function POST(req: Request) {
-  const user = await currentUser();
-  if (!user?.username) {
-    return NextResponse.json('Unauthorized', { status: 401 });
-  }
-
-  const clientHashes: Hashes = await req.json();
-  console.log('clientHash', clientHashes)
-
-  const userHashes = hashTable.cache[user.username];
-  console.log('serverHash', userHashes)
-  if (!userHashes) {
-    // no hashes exist, fetch all resources
-    return NextResponse.json<SyncResponse>({
-      synced: false,
-      needsSynced: resources,
-    });
-  }
-
-  if (userHashes.hash === clientHashes.hash) {
-    // master hashes match, no need to scan resource hashes
-    return NextResponse.json<SyncResponse>({
-      synced: true,
-      needsSynced: [],
-    })
-  }
-
-  // master hashes do not match, scan resources to determine what resources need refetched
-  const needsSynced = resources.filter(resource => {
-    return userHashes.resources[resource] !== clientHashes.resources[resource];
-  });
-
-  // const needsSynced = resources.reduce((needsSynced, resource) => {
-  //   if (isNormalResource(resource)) {
-  //     if (userHashes.resources[resource] !== clientHashes.resources[resource]) {
-  //       needsSynced.push(resource);
-  //     }
-  //   } else if (isSpecialResource(resource)) {
-  //     if (userHashes.resources[resource].hash !== clientHashes.resources[resource].hash) {
-  //       // listContents master hash out of sync
-  //       needsSynced.push(resource)
-  //     }
-  //   } else {
-  //     throw Error('resource not recognized')
-  //   }
-  //   return needsSynced
-  // }, [] as [] as SyncResponse['needsSynced'])
-
-  return NextResponse.json<SyncResponse>({
-    synced: false,
-    needsSynced,
-  })
 }
 
 export async function DELETE() {
@@ -84,6 +26,6 @@ export async function DELETE() {
     return NextResponse.json('Unauthorized', { status: 401 });
   }
 
-  delete serverHashCacheV5.cache[user.username];
+  delete serverHashCache.cache[user.username];
   return NextResponse.json('Success');
 }

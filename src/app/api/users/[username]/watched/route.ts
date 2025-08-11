@@ -1,8 +1,9 @@
 import { db } from '@/drizzle/db';
 import { watched } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
-import { addTitleV2, useCache } from '@/lib/cache';
-import { getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
+import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
+import { useCache } from '@/lib/useCache';
+import addTitle from '@/lib/addTitle';
 
 type Params = { username: string }
 
@@ -15,7 +16,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
       const watchRecs = await db.select().from(watched).where(
         eq(watched.username, username)
       );
-      return await addTitleV2(watchRecs);
+      return await addTitle(watchRecs);
     }
   );
 }
@@ -29,7 +30,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
       const { imdbId } = params;
       const preInsertRecord = { username, imdbId, date: Date.now() };
       const { lastInsertRowid } = await db.insert(watched).values(preInsertRecord);
-      const [ mediaInfo ] = await getManyExistingMediaV2([ imdbId ]);
+      const [ mediaInfo ] = await getManyExistingMedia([ imdbId ]);
       const postInsertRecord = {
         id: Number(lastInsertRowid),
         title: mediaInfo.title,

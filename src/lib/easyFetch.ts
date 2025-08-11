@@ -1,4 +1,5 @@
-export type Methods = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD' | 'PATCH'
+import { Methods } from '@/types';
+
 type Args = {
   route: string,
   method: Methods,

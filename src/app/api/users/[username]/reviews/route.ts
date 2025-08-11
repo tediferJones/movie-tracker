@@ -1,8 +1,9 @@
 import { db } from '@/drizzle/db';
 import { reviews } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
-import { addTitleV2, useCache } from '@/lib/cache';
-import { ReviewBody } from '@/components/pages/mediaPage/reviewManager';
+import { useCache } from '@/lib/useCache';
+import addTitle from '@/lib/addTitle';
+import { ReviewBody } from '@/types';
 
 type Params = { username: string }
 
@@ -15,7 +16,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
       const allReviews = await db.select().from(reviews).where(
         eq(reviews.username, username)
       );
-      return await addTitleV2(allReviews);
+      return await addTitle(allReviews);
     }
   );
 }
@@ -36,7 +37,7 @@ export async function POST(req: Request, { params }: { params: Params }) {
         ...review,
       }
       await db.insert(reviews).values(newRecord);
-      const [ reviewWithTitle ] = await addTitleV2([ newRecord ]);
+      const [ reviewWithTitle ] = await addTitle([ newRecord ]);
       return reviewWithTitle;
     }, {
       needsAuth: true,
@@ -67,7 +68,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
       );
 
       const fullReview = { ...updatedReview, username, imdbId };
-      const [ reviewWithTitle ] = await addTitleV2([ fullReview ]);
+      const [ reviewWithTitle ] = await addTitle([ fullReview ]);
       return reviewWithTitle;
     }, {
       needsAuth: true,

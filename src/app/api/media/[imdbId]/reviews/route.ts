@@ -1,7 +1,7 @@
 import { db } from '@/drizzle/db';
 import { reviews } from '@/drizzle/schema';
 import { desc, eq } from 'drizzle-orm';
-import { useCache } from '@/lib/cache';
+import { useCache } from '@/lib/useCache';
 
 type Params = { imdbId: string }
 

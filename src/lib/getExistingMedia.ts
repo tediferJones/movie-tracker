@@ -2,6 +2,7 @@ import { db } from '@/drizzle/db';
 import { countries, genres, languages, media, people } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 
+// FIX ME, replace with getManyExisting media
 export default async function getExistingMedia(imdbId: string, mediaInfo?: typeof media.$inferSelect) {
   return {
     ...(mediaInfo ? mediaInfo : await db.select().from(media).where(eq(media.imdbId, imdbId)).get()),

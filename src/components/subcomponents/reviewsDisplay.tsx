@@ -2,7 +2,6 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { reviews } from '@/drizzle/schema';
 import { Eye } from 'lucide-react';
 import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
@@ -12,8 +11,7 @@ import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp } from '@/lib/formatters';
 import { watchAgainConfig, ratingConfig } from '@/lib/reviewHelpers';
 import { useUserData } from '@/context/userData';
-
-type ExistingReview = typeof reviews.$inferSelect & { title?: string }
+import { UserReview } from '@/types';
 
 export default function ReviewsDisplay(
   {
@@ -27,8 +25,8 @@ export default function ReviewsDisplay(
   }
 ) {
   // FIX ME
-  const [reviews, setReviews] = useState<ExistingReview[]>();
-  const [allReviews, setAllReviews] = useState<ExistingReview[]>();
+  const [reviews, setReviews] = useState<UserReview[]>();
+  const [allReviews, setAllReviews] = useState<UserReview[]>();
   const [page, setPage] = useState(1);
 
   const pageSize = 5;
@@ -48,7 +46,7 @@ export default function ReviewsDisplay(
       setReviews(reviews);
       setAllReviews(reviews);
     } else if (username) {
-      easyFetch<ExistingReview[]>({
+      easyFetch<UserReview[]>({
         route: `/api/users/${username}/reviews`,
         method: 'GET',
       }).then(data => {
@@ -56,7 +54,7 @@ export default function ReviewsDisplay(
           setAllReviews(data);
         });
     } else if (imdbId) {
-      easyFetch<ExistingReview[]>({
+      easyFetch<UserReview[]>({
         route: `/api/media/${imdbId}/reviews`,
         method: 'GET',
       }).then(data => {
@@ -72,7 +70,7 @@ export default function ReviewsDisplay(
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[90vh]'>
       {!reviews || !allReviews ? <Loading /> :
         <>
-          <SortAndFilter<ExistingReview> 
+          <SortAndFilter 
             allData={allReviews}
             subsetState={[reviews, setReviews]}
             searchable={['review', displayType]}

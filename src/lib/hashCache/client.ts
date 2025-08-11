@@ -9,11 +9,12 @@ import {
   SyncOpts,
   UserContext,
 } from '@/lib/hashCache/types';
+import { Dispatch, SetStateAction } from 'react';
 import Resource from '@/lib/hashCache/resource';
 import { reverseDependencies } from '@/lib/hashCache/helpers';
 import { ServerTypes, ClientTypes, storageKey } from '@/lib/hashCache/config';
-import easyFetch, { Methods } from '@/lib/easyFetch';
-import { Dispatch, SetStateAction } from 'react';
+import easyFetch from '@/lib/easyFetch';
+import { Methods } from '@/types';
 
 type SetUserContext = Dispatch<SetStateAction<UserContext>>
 

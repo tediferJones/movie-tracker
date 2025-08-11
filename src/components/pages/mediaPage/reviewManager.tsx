@@ -5,7 +5,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 
 import { useEffect, useRef, useState } from 'react';
-import { reviews } from '@/drizzle/schema';
 import { Eye, X } from 'lucide-react';
 import Loading from '@/components/subcomponents/loading';
 import ReviewsDisplay from '@/components/subcomponents/reviewsDisplay';
@@ -14,17 +13,11 @@ import StarRating from '@/components/subcomponents/StarRating';
 import { inputValidation } from '@/lib/inputValidation';
 import { ratingConfig, watchAgainConfig } from '@/lib/reviewHelpers';
 import { useUserData } from '@/context/userData';
-
-type ExistingReview = typeof reviews.$inferSelect
-export type ReviewBody = {
-  review: string | null,
-  rating: number | null,
-  watchAgain: boolean | null,
-}
+import { MediaReview, ReviewBody } from '@/types';
 
 export default function ReviewManager({ imdbId }: { imdbId: string }) {
   const [currentReview, setCurrentReview] = useState<ReviewBody>();
-  const [existingReview, setExistingReview] = useState<ExistingReview>();
+  const [existingReview, setExistingReview] = useState<MediaReview>();
   const [buttonText, setButtonText] = useState('Waiting...');
   const [modalVisibile, setModalVisible] = useState(false);
   const [changeRating, setChangeRating] = useState(false);

@@ -8,17 +8,11 @@ import {
 } from '@/lib/dataCache/types';
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs';
-import { reviews } from '@/drizzle/schema';
-import { Methods } from '@/lib/easyFetch';
 import { isValid } from '@/lib/inputValidation';
 import { ServerTypes, serverHashCache } from '@/lib/hashCache/config';
 import { CacheData } from '@/lib/dataCache/cacheData';
 import { CacheType, cache } from '@/lib/dataCache/config';
-import { ExistingMediaInfo } from '@/types';
-
-// FIX ME move these types to global types file
-type MediaReview = typeof reviews.$inferSelect
-import { FillWith } from '@/lib/hashCache/types';
+import { ExistingMediaInfo, FillWith, MediaReview, Methods } from '@/types';
 
 // FIX ME
 // Maybe try using FillResources here

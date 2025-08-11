@@ -1,8 +1,8 @@
 import { db } from '@/drizzle/db';
 import { watched } from '@/drizzle/schema';
+import { cache } from '@/lib/dataCache/config';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import cache from '@/lib/cache';
 
 export async function POST(req: Request) {
   const user = await currentUser();
@@ -18,8 +18,8 @@ export async function POST(req: Request) {
       date,
     });
 
-    cache.delete(`${user.username},${imdbId},watched`);
-    cache.delete(`${user.username},watched`);
+    // FIX ME, make sure this actually works
+    cache.delete('users', user.username, 'watched');
 
     return new NextResponse();
   } catch {

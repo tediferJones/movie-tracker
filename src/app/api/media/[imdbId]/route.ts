@@ -1,11 +1,11 @@
 import { db } from '@/drizzle/db';
 import { countries, genres, languages, media, people } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
-import { useCache } from '@/lib/cache';
 import easyFetch from '@/lib/easyFetch';
 import formatMediaInfo from '@/lib/formatMediaInfo';
 import { StrIdxRawMedia } from '@/types';
-import { getManyExistingMediaV2 } from '@/lib/getManyExistingMedia';
+import { useCache } from '@/lib/useCache';
+import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 
 type Params = { imdbId: string }
 
@@ -14,7 +14,7 @@ export async function GET(req: Request, { params }: { params: Params }) {
 
   return await useCache(req, 'GET', 'media', imdbId, 'mediaInfo',
     async () => {
-      const [ mediaInfo ] = await getManyExistingMediaV2([ imdbId ]);
+      const [ mediaInfo ] = await getManyExistingMedia([ imdbId ]);
       return mediaInfo;
     }
   );

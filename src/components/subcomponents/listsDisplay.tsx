@@ -2,9 +2,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
 import easyFetch from '@/lib/easyFetch';
-import { listnames } from '@/drizzle/schema';
-
-type Listname = typeof listnames.$inferSelect
+import { Listname } from '@/types';
 
 function useAsyncEffect(
   func: () => Promise<void> | Promise<() => void>,

@@ -11,13 +11,11 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { ChevronUp, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { listnames } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { inputValidation } from '@/lib/inputValidation';
 import { useUserData } from '@/context/userData';
-
-type Listname = typeof listnames.$inferSelect;
+import { Listname } from '@/types';
 
 export default function ListManager({ imdbId }: { imdbId: string }) {
   const illegalListname = 'illegalListname';

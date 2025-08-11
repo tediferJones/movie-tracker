@@ -19,9 +19,7 @@ import ConfirmModal from '@/components/subcomponents/confirmModal';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import { inputValidation } from '@/lib/inputValidation';
 import { useUserData } from '@/context/userData';
-import { listnames } from '@/drizzle/schema';
-
-type Listname = typeof listnames.$inferSelect
+import { Listname } from '@/types';
 
 export default function DefaultListManager() {
   const [listnames, setListnames] = useState<Listname[]>();

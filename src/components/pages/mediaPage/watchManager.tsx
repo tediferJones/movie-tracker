@@ -2,13 +2,15 @@ import { Button } from '@/components/ui/button';
 
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { watched } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { formatTimestamp } from '@/lib/formatters';
 import { useUserData } from '@/context/userData';
+import { WatchedRec } from '@/types';
 
-type WatchRecord = typeof watched.$inferSelect
+// FIX ME, make sure this type makes sense
+// otherwise separate into WatchedRec and WatchedRecWithTitle
+type WatchRecord = Omit<WatchedRec, 'title'>
 
 // FIX ME
 // Either rename this to 'watchedManager' or rename 'watchedDisplay' to 'watchDisplay'

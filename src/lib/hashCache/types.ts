@@ -1,6 +1,7 @@
 import ClientHashCache from '@/lib/hashCache/client';
 import { config } from '@/lib/hashCache/config';
-import easyFetch, { Methods } from '@/lib/easyFetch';
+import easyFetch from '@/lib/easyFetch';
+import { FillWith } from '@/types';
 
 export type DataCache<T> = { [key: string]: T | DataCache<T> }
 
@@ -26,10 +27,6 @@ export type Config = {
 }
 
 export type Resources = keyof typeof config;
-
-export type FillWith<T extends Partial<Record<Methods, any>>, F> = {
-  [K in Methods]: K extends keyof T ? T[K] : F
-}
 
 export type UserContext = { current: ClientHashCache | null }
 

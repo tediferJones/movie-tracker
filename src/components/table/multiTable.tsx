@@ -13,10 +13,7 @@ import Loading from '@/components/subcomponents/loading';
 import MyTable from '@/components/table/myTable';
 import easyFetch from '@/lib/easyFetch';
 import { useUserData } from '@/context/userData';
-import { listnames } from '@/drizzle/schema';
-import { ListItem } from '@/lib/hashCacheV5';
-
-type Listname = typeof listnames.$inferSelect;
+import { ListItem, Listname } from '@/types';
 
 function keepNewest(media: ListItem[]) {
   const deduped = media.reduce((deduped, mediaInfo) => {

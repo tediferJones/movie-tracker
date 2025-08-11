@@ -2,14 +2,12 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { watched } from '@/drizzle/schema';
 import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import easyFetch from '@/lib/easyFetch';
 import { useUserData } from '@/context/userData';
 import { useUser } from '@clerk/nextjs';
-
-type WatchedRec = typeof watched.$inferSelect & { title: string }
+import { WatchedRec } from '@/types';
 
 // FIX ME, move this to it's own hook, use in reviewsDisplay
 function useIsSelf(username: string) {

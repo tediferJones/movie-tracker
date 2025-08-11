@@ -63,7 +63,7 @@ interface OmdbSearchFailure {
 
 type OmdbSearch = OmdbSearchSuccess | OmdbSearchFailure
 
-import { countries, genres, languages, media, people, reviews } from '@/drizzle/schema';
+import { countries, genres, languages, listnames, media, people, reviews, watched } from '@/drizzle/schema';
 
 interface FormattedMediaInfo extends StrIdx {
   mediaInfo: typeof media.$inferInsert,
@@ -120,6 +120,25 @@ interface SeasonResponse {
   totalSeasons: string,
 }
 
+type MediaReview = typeof reviews.$inferSelect
+type Listname = typeof listnames.$inferSelect
+type ListItem = ExistingMediaInfo & { dateAdded: number }
+// Maybe rename these to ${resource}WithTitle
+type WatchedRec = typeof watched.$inferSelect & { title: string }
+type UserReview = MediaReview & { title: string }
+
+type ReviewBody = {
+  review: string | null,
+  rating: number | null,
+  watchAgain: boolean | null,
+}
+
+type Methods = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD' | 'PATCH'
+
+type FillWith<T extends Partial<Record<Methods, any>>, F> = {
+  [K in Methods]: K extends keyof T ? T[K] : F
+}
+
 export type { 
   RatingObj,
   StrIdxRawMedia,
@@ -132,4 +151,12 @@ export type {
   UserRes,
   Episode,
   SeasonResponse,
+  MediaReview,
+  Listname,
+  ListItem,
+  WatchedRec,
+  UserReview,
+  Methods,
+  FillWith,
+  ReviewBody,
 }

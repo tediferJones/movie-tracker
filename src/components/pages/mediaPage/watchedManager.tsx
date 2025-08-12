@@ -6,19 +6,12 @@ import Loading from '@/components/subcomponents/loading';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import { formatTimestamp } from '@/lib/formatters';
 import { useUserData } from '@/context/userData';
-import { WatchedRec } from '@/types';
+import { WatchedWithTitle } from '@/types';
 
-// FIX ME, make sure this type makes sense
-// otherwise separate into WatchedRec and WatchedRecWithTitle
-type WatchRecord = Omit<WatchedRec, 'title'>
-
-// FIX ME
-// Either rename this to 'watchedManager' or rename 'watchedDisplay' to 'watchDisplay'
-
-export default function WatchManger({ imdbId }: { imdbId: string }) {
-  const [watched, setWatched] = useState<WatchRecord[]>();
+export default function WatchedManger({ imdbId }: { imdbId: string }) {
+  const [watched, setWatched] = useState<WatchedWithTitle[]>();
   const [modalVisible, setModalVisible] = useState(false);
-  const [record, setRecord] = useState<WatchRecord>();
+  const [record, setRecord] = useState<WatchedWithTitle>();
   const [buttonText, setButtonText] = useState('Waiting...');
 
   const userData = useUserData();

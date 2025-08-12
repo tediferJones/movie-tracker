@@ -120,12 +120,21 @@ interface SeasonResponse {
   totalSeasons: string,
 }
 
-type MediaReview = typeof reviews.$inferSelect
+// OLD
+// FIX ME delete these types if they are no longer needed
+// type MediaReview = typeof reviews.$inferSelect
+// type Listname = typeof listnames.$inferSelect
+// type ListItem = ExistingMediaInfo & { dateAdded: number }
+// // Maybe rename these to ${resource}WithTitle
+// type WatchedRec = typeof watched.$inferSelect & { title: string }
+// type UserReview = MediaReview & { title: string }
+
+type Review = typeof reviews.$inferSelect
 type Listname = typeof listnames.$inferSelect
 type ListItem = ExistingMediaInfo & { dateAdded: number }
-// Maybe rename these to ${resource}WithTitle
-type WatchedRec = typeof watched.$inferSelect & { title: string }
-type UserReview = MediaReview & { title: string }
+type Watched = typeof watched.$inferSelect
+type WatchedWithTitle = typeof watched.$inferSelect & { title: string }
+type ReviewWithTitle = Review & { title: string }
 
 type ReviewBody = {
   review: string | null,
@@ -139,6 +148,9 @@ type FillWith<T extends Partial<Record<Methods, any>>, F> = {
   [K in Methods]: K extends keyof T ? T[K] : F
 }
 
+type MakeFieldOptional<T, K extends keyof T> = 
+  Omit<T, K> & Partial<Pick<T, K>>
+
 export type { 
   RatingObj,
   StrIdxRawMedia,
@@ -151,12 +163,14 @@ export type {
   UserRes,
   Episode,
   SeasonResponse,
-  MediaReview,
+  Review,
   Listname,
   ListItem,
-  WatchedRec,
-  UserReview,
+  Watched,
+  WatchedWithTitle,
+  ReviewWithTitle,
   Methods,
   FillWith,
   ReviewBody,
+  MakeFieldOptional,
 }

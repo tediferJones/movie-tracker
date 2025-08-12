@@ -13,11 +13,11 @@ import StarRating from '@/components/subcomponents/StarRating';
 import { inputValidation } from '@/lib/inputValidation';
 import { ratingConfig, watchAgainConfig } from '@/lib/reviewHelpers';
 import { useUserData } from '@/context/userData';
-import { MediaReview, ReviewBody } from '@/types';
+import { Review, ReviewBody } from '@/types';
 
 export default function ReviewManager({ imdbId }: { imdbId: string }) {
   const [currentReview, setCurrentReview] = useState<ReviewBody>();
-  const [existingReview, setExistingReview] = useState<MediaReview>();
+  const [existingReview, setExistingReview] = useState<Review>();
   const [buttonText, setButtonText] = useState('Waiting...');
   const [modalVisibile, setModalVisible] = useState(false);
   const [changeRating, setChangeRating] = useState(false);

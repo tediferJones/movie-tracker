@@ -11,7 +11,9 @@ import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp } from '@/lib/formatters';
 import { watchAgainConfig, ratingConfig } from '@/lib/reviewHelpers';
 import { useUserData } from '@/context/userData';
-import { UserReview } from '@/types';
+import { MakeFieldOptional, Review, ReviewWithTitle } from '@/types';
+
+type ReviewOptTitle = MakeFieldOptional<ReviewWithTitle, 'title'>
 
 export default function ReviewsDisplay(
   {
@@ -25,8 +27,8 @@ export default function ReviewsDisplay(
   }
 ) {
   // FIX ME
-  const [reviews, setReviews] = useState<UserReview[]>();
-  const [allReviews, setAllReviews] = useState<UserReview[]>();
+  const [reviews, setReviews] = useState<ReviewOptTitle[]>();
+  const [allReviews, setAllReviews] = useState<ReviewOptTitle[]>();
   const [page, setPage] = useState(1);
 
   const pageSize = 5;
@@ -46,7 +48,7 @@ export default function ReviewsDisplay(
       setReviews(reviews);
       setAllReviews(reviews);
     } else if (username) {
-      easyFetch<UserReview[]>({
+      easyFetch<ReviewWithTitle[]>({
         route: `/api/users/${username}/reviews`,
         method: 'GET',
       }).then(data => {
@@ -54,7 +56,7 @@ export default function ReviewsDisplay(
           setAllReviews(data);
         });
     } else if (imdbId) {
-      easyFetch<UserReview[]>({
+      easyFetch<Review[]>({
         route: `/api/media/${imdbId}/reviews`,
         method: 'GET',
       }).then(data => {

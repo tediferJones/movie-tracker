@@ -1,6 +1,12 @@
 import { Config, FillResources } from '@/lib/hashCache/types';
 import ServerHashCache from '@/lib/hashCache/server';
-import { ListItem, Listname, ReviewBody, UserReview, WatchedRec } from '@/types';
+import {
+  ListItem,
+  Listname,
+  ReviewBody,
+  ReviewWithTitle,
+  WatchedWithTitle,
+} from '@/types';
 
 export type ClientTypes = FillResources<{
   listnames: {
@@ -50,14 +56,14 @@ export type ServerTypes = FillResources<{
     DELETE: { imdbId: string },
   },
   watched: {
-    GET: WatchedRec[],
-    POST: WatchedRec,
+    GET: WatchedWithTitle[],
+    POST: WatchedWithTitle,
     DELETE: { id: number }
   },
   reviews: {
-    GET: UserReview[],
-    POST: UserReview,
-    PUT: UserReview,
+    GET: ReviewWithTitle[],
+    POST: ReviewWithTitle,
+    PUT: ReviewWithTitle,
     DELETE: { imdbId: string },
   },
 }>
@@ -86,10 +92,6 @@ export const config = {
   },
 } as const satisfies Config
 
-// FIX ME
-// Consider moving this to its own file or something, just feels a little out of place here
-//
-// copy this pattern over to regular server cache if it proves to work correctly
 declare global {
   var serverHashCacheGlobal: ServerHashCache | undefined;
 }

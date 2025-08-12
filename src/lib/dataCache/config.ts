@@ -2,9 +2,9 @@ import {
   ExistingMediaInfo,
   ListItem,
   Listname,
-  MediaReview,
-  UserReview,
-  WatchedRec
+  Review,
+  ReviewWithTitle,
+  WatchedWithTitle,
 } from '@/types';
 import { CacheData } from '@/lib/dataCache/cacheData';
 import Cache from '@/lib/dataCache/cache';
@@ -15,15 +15,15 @@ export type CacheType = {
   media: {
     [imdbId: string]: {
       mediaInfo: CacheData<ExistingMediaInfo>,
-      reviews: CacheData<MediaReview[]>,
+      reviews: CacheData<Review[]>,
     }
   },
   users: {
     [username: string]: {
-      reviews: CacheData<UserReview[]>,
+      reviews: CacheData<ReviewWithTitle[]>,
       listnames: CacheData<Listname[]>,
       listContents: { [key: (string | number)] : CacheData<ListItem[]> },
-      watched: CacheData<WatchedRec[]>,
+      watched: CacheData<WatchedWithTitle[]>,
     }
   }
 }

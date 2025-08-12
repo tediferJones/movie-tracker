@@ -7,7 +7,7 @@ import AutoPaging from '@/components/subcomponents/AutoPaging';
 import easyFetch from '@/lib/easyFetch';
 import { useUserData } from '@/context/userData';
 import { useUser } from '@clerk/nextjs';
-import { WatchedRec } from '@/types';
+import { WatchedWithTitle } from '@/types';
 
 // FIX ME, move this to it's own hook, use in reviewsDisplay
 function useIsSelf(username: string) {
@@ -38,7 +38,7 @@ function shallowSort<T, K extends GetNumberKeys<T>>(
 }
 
 export default function WatchedDisplay({ username }: { username: string }) {
-  const [watched, setWatched] = useState<WatchedRec[]>();
+  const [watched, setWatched] = useState<WatchedWithTitle[]>();
   const [page, setPage] = useState(1);
   const pageSize = 25;
   const displayCount = page * pageSize;
@@ -53,7 +53,7 @@ export default function WatchedDisplay({ username }: { username: string }) {
         shallowSort(userData.current.getResource('watched'), 'date', 'desc')
       );
     } else {
-      easyFetch<WatchedRec[]>({
+      easyFetch<WatchedWithTitle[]>({
         route: `/api/users/${username}/watched`,
         method: 'GET',
       }).then(data => setWatched(shallowSort(data, 'date', 'desc')));

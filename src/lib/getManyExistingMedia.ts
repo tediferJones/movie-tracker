@@ -65,3 +65,68 @@ export async function getManyExistingMedia(imdbIds: string[]): Promise<ExistingM
     })
   );
 }
+
+const tables = {
+  media,
+  genres,
+  countries,
+  languages,
+  people,
+}
+
+async function getTableData(
+  tableName: keyof typeof tables,
+  imdbIds: string[]
+) {
+  const table = tables[tableName];
+  return await db.select().from(table).where(inArray(table.imdbId, imdbIds));
+}
+
+function getTypedKeys<T extends { [key: string]: any }>(obj: T) {
+  return Object.keys(obj) as (keyof T)[]
+}
+
+function groupByImdbId<
+  T extends { imdbId: string },
+  K extends keyof T,
+>(data: T[], field: K) {
+  return data.reduce((obj, item) => {
+    if (!obj[item.imdbId]) obj[item.imdbId] = [];
+    obj[item.imdbId].push(item[field]);
+    return obj;
+  }, {} as { [imdbId: string]: T[K][] });
+}
+
+export async function getManyExistingMediaV2(imdbIds: string[]): Promise<ExistingMediaInfo[]> {
+  const notCachedImdbIds = imdbIds.filter(imdbId => {
+    return !cache.get('media', imdbId, 'mediaInfo');
+  });
+  if (notCachedImdbIds.length) {
+    const typedKeys = getTypedKeys(tables);
+    // This needs to have an actual type
+    const tableData = Object.fromEntries(
+      await Promise.all(
+        typedKeys.map(async tableName => {
+          return [
+            tableName,
+            await getTableData(tableName, notCachedImdbIds),
+          ];
+        })
+      )
+    ) as { [K in keyof typeof tables]: any[] };
+
+    // notCachedImdbIds.forEach(imdbId => {
+    //   const mediaInfo: ExistingMediaInfo = {
+    //     ...tableData.media,
+    //     genre: groupByImdbId(tableData.genres, 'genre'),
+    //   }
+    //   cache.set('media', imdbId, 'mediaInfo', mediaInfo);
+    // });
+  }
+
+  return imdbIds.map(imdbId => {
+    const mediaInfo = cache.get('media', imdbId, 'mediaInfo');
+    if (!mediaInfo) throw Error('could not find mediaInfo');
+    return mediaInfo;
+  })
+}

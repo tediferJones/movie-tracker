@@ -12,7 +12,7 @@ import { isValid } from '@/lib/inputValidation';
 import { ServerTypes, serverHashCache } from '@/lib/hashCache/config';
 import { CacheData } from '@/lib/dataCache/cacheData';
 import { CacheType, cache } from '@/lib/dataCache/config';
-import { ExistingMediaInfo, FillWith, MediaReview, Methods } from '@/types';
+import { ExistingMediaInfo, FillWith, Review, Methods } from '@/types';
 
 // FIX ME
 // Maybe try using FillResources here
@@ -23,7 +23,7 @@ type ResTypes = {
       GET: ExistingMediaInfo,
     }, void>,
     reviews: FillWith<{
-      GET: MediaReview[],
+      GET: Review[],
     }, void>,
   },
   users: ServerTypes,

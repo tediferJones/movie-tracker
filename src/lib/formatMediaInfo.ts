@@ -25,6 +25,7 @@ function toDate(str: string) {
   return new Date(str).getTime()
 }
 
+// FIX ME, refactor this
 export default function formatMediaInfo(info: StrIdxRawMedia): FormattedMediaInfo {
   const formatterV2: { [key: string]: (str: string) => any } = {
     // It would probably be beneficial to use a map instead of an obj

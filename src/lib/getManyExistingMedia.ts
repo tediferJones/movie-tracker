@@ -66,6 +66,16 @@ export async function getManyExistingMedia(imdbIds: string[]): Promise<ExistingM
   );
 }
 
+// Is this really any simpler than the original?
+type TableNames = 'media' | 'genres' | 'countries' | 'languages' | 'people'
+type TableReturnTypes<T extends TableNames> = {
+  media: typeof media.$inferSelect,
+  genres: typeof genres.$inferSelect,
+  countries: typeof countries.$inferSelect,
+  languages: typeof languages.$inferSelect,
+  people: typeof people.$inferSelect,
+}[T]
+
 const tables = {
   media,
   genres,
@@ -86,6 +96,7 @@ function getTypedKeys<T extends { [key: string]: any }>(obj: T) {
   return Object.keys(obj) as (keyof T)[]
 }
 
+type Positions = 'actor' | 'writer' | 'director';
 function groupByImdbId<
   T extends { imdbId: string },
   K extends keyof T,
@@ -97,13 +108,25 @@ function groupByImdbId<
   }, {} as { [imdbId: string]: T[K][] });
 }
 
-export async function getManyExistingMediaV2(imdbIds: string[]): Promise<ExistingMediaInfo[]> {
+function groupPeopleByImdbId(data: TableReturnTypes<'people'>[]) {
+  return data.reduce((positions, item) => {
+    if (!positions[item.imdbId]) positions[item.imdbId] = {
+      actor: [],
+      writer: [],
+      director: [],
+    };
+    positions[item.imdbId][item.position as Positions].push(item.name);
+    return positions;
+  }, {} as { [imdbId: string]: { [P in Positions]: string[] } })
+}
+
+export async function getManyExistingMediaV2(imdbIds: string[])/*: Promise<ExistingMediaInfo[]>*/ {
   const notCachedImdbIds = imdbIds.filter(imdbId => {
     return !cache.get('media', imdbId, 'mediaInfo');
   });
+
   if (notCachedImdbIds.length) {
     const typedKeys = getTypedKeys(tables);
-    // This needs to have an actual type
     const tableData = Object.fromEntries(
       await Promise.all(
         typedKeys.map(async tableName => {
@@ -113,20 +136,37 @@ export async function getManyExistingMediaV2(imdbIds: string[]): Promise<Existin
           ];
         })
       )
-    ) as { [K in keyof typeof tables]: any[] };
+    ) as { [K in keyof typeof tables]: TableReturnTypes<K>[] };
 
-    // notCachedImdbIds.forEach(imdbId => {
-    //   const mediaInfo: ExistingMediaInfo = {
-    //     ...tableData.media,
-    //     genre: groupByImdbId(tableData.genres, 'genre'),
-    //   }
-    //   cache.set('media', imdbId, 'mediaInfo', mediaInfo);
-    // });
+    const aggregated = {
+      media: tableData.media.reduce((obj, media) => {
+        obj[media.imdbId] = media;
+        return obj;
+      }, {} as { [imdbId: string]: TableReturnTypes<'media'> }),
+      genres: groupByImdbId(tableData.genres, 'genre'),
+      languages: groupByImdbId(tableData.languages, 'language'),
+      countries: groupByImdbId(tableData.countries, 'country'),
+      // this might be easier if we had a table for each position
+      // But then we would need a people table, link ids between people table and position tables
+      // could end up just being worse
+      people: groupPeopleByImdbId(tableData.people),
+    }
+
+    notCachedImdbIds.forEach(imdbId => {
+      const mediaInfo: ExistingMediaInfo = {
+        ...aggregated.media[imdbId],
+        ...aggregated.people[imdbId],
+        genre: aggregated.genres[imdbId],
+        country: aggregated.countries[imdbId],
+        language: aggregated.languages[imdbId],
+      }
+      cache.set('media', imdbId, 'mediaInfo', mediaInfo);
+    });
   }
 
   return imdbIds.map(imdbId => {
     const mediaInfo = cache.get('media', imdbId, 'mediaInfo');
     if (!mediaInfo) throw Error('could not find mediaInfo');
     return mediaInfo;
-  })
+  });
 }

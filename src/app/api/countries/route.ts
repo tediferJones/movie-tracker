@@ -1,6 +1,6 @@
 import { db } from '@/drizzle/db';
 import { countries } from '@/drizzle/schema';
-import getExistingMedia from '@/lib/getExistingMedia';
+import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 import { count, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
@@ -8,12 +8,14 @@ export async function GET(req: Request) {
   const country = new URL(req.url).searchParams.get('country');
 
   if (country) {
-    return NextResponse.json(
-      await Promise.all(
-        (await db.select({ imdbId: countries.imdbId }).from(countries).where(eq(countries.country, country)))
-          .map(async rec => await getExistingMedia(rec.imdbId))
+    const countryRecs = (
+      await db.select({ imdbId: countries.imdbId }).from(countries).where(
+        eq(countries.country, country)
       )
-    )
+    );
+    return NextResponse.json(
+      await getManyExistingMedia(countryRecs.map(rec => rec.imdbId))
+    );
   }
 
   return NextResponse.json(

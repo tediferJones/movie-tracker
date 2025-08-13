@@ -1,18 +1,27 @@
 import { db } from '@/drizzle/db';
 import { people } from '@/drizzle/schema';
-import getExistingMedia from '@/lib/getExistingMedia';
+import { getManyExistingMedia } from '@/lib/getManyExistingMedia';
 import { and, count, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 async function getPosition(position: string, name: string) {
-  return await Promise.all(
-    (await db.select({ imdbId: people.imdbId }).from(people).where(
+  const peopleRecs = (
+    await db.select({ imdbId: people.imdbId }).from(people).where(
       and(
         eq(people.name, name),
         eq(people.position, position)
       )
-    )).map(rec => getExistingMedia(rec.imdbId))
-  )
+    )
+  );
+  return await getManyExistingMedia(peopleRecs.map(rec => rec.imdbId));
+  // return await Promise.all(
+  //   (await db.select({ imdbId: people.imdbId }).from(people).where(
+  //     and(
+  //       eq(people.name, name),
+  //       eq(people.position, position)
+  //     )
+  //   )).map(rec => getExistingMedia(rec.imdbId))
+  // )
 }
 
 export async function GET(req: Request) {

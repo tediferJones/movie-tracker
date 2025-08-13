@@ -21,6 +21,7 @@ type ResTypes = {
   media: {
     mediaInfo: FillWith<{
       GET: ExistingMediaInfo,
+      POST: ExistingMediaInfo,
     }, void>,
     reviews: FillWith<{
       GET: Review[],

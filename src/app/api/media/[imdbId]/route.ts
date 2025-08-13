@@ -12,11 +12,10 @@ type Params = { imdbId: string }
 export async function GET(req: Request, { params }: { params: Params }) {
   const { imdbId } = params;
 
+  const [ mediaInfo ] = await getManyExistingMedia([ imdbId ]);
+  if (!mediaInfo) return await POST(req, { params })
   return await useCache(req, 'GET', 'media', imdbId, 'mediaInfo',
-    async () => {
-      const [ mediaInfo ] = await getManyExistingMedia([ imdbId ]);
-      return mediaInfo;
-    }
+    async () => mediaInfo
   );
 }
 
@@ -42,6 +41,9 @@ export async function POST(req: Request, { params }: { params: Params }) {
       await db.insert(countries).values(formattedMedia.countries!);
       await db.insert(languages).values(formattedMedia.languages!);
       await db.insert(people).values(formattedMedia.people!);
+
+      const [ mediaInfo ] = await getManyExistingMedia([ imdbId ]);
+      return mediaInfo
     }
   );
 }

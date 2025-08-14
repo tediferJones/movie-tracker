@@ -6,25 +6,13 @@ import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import easyFetch from '@/lib/easyFetch';
 import { useUserData } from '@/context/userData';
-import { useUser } from '@clerk/nextjs';
 import { WatchedWithTitle } from '@/types';
-
-// FIX ME, move this to it's own hook, use in reviewsDisplay
-function useIsSelf(username: string) {
-  const [isSelf, setIsSelf] = useState<null | boolean>(null);
-
-  const { user, isLoaded, isSignedIn } = useUser();
-  useEffect(() => {
-    if (!isLoaded) return;
-    setIsSelf(isSignedIn && user && user.username === username);
-  }, [isLoaded, isSignedIn, user]);
-
-  return isSelf;
-}
+import useIsSelf from '@/hooks/useIsSelf';
 
 type GetNumberKeys<T> = {
   [K in keyof T]: T[K] extends number ? K : never
 }[keyof T];
+
 function shallowSort<T, K extends GetNumberKeys<T>>(
   arr: T[],
   sortBy: K,
@@ -40,11 +28,13 @@ function shallowSort<T, K extends GetNumberKeys<T>>(
 export default function WatchedDisplay({ username }: { username: string }) {
   const [watched, setWatched] = useState<WatchedWithTitle[]>();
   const [page, setPage] = useState(1);
+
+  const isSelf = useIsSelf(username);
+  const userData = useUserData();
+
   const pageSize = 25;
   const displayCount = page * pageSize;
-  const isSelf = useIsSelf(username);
 
-  const userData = useUserData();
   useEffect(() => {
     if (isSelf === null) return;
     if (isSelf) {

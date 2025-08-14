@@ -1,17 +1,19 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import Link from 'next/link';
 import { Eye } from 'lucide-react';
 import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import SortAndFilter from '@/components/subcomponents/SortAndFilter';
 import StarRating from '@/components/subcomponents/StarRating';
+import useIsSelf from '@/hooks/useIsSelf';
+import useAsyncEffect from '@/hooks/useAsyncEffect';
 import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp } from '@/lib/formatters';
 import { watchAgainConfig, ratingConfig } from '@/lib/reviewHelpers';
 import { useUserData } from '@/context/userData';
-import { MakeFieldOptional, Review, ReviewWithTitle } from '@/types';
+import { MakeFieldOptional, ReviewWithTitle } from '@/types';
 
 type ReviewOptTitle = MakeFieldOptional<ReviewWithTitle, 'title'>
 
@@ -19,54 +21,83 @@ export default function ReviewsDisplay(
   {
     username,
     imdbId,
-    extTrigger,
+    // extTrigger,
   }: {
     username?: string,
     imdbId?: string,
-    extTrigger?: boolean,
+    // extTrigger?: boolean,
   }
 ) {
   // FIX ME
+  // yeah good note, but fix what?
   const [reviews, setReviews] = useState<ReviewOptTitle[]>();
+  // Could this be repalced with a ref?
+  // This data does not change once set
   const [allReviews, setAllReviews] = useState<ReviewOptTitle[]>();
   const [page, setPage] = useState(1);
+  
+  const userData = useUserData();
+  const isSelf = useIsSelf(username || '');
 
   const pageSize = 5;
   const displayType = username ? 'title' : 'username';
 
-  const userData = useUserData();
-  useEffect(() => {
-    // if imdbId exists, only fetch records related to imdbId
-    // if no imdbId, fetch all records for user
+  // FIX ME this is still problematic,
+  // we need to wait for both useIsSelf AND userData to settle
+  useAsyncEffect(async () => {
+    if (isSelf === null) return;
+    if (!username && !imdbId) {
+      throw Error('either username or imdbId is requied');
+    }
 
-    // FIX ME, this is going to cause problems for users that are not logged in
-    // use the useIsSelf hook, that might be a good fix
-    if (userData.current?.isSynced !== true) return console.log('waiting'); 
-
-    if (userData.current && userData.current.username === username) {
-      const reviews = userData.current.getResource('reviews');
+    let reviews: ReviewOptTitle[];
+    if (userData.current && isSelf) {
+      console.log('USING CONTEXT')
+      reviews = userData.current.getResource('reviews');
+    } else {
+      console.log('FETCHING')
+      reviews = await easyFetch<ReviewOptTitle[]>({
+        route: username ? `/api/users/${username}/reviews`
+          : `/api/media/${imdbId}/reviews`,
+        method: 'GET',
+      });
       setReviews(reviews);
       setAllReviews(reviews);
-    } else if (username) {
-      easyFetch<ReviewWithTitle[]>({
-        route: `/api/users/${username}/reviews`,
-        method: 'GET',
-      }).then(data => {
-          setReviews(data);
-          setAllReviews(data);
-        });
-    } else if (imdbId) {
-      easyFetch<Review[]>({
-        route: `/api/media/${imdbId}/reviews`,
-        method: 'GET',
-      }).then(data => {
-          setReviews(data);
-          setAllReviews(data);
-        });
-    } else {
-      throw Error('reviewsDisplay requires an imdbId or a username');
     }
-  }, [extTrigger, username, userData]);
+  }, [userData, isSelf]);
+
+  // useEffect(() => {
+  //   // if imdbId exists, only fetch records related to imdbId
+  //   // if no imdbId, fetch all records for user
+
+  //   // FIX ME, this is going to cause problems for users that are not logged in
+  //   // use the useIsSelf hook, that might be a good fix
+  //   if (userData.current?.isSynced !== true) return console.log('waiting'); 
+
+  //   if (userData.current && userData.current.username === username) {
+  //     const reviews = userData.current.getResource('reviews');
+  //     setReviews(reviews);
+  //     setAllReviews(reviews);
+  //   } else if (username) {
+  //     easyFetch<ReviewWithTitle[]>({
+  //       route: `/api/users/${username}/reviews`,
+  //       method: 'GET',
+  //     }).then(data => {
+  //         setReviews(data);
+  //         setAllReviews(data);
+  //       });
+  //   } else if (imdbId) {
+  //     easyFetch<Review[]>({
+  //       route: `/api/media/${imdbId}/reviews`,
+  //       method: 'GET',
+  //     }).then(data => {
+  //         setReviews(data);
+  //         setAllReviews(data);
+  //       });
+  //   } else {
+  //     throw Error('reviewsDisplay requires an imdbId or a username');
+  //   }
+  // }, [extTrigger, username, userData]);
 
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[90vh]'>

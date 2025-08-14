@@ -1,36 +1,20 @@
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Loading from '@/components/subcomponents/loading';
+import useAsyncEffect from '@/hooks/useAsyncEffect';
 import easyFetch from '@/lib/easyFetch';
 import { Listname } from '@/types';
-
-function useAsyncEffect(
-  func: () => Promise<void> | Promise<() => void>,
-  deps: React.DependencyList
-) {
-  return useEffect(() => {
-    let cleanUpFunc: void | (() => void);
-    func().then(cleanUp => cleanUpFunc = cleanUp);
-    return () => cleanUpFunc?.();
-  }, deps);
-}
 
 export default function ListsDisplay({ username }: { username: string }) {
   const [listnames, setListnames] = useState<Listname[]>();
 
-  // useEffect(() => {
-  //   easyFetch<Listname[]>({
-  //     route: `/api/users/${username}/lists`,
-  //     method: 'GET'
-  //   }).then(data => setListnames(data));
-  // }, []);
   useAsyncEffect(async () => {
     const listnames = await easyFetch<Listname[]>({
       route: `/api/users/${username}/lists`,
       method: 'GET'
     });
     setListnames(listnames);
-  }, [])
+  }, []);
 
   return (
     <div className='showOutline p-4 flex-1 flex flex-col gap-4 max-h-96 min-w-72'>

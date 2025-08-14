@@ -24,6 +24,8 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       setHashCache({ current: null });
       return;
     }
+    // FIX ME,
+    // hashCache should only be assigned to window for testing purposes
     (window as any).hashCache = new ClientHashCache(
       user.username,
       config,

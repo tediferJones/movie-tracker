@@ -1,3 +1,14 @@
+import {
+  countries,
+  genres,
+  languages,
+  listnames,
+  media,
+  people,
+  reviews,
+  watched
+} from '@/drizzle/schema';
+
 interface StrIdx { [key: string]: any }
 
 interface RatingObj {
@@ -5,6 +16,7 @@ interface RatingObj {
   Value: string,
 }
 
+// FIX ME, consider getting rid of StrIdx
 interface StrIdxRawMedia extends StrIdx {
   Title: string,
   imdbID: string,
@@ -44,12 +56,6 @@ interface OmdbSearchResult {
   imdbID: string,
 }
 
-// interface OmdbSearch {
-//   Response: string,
-//   Search: OmdbSearchResult[],
-//   totalResults: string,
-// }
-
 interface OmdbSearchSuccess {
   Response: 'True',
   totalResults: string,
@@ -63,8 +69,6 @@ interface OmdbSearchFailure {
 
 type OmdbSearch = OmdbSearchSuccess | OmdbSearchFailure
 
-import { countries, genres, languages, listnames, media, people, reviews, watched } from '@/drizzle/schema';
-
 interface FormattedMediaInfo extends StrIdx {
   mediaInfo: typeof media.$inferInsert,
   genres?: (typeof genres.$inferInsert)[],
@@ -75,8 +79,6 @@ interface FormattedMediaInfo extends StrIdx {
 
 type MediaSelect = typeof media.$inferSelect
 interface ExistingMediaInfo extends MediaSelect {
-  // FIX ME, delete below line and address type issues, just use a typedKey like const typedKey = key as keyof TYPE
-  [key: string]: any,
   genre: string[],
   country: string[],
   language: string[],
@@ -84,6 +86,9 @@ interface ExistingMediaInfo extends MediaSelect {
   director: string[],
   writer: string[]
 }
+
+type MediaKeys = (keyof ExistingMediaInfo)[]
+type MediaStringArrKeys = GetKeysByType<ExistingMediaInfo, string[]>[]
 
 interface ListsRes {
   allListnames?: string[],
@@ -120,15 +125,6 @@ interface SeasonResponse {
   totalSeasons: string,
 }
 
-// OLD
-// FIX ME delete these types if they are no longer needed
-// type MediaReview = typeof reviews.$inferSelect
-// type Listname = typeof listnames.$inferSelect
-// type ListItem = ExistingMediaInfo & { dateAdded: number }
-// // Maybe rename these to ${resource}WithTitle
-// type WatchedRec = typeof watched.$inferSelect & { title: string }
-// type UserReview = MediaReview & { title: string }
-
 type Review = typeof reviews.$inferSelect
 type Listname = typeof listnames.$inferSelect
 type ListItem = ExistingMediaInfo & { dateAdded: number }
@@ -151,6 +147,10 @@ type FillWith<T extends Partial<Record<Methods, any>>, F> = {
 type MakeFieldOptional<T, K extends keyof T> = 
   Omit<T, K> & Partial<Pick<T, K>>
 
+type GetKeysByType<T, V> = {
+  [K in keyof T]: T[K] extends V ? K : never
+}[keyof T]
+
 export type { 
   RatingObj,
   StrIdxRawMedia,
@@ -158,6 +158,8 @@ export type {
   OmdbSearch,
   FormattedMediaInfo,
   ExistingMediaInfo,
+  MediaKeys,
+  MediaStringArrKeys,
   ListsRes,
   ReviewsRes,
   UserRes,
@@ -173,4 +175,5 @@ export type {
   FillWith,
   ReviewBody,
   MakeFieldOptional,
+  GetKeysByType,
 }

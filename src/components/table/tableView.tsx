@@ -5,6 +5,7 @@ import AutoPaging from '@/components/subcomponents/AutoPaging';
 import { fromCamelCase } from '@/lib/formatters';
 import { ExistingMediaInfo } from '@/types';
 
+// FIX ME if we dont use sortCol any more then delete it
 export default function DesktopView(
   {
     sorted,
@@ -16,7 +17,7 @@ export default function DesktopView(
     sorted: ExistingMediaInfo[],
     linkPrefix: string,
     totalLength: number,
-    sortCol?: ColumnType,
+    sortCol?: ColumnType[number],
     setPage: Dispatch<SetStateAction<number>>,
   }
 ) {
@@ -35,17 +36,26 @@ export default function DesktopView(
           </tr>
         </thead>
         <tbody>
-          {totalLength === 0 ?
-            <tr><td colSpan={100} className='text-center py-8 text-muted-foreground'>No Data Found</td></tr> :
-            sorted.length === 0 ? <tr><td colSpan={100} className='text-center py-8 text-muted-foreground'>No Results Found</td></tr> :
-              sorted.map(mediaInfo => (
+          {totalLength === 0 ? <tr>
+              <td className='text-center py-8 text-muted-foreground'
+                colSpan={100}
+              >No Data Found</td>
+            </tr>
+            : sorted.length === 0 ? <tr>
+              <td className='text-center py-8 text-muted-foreground'
+                colSpan={100}
+              >No Results Found</td>
+            </tr>
+              : sorted.map(mediaInfo => (
                 <TableRow
                   mediaInfo={mediaInfo}
                   keys={columns}
                   details={details}
                   key={mediaInfo.imdbId}
                   linkPrefix={linkPrefix}
-                />))
+                />
+              )
+              )
           }
         </tbody>
       </table>

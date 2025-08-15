@@ -20,7 +20,7 @@ function keepNewest(media: ListItem[]) {
     const imdbId = mediaInfo.imdbId;
     if (!deduped[imdbId]) {
       deduped[imdbId] = mediaInfo;
-    } else if (deduped[imdbId].dataAdded < mediaInfo.dateAdded) {
+    } else if (deduped[imdbId].dateAdded < mediaInfo.dateAdded) {
       deduped[imdbId] = mediaInfo;
     }
     return deduped;

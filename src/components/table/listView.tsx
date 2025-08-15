@@ -12,8 +12,9 @@ import { details } from '@/components/table/myTable';
 import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
-import { ExistingMediaInfo } from '@/types';
+import { ExistingMediaInfo, MediaKeys } from '@/types';
 
+// FIX ME rename file to MobileView
 export default function MobileView(
   {
     sorted,
@@ -39,7 +40,7 @@ export default function MobileView(
                     {mediaInfo.title}
                   </Link>
                   <div className='flex gap-4 justify-between'>
-                    {['rated', 'startYear', 'runtime'].map(key => (
+                    {(['rated', 'startYear', 'runtime'] as MediaKeys).map(key => (
                       <div className='flex-1 text-center'
                         key={`${mediaInfo.imdbId}-${key}`}
                       >
@@ -58,7 +59,7 @@ export default function MobileView(
                 />
                 <div className='flex flex-col gap-4 w-full m-auto'>
                   <div className='flex justify-evenly px-2'>
-                    {['imdbRating', 'tomatoRating', 'metaRating'].map(key => (
+                    {(['imdbRating', 'tomatoRating', 'metaRating'] as MediaKeys).map(key => (
                       <div className='flex flex-wrap gap-1 justify-center items-center'
                         key={`${mediaInfo.imdbId}-${key}`}
                       >

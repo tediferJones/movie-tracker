@@ -1,28 +1,45 @@
 import { media, people } from '@/drizzle/schema';
 import { FormattedMediaInfo, RatingObj, StrIdxRawMedia } from '@/types';
-type PeopleInsert = typeof people.$inferInsert;
+
+type PeopleInsert = typeof people.$inferInsert
+
+const specialPascal: { [key: string]: string } = {
+  DVD: 'dvd',
+  imdbID: 'imdbId',
+  seriesID: 'seriesId',
+  Actors: 'actor'
+}
 
 function toCamelCase(pascalStr: string) {
-  if (pascalStr === 'DVD') return 'dvd'
-  if (pascalStr === 'imdbID') return 'imdbId'
-  if (pascalStr === 'seriesID') return 'seriesId'
-  if (pascalStr === 'Actors') return 'actor'
-  return pascalStr[0].toLowerCase() + pascalStr.slice(1);
+  // if (pascalStr === 'DVD') return 'dvd'
+  // if (pascalStr === 'imdbID') return 'imdbId'
+  // if (pascalStr === 'seriesID') return 'seriesId'
+  // if (pascalStr === 'Actors') return 'actor'
+  // return pascalStr[0].toLowerCase() + pascalStr.slice(1);
+  return specialPascal[pascalStr] ||
+    pascalStr[0].toLowerCase() + pascalStr.slice(1);
 }
 
 function toNumber(str: string) {
   return Number(
-    [...str.matchAll(/\d+/g)]
-      .reduce((str, match) => str + match[0], '')
-  )
+    [...str.matchAll(/\d+/g)].reduce((str, match) => str + match[0], '')
+  );
 }
 
 function toArray(str: string) {
-  return str.split(', ')
+  return str.split(', ');
 }
 
 function toDate(str: string) {
-  return new Date(str).getTime()
+  return new Date(str).getTime();
+}
+
+function formatYear(year: string) {
+  const splitIndex = year.indexOf('–'); // THIS CHAR IS NOT A NORMAL - (i.e. minus symbol)
+  return {
+    startYear: Number(splitIndex >= 0 ? year.slice(0, splitIndex) : year.slice(0, 4)),
+    endYear: splitIndex >= 0 ? Number(year.slice(splitIndex + 1)) : null,
+  }
 }
 
 // FIX ME, refactor this
@@ -58,36 +75,40 @@ export default function formatMediaInfo(info: StrIdxRawMedia): FormattedMediaInf
     },
     'Rotten Tomatoes': {
       key: 'tomatoRating',
-      rating: (val) => Number(val.slice(0, val.indexOf('%')))
+      rating: (val) => Number(val.slice(0, val.indexOf('%'))),
     },
     'Metacritic': {
       key: 'metaRating',
       rating: (val) => Number(val.slice(0, val.indexOf('/'))),
-    }
+    },
   }
 
   const formatted = Object.keys(info).reduce((newObj, oldKey) => {
-    const newKey = toCamelCase(oldKey)
+    const newKey = toCamelCase(oldKey);
     if (info[oldKey] === 'N/A' || ['imdbRating', 'metascore', 'response'].includes(newKey)) return newObj;
     newObj[newKey] = formatterV2?.[newKey]?.(info[oldKey]) || info[oldKey];
-    return newObj
-  }, {} as { [key: string]: any })
+    return newObj;
+  }, {} as { [key: string]: any });
 
-  function formatYear(year: string) {
-    const splitIndex = year.indexOf('–') // THIS CHAR IS NOT A NORMAL - (i.e. minus symbol)
-    return {
-      startYear: Number(splitIndex >= 0 ? year.slice(0, splitIndex) : year.slice(0, 4)),
-      endYear: splitIndex >= 0 ? Number(year.slice(splitIndex + 1)) : null,
-    }
-  }
-
-  const { genre, director, writer, actor, country, language, ratings, year, ...rest } = formatted;
+  const {
+    genre,
+    director,
+    writer,
+    actor,
+    country,
+    language,
+    ratings,
+    year,
+    ...rest
+  } = formatted;
   const imdbId: string = formatted.imdbId;
   const positions: { [key: string]: string[] } = { director, writer, actor };
   const people = Object.keys(positions).reduce((arr, position) => {
-      if (!positions[position]) return arr
-      return arr.concat(positions[position].map(name => ({ imdbId, position, name })))
-    }, [] as PeopleInsert[])
+    if (!positions[position]) return arr;
+    return arr.concat(
+      positions[position].map(name => ({ imdbId, position, name }))
+    );
+  }, [] as PeopleInsert[]);
 
   return {
     mediaInfo: {
@@ -104,5 +125,5 @@ export default function formatMediaInfo(info: StrIdxRawMedia): FormattedMediaInf
     countries: country?.map((country: string) => ({ imdbId, country })),
     languages: language?.map((language: string) => ({ imdbId, language })),
     people: people.length ? people : undefined,
-  };
+  }
 }

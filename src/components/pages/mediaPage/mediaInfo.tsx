@@ -5,10 +5,12 @@ import { Fragment, useEffect, useState } from 'react';
 import GetLinks from '@/components/subcomponents/getLinks';
 import Loading from '@/components/subcomponents/loading';
 import SeasonDisplay from '@/components/pages/mediaPage/seasonDisplay';
+import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
 import { formatRuntime, fromCamelCase } from '@/lib/formatters';
 import easyFetch from '@/lib/easyFetch';
-import { ExistingMediaInfo, StrIdxRawMedia } from '@/types';
-import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
+import { ExistingMediaInfo, MediaStringArrKeys, StrIdxRawMedia } from '@/types';
+
+const peopleKeys: MediaStringArrKeys = ['actor', 'writer', 'director'];
 
 export default function MediaInfo({ imdbId }: { imdbId: string }) {
   const [media, setMedia] = useState<ExistingMediaInfo>();
@@ -136,7 +138,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
 
     <div className='showOutline p-4'>
       <div className='flex flex-wrap justify-center gap-4 pb-4 text-lg'>
-        {['director', 'writer', 'actor'].map(position => {
+        {peopleKeys.map(position => {
           if (!media[position]) return [];
           return  <span key={position} className='flex flex-wrap justify-center gap-1'>
             <span>{fromCamelCase(position, media[position].length !== 1)}:</span>
@@ -155,18 +157,21 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
             }).then(() => setRefreshTrigger(!refreshTrigger));
           }}>Update</Button>
         </h3>
-        {[
+        {([
           'type', 'seriesId', 'released', 'dvd',
           'genre', 'country', 'language', 'boxOffice',
           'production', 'website', 'imdbVotes', 'updatedAt',
-        ].map(key => {
-            if (!media[key] || media[key]?.length === 0) return [];
+        ] as (keyof ExistingMediaInfo)[]).map(key => {
+            const val = media[key];
+            if (!val || (Array.isArray(val) && val.length === 0)) return;
             return <Fragment key={key}>
               <div className='text-center m-auto text-muted-foreground'>
                 {fromCamelCase(key)}
               </div>
               <div className='col-span-2 text-center m-auto'>
-                {formatKey[key] ? formatKey[key](media[key]) : fromCamelCase(media[key].toString())}
+                {formatKey[key] ? formatKey[key](val)
+                  : fromCamelCase(val.toString())
+                }
               </div>
             </Fragment>
           })}

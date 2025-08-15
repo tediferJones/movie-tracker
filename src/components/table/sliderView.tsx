@@ -1,6 +1,4 @@
-// import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-
-import { Dispatch, SetStateAction/*, useEffect*/, useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import Link from 'next/link';
 import ConfirmModal from '@/components/subcomponents/confirmModal';
 import MediaInfo from '@/components/pages/mediaPage/mediaInfo';
@@ -8,8 +6,9 @@ import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import useCenteredItem from '@/hooks/useCenteredItem';
 import { getKeyFormatter } from '@/lib/formatters';
-import { ExistingMediaInfo } from '@/types';
+import { ExistingMediaInfo, MediaKeys } from '@/types';
 
+// FIX ME, delete comments
 export default function SliderView(
   {
     sorted,
@@ -101,7 +100,7 @@ export default function SliderView(
                   onClick={(e) => e.stopPropagation()}
                 >{mediaInfo.title}</Link>
                 <div className='flex flex-wrap whitespace-nowrap justify-between gap-4 w-full'>
-                  {['rated', 'startYear', 'runtime'].map(key => (
+                  {(['rated', 'startYear', 'runtime'] as MediaKeys).map(key => (
                     <div className='flex-1 text-center'
                       key={`${mediaInfo.imdbId}-${key}`}
                     >
@@ -132,22 +131,7 @@ export default function SliderView(
         <div className='flex flex-col gap-4 overflow-y-scroll pr-2'>
           {sorted[viewIndex]?.imdbId && <MediaInfo imdbId={sorted[viewIndex].imdbId} />}
         </div>
-        {/*
-        <ScrollArea type='auto' className='flex flex-col gap-4 text-wrap'
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <div className='mr-6 flex flex-col gap-4'>
-            {sorted[viewIndex]?.imdbId && <MediaInfo imdbId={sorted[viewIndex].imdbId} />}
-          </div>
-        </ScrollArea>
-        */}
       </ConfirmModal>
-      {/*
-      <ScrollBar orientation='horizontal' />
-      */}
     </div>
   )
 }

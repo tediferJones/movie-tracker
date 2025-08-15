@@ -5,8 +5,9 @@ import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import GetLinks from '@/components/subcomponents/getLinks';
 import ImageWithFallback from '@/components/subcomponents/ImageWithFallback';
+import { ColumnType } from '@/components/table/myTable';
 import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
-import { ExistingMediaInfo } from '@/types';
+import { ExistingMediaInfo, MediaStringArrKeys } from '@/types';
 
 export default function TableRow(
   {
@@ -16,8 +17,8 @@ export default function TableRow(
     linkPrefix,
   }: {
     mediaInfo: ExistingMediaInfo,
-    keys: string[],
-    details: string[],
+    keys: ColumnType,
+    details: MediaStringArrKeys,
     linkPrefix: string,
   }
 ) {

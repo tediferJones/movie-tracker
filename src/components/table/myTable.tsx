@@ -10,20 +10,35 @@ import {
 import { Button } from '@/components/ui/button';
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
-// import OptionalScrollArea from '@/components/subcomponents/optionalScrollArea';
 import TableView from '@/components/table/tableView';
 import ListView from '@/components/table/listView';
 import SliderView from '@/components/table/sliderView';
 import SortAndFilter from '@/components/subcomponents/SortAndFilter';
 import { fromCamelCase } from '@/lib/formatters';
-import { ExistingMediaInfo } from '@/types';
+import { ExistingMediaInfo, MediaStringArrKeys } from '@/types';
 
-export type ColumnType = typeof columns[number]
+export type ColumnType = typeof columns
 type ViewTypes = typeof views[number]
 type ScreenTypes = 'desktop' | 'mobile'
 
-export const columns = ['title', 'rated', 'startYear', 'runtime', 'imdbRating', 'metaRating', 'tomatoRating', ''];
-export const details = ['director', 'writer', 'actor', 'genre', 'country', 'language'];
+export const columns: (keyof ExistingMediaInfo | '')[] = [
+  'title',
+  'rated',
+  'startYear',
+  'runtime',
+  'imdbRating',
+  'metaRating',
+  'tomatoRating',
+  ''
+] as const;
+export const details: MediaStringArrKeys = [
+  'director',
+  'writer',
+  'actor',
+  'genre',
+  'country',
+  'language'
+];
 const views = ['table', 'list', 'slider'] as const;
 
 export default function MyTable(

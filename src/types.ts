@@ -9,15 +9,12 @@ import {
   watched
 } from '@/drizzle/schema';
 
-interface StrIdx { [key: string]: any }
-
 interface RatingObj {
   Source: string,
   Value: string,
 }
 
-// FIX ME, consider getting rid of StrIdx
-interface StrIdxRawMedia extends StrIdx {
+interface StrIdxRawMedia {
   Title: string,
   imdbID: string,
   Type: string,
@@ -69,7 +66,7 @@ interface OmdbSearchFailure {
 
 type OmdbSearch = OmdbSearchSuccess | OmdbSearchFailure
 
-interface FormattedMediaInfo extends StrIdx {
+interface FormattedMediaInfo {
   mediaInfo: typeof media.$inferInsert,
   genres?: (typeof genres.$inferInsert)[],
   countries?: (typeof countries.$inferInsert)[],

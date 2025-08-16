@@ -11,7 +11,6 @@ type UnwrapCacheData<T> = T extends CacheData<infer U> ? U : never
 const maxTime = 1000 * 60 * 15; // 15 minutes
 // const maxTime = 1000 * 60; // For testing purposes
 
-// FIX ME, clean up comments
 export default class Cache {
   cache: CacheType;
   constructor() {
@@ -19,8 +18,6 @@ export default class Cache {
     setInterval(() => this.autoDelete(Date.now()), maxTime);
   }
 
-  // this is only used for GET methods
-  // All other methods will just clear the old keys
   async getSet<
     T extends keyof CacheType,
     K extends keyof CacheType[T],
@@ -51,11 +48,8 @@ export default class Cache {
     resource: R,
     ...extraKeys: ExtraKeys
   ): UnwrapCacheData<CacheType[T][K][R]> | undefined {
-    // return (this.cache[type]?.[key]?.[resource] as any)?.data;
     const result = (this.cache[type]?.[key]?.[resource] as any);
-    // console.log('initial', result)
     return extraKeys.reduce((obj, key) => {
-      // console.log('CRAWLING', obj, key)
       if (obj === undefined) return undefined;
       return obj[key];
     }, result)?.data;
@@ -67,9 +61,6 @@ export default class Cache {
     R extends keyof CacheType[T][K],
     V extends CacheType[T][K][R] & CacheData<unknown>
   >(type: T, key: K, resource: R, value: V['data'], ...extraKeys: ExtraKeys) {
-    // if (!this.cache[type][key]) this.cache[type][key] = {} as any;
-    // this.cache[type][key][resource] = new CacheData(value) as any;
-
     [ type, key, resource, ...extraKeys ].reduce((obj, key, i, arr) => {
       if (i === arr.length - 1) {
         obj[key] = new CacheData(value);
@@ -92,7 +83,10 @@ export default class Cache {
     Object.keys(cache).forEach(key => {
       if (cacheDataSymbol in cache[key]) {
         const timeDiff = time - cache[key].date;
-        if (timeDiff > maxTime) delete cache[key];
+        if (timeDiff > maxTime) {
+          console.log('DELETING', cache[key])
+          delete cache[key];
+        }
       } else {
         this.autoDelete(time, cache[key]);
       }

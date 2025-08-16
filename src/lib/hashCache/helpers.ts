@@ -1,4 +1,4 @@
-import { Config, DataCache, Dependent } from '@/lib/hashCache/types';
+import { Config, Dependent } from '@/lib/hashCache/types';
 
 // FIX ME
 // This should be included in config
@@ -21,10 +21,4 @@ export function reverseDependencies(config: Config) {
     return obj;
   }, {} as { [key: string]: Dependent });
   return { dependents, revDeps };
-}
-
-export function isResource<T extends { isResource: true }>(
-  value: T | DataCache<T>
-): value is T {
-  return value.isResource === true;
 }

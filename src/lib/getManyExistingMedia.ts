@@ -3,6 +3,7 @@ import { inArray } from 'drizzle-orm';
 import { countries, genres, languages, media, people } from '@/drizzle/schema';
 import { cache } from '@/lib/dataCache/config';
 import { ExistingMediaInfo } from '@/types';
+import getTypedKeys from './getTypedKeys';
 
 type ImdbId = string
 type ProcessedData = {
@@ -90,10 +91,6 @@ async function getTableData(
 ) {
   const table = tables[tableName];
   return await db.select().from(table).where(inArray(table.imdbId, imdbIds));
-}
-
-function getTypedKeys<T extends { [key: string]: any }>(obj: T) {
-  return Object.keys(obj) as (keyof T)[]
 }
 
 type Positions = 'actor' | 'writer' | 'director';

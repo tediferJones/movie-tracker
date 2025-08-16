@@ -7,17 +7,16 @@ import {
 } from '@/lib/hashCache/types';
 import {
   hash,
-  isResource,
   reverseDependencies
 } from '@/lib/hashCache/helpers';
 import { ServerTypes } from '@/lib/hashCache/config';
 
 export default class ServerHashCache {
-  cache: { [username: string]: DataCache<ServerResource> | undefined }
-  reverseDependencies: ReturnType<typeof reverseDependencies>
+  cache: { [username: string]: DataCache<ServerResource> | undefined };
+  reverseDependencies: ReturnType<typeof reverseDependencies>;
 
   constructor(config: Config) {
-    this.cache = {}
+    this.cache = {};
     this.reverseDependencies = reverseDependencies(config);
   }
 
@@ -25,13 +24,6 @@ export default class ServerHashCache {
     return this.cache[username] || null;
   }
 
-  // async update<R extends Resources, M extends Methods>(
-  //   req: Request,
-  //   username: string,
-  //   data: ServerTypes<R, M>,
-  //   method: M,
-  //   resource: R,
-  //   ...keys: (string | number)[]
   async update<
     R extends Resources,
     M extends keyof ServerTypes[R]
@@ -43,23 +35,18 @@ export default class ServerHashCache {
     resource: R,
     ...keys: (string | number)[]
   ) {
-    // console.log('STARTED SETTING', username, resource, keys)
     if (!this.cache[username]) this.cache[username] = {};
     const userHashes = this.cache[username]!;
     if (!userHashes[resource]) userHashes[resource] = {};
-    const res: (DataCache<ServerResource> | ServerResource) = (
+    let res: ServerResource = (
       keys.reduce((obj, key) => {
-        if (!obj[key]) obj[key] = {}
+        if (!obj[key]) obj[key] = {};
         return (obj as any)[key];
       }, userHashes[resource] as any)
     );
-    // FIX ME
-    // this needs to be cleaned up
-    // if res does not exist create a new one and fill with url and dependent
-    // otherwise just update the hash
 
     console.log('SETTING', res, resource, keys)
-    if (isResource<ServerResource>(res)) {
+    if (res.isResource) {
       // RESOURCE ALREADY EXISTS
       if (method === 'GET') {
         res.hash = await hash(JSON.stringify(data));
@@ -68,7 +55,7 @@ export default class ServerHashCache {
           `${res.hash},${method.toString()},${JSON.stringify(data)}`
         );
         if (res.dependent) {
-          const key = (data as any)[res.dependent.key]
+          const key = (data as any)[res.dependent.key];
           if (method === 'POST') {
             console.log('adding dependent')
             if (!userHashes[res.dependent.name]) {
@@ -81,7 +68,7 @@ export default class ServerHashCache {
             }
           } else if (method === 'DELETE') {
             console.log('deleting dependent')
-            delete (userHashes[res.dependent.name] as any)[key]
+            delete (userHashes[res.dependent.name] as any)[key];
           }
         }
       }
@@ -90,11 +77,10 @@ export default class ServerHashCache {
       if (method !== 'GET') {
         throw Error('new resources must be created with GET method');
       }
-      // FIX ME, see if we can get this typed correctly
-      (res as any).isResource = true;
-      (res as any).url = new URL(req.url).pathname;
-      (res as any).dependent = this.reverseDependencies.revDeps[resource];
-      (res as any).hash = await hash(JSON.stringify(data));
+      res.isResource = true;
+      res.url = new URL(req.url).pathname;
+      res.dependent = this.reverseDependencies.revDeps[resource];
+      res.hash = await hash(JSON.stringify(data));
     }
   }
 }

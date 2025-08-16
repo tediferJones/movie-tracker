@@ -14,14 +14,6 @@ async function getPosition(position: string, name: string) {
     )
   );
   return await getManyExistingMedia(peopleRecs.map(rec => rec.imdbId));
-  // return await Promise.all(
-  //   (await db.select({ imdbId: people.imdbId }).from(people).where(
-  //     and(
-  //       eq(people.name, name),
-  //       eq(people.position, position)
-  //     )
-  //   )).map(rec => getExistingMedia(rec.imdbId))
-  // )
 }
 
 export async function GET(req: Request) {

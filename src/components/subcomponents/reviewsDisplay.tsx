@@ -21,16 +21,13 @@ export default function ReviewsDisplay(
   {
     username,
     imdbId,
-    // extTrigger,
   }: {
     username?: string,
     imdbId?: string,
-    // extTrigger?: boolean,
   }
 ) {
-  // FIX ME
-  // yeah good note, but fix what?
   const [reviews, setReviews] = useState<ReviewOptTitle[]>();
+  // FIX ME
   // Could this be repalced with a ref?
   // This data does not change once set
   const [allReviews, setAllReviews] = useState<ReviewOptTitle[]>();
@@ -65,39 +62,6 @@ export default function ReviewsDisplay(
       setAllReviews(reviews);
     }
   }, [userData, isSelf]);
-
-  // useEffect(() => {
-  //   // if imdbId exists, only fetch records related to imdbId
-  //   // if no imdbId, fetch all records for user
-
-  //   // FIX ME, this is going to cause problems for users that are not logged in
-  //   // use the useIsSelf hook, that might be a good fix
-  //   if (userData.current?.isSynced !== true) return console.log('waiting'); 
-
-  //   if (userData.current && userData.current.username === username) {
-  //     const reviews = userData.current.getResource('reviews');
-  //     setReviews(reviews);
-  //     setAllReviews(reviews);
-  //   } else if (username) {
-  //     easyFetch<ReviewWithTitle[]>({
-  //       route: `/api/users/${username}/reviews`,
-  //       method: 'GET',
-  //     }).then(data => {
-  //         setReviews(data);
-  //         setAllReviews(data);
-  //       });
-  //   } else if (imdbId) {
-  //     easyFetch<Review[]>({
-  //       route: `/api/media/${imdbId}/reviews`,
-  //       method: 'GET',
-  //     }).then(data => {
-  //         setReviews(data);
-  //         setAllReviews(data);
-  //       });
-  //   } else {
-  //     throw Error('reviewsDisplay requires an imdbId or a username');
-  //   }
-  // }, [extTrigger, username, userData]);
 
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[90vh]'>

@@ -1,7 +1,49 @@
 import { media, people } from '@/drizzle/schema';
 import { FormattedMediaInfo, RatingObj, StrIdxRawMedia } from '@/types';
+import getTypedKeys from './getTypedKeys';
 
 type PeopleInsert = typeof people.$inferInsert
+
+const skipKeys = ['imdbRating', 'metascore', 'response'];
+
+const formatterV2: { [key: string]: (str: string) => any } = {
+  // It would probably be beneficial to use a map instead of an obj
+  // This way we can format like so:
+  // [Array of keys]: Function
+  // If key in array, run function
+  year: (val) => toNumber(val),
+  runtime: (val) => toNumber(val),
+  imdbVotes: (val) => toNumber(val),
+  boxOffice: (val) => toNumber(val),
+  totalSeasons: (val) => toNumber(val),
+  season: (val) => toNumber(val),
+  episode: (val) => toNumber(val),
+
+  released: (val) => toDate(val),
+  dvd: (val) => toDate(val),
+
+  genre: val => toArray(val),
+  director: val => toArray(val),
+  writer: val => toArray(val),
+  actor: val => toArray(val),
+  language: val => toArray(val),
+  country: val => toArray(val),
+}
+
+const getRating: { [key: string]: { key: string, rating: (str: string) => number } } = {
+  'Internet Movie Database': {
+    key: 'imdbRating',
+    rating: (val) => Number(val.slice(0, val.indexOf('/'))) * 10,
+  },
+  'Rotten Tomatoes': {
+    key: 'tomatoRating',
+    rating: (val) => Number(val.slice(0, val.indexOf('%'))),
+  },
+  'Metacritic': {
+    key: 'metaRating',
+    rating: (val) => Number(val.slice(0, val.indexOf('/'))),
+  },
+}
 
 const specialPascal: { [key: string]: string } = {
   DVD: 'dvd',
@@ -10,12 +52,8 @@ const specialPascal: { [key: string]: string } = {
   Actors: 'actor'
 }
 
+
 function toCamelCase(pascalStr: string) {
-  // if (pascalStr === 'DVD') return 'dvd'
-  // if (pascalStr === 'imdbID') return 'imdbId'
-  // if (pascalStr === 'seriesID') return 'seriesId'
-  // if (pascalStr === 'Actors') return 'actor'
-  // return pascalStr[0].toLowerCase() + pascalStr.slice(1);
   return specialPascal[pascalStr] ||
     pascalStr[0].toLowerCase() + pascalStr.slice(1);
 }
@@ -37,56 +75,24 @@ function toDate(str: string) {
 function formatYear(year: string) {
   const splitIndex = year.indexOf('–'); // THIS CHAR IS NOT A NORMAL - (i.e. minus symbol)
   return {
-    startYear: Number(splitIndex >= 0 ? year.slice(0, splitIndex) : year.slice(0, 4)),
+    startYear: Number(
+      splitIndex >= 0 ? year.slice(0, splitIndex) : year.slice(0, 4)
+    ),
     endYear: splitIndex >= 0 ? Number(year.slice(splitIndex + 1)) : null,
   }
 }
 
 // FIX ME, refactor this
 export default function formatMediaInfo(info: StrIdxRawMedia): FormattedMediaInfo {
-  const formatterV2: { [key: string]: (str: string) => any } = {
-    // It would probably be beneficial to use a map instead of an obj
-    // This way we can format like so:
-    // [Array of keys]: Function
-    // If key in array, run function
-    year: (val) => toNumber(val),
-    runtime: (val) => toNumber(val),
-    imdbVotes: (val) => toNumber(val),
-    boxOffice: (val) => toNumber(val),
-    totalSeasons: (val) => toNumber(val),
-    season: (val) => toNumber(val),
-    episode: (val) => toNumber(val),
-
-    released: (val) => toDate(val),
-    dvd: (val) => toDate(val),
-
-    genre: val => toArray(val),
-    director: val => toArray(val),
-    writer: val => toArray(val),
-    actor: val => toArray(val),
-    language: val => toArray(val),
-    country: val => toArray(val),
-  }
-
-  const getRating: { [key: string]: { key: string, rating: (str: string) => number } } = {
-    'Internet Movie Database': {
-      key: 'imdbRating',
-      rating: (val) => Number(val.slice(0, val.indexOf('/'))) * 10,
-    },
-    'Rotten Tomatoes': {
-      key: 'tomatoRating',
-      rating: (val) => Number(val.slice(0, val.indexOf('%'))),
-    },
-    'Metacritic': {
-      key: 'metaRating',
-      rating: (val) => Number(val.slice(0, val.indexOf('/'))),
-    },
-  }
-
-  const formatted = Object.keys(info).reduce((newObj, oldKey) => {
+  const formatted = getTypedKeys(info).reduce((newObj, oldKey) => {
     const newKey = toCamelCase(oldKey);
-    if (info[oldKey] === 'N/A' || ['imdbRating', 'metascore', 'response'].includes(newKey)) return newObj;
-    newObj[newKey] = formatterV2?.[newKey]?.(info[oldKey]) || info[oldKey];
+    if (info[oldKey] !== 'N/A' || !skipKeys.includes(newKey)) {
+      if (formatterV2[newKey]) {
+        newObj[newKey] = formatterV2[newKey](info[oldKey] as string);
+      } else {
+        newObj[newKey] = info[oldKey];
+      }
+    }
     return newObj;
   }, {} as { [key: string]: any });
 
@@ -101,6 +107,7 @@ export default function formatMediaInfo(info: StrIdxRawMedia): FormattedMediaInf
     year,
     ...rest
   } = formatted;
+
   const imdbId: string = formatted.imdbId;
   const positions: { [key: string]: string[] } = { director, writer, actor };
   const people = Object.keys(positions).reduce((arr, position) => {

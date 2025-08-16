@@ -70,9 +70,6 @@ export async function useCache<
     }
   } = {},
 ) {
-  // types for data and resource should be tied to those of serverHashCache
-  // if type === 'users' then key is username
-
   const user = await currentUser();
   const isSelf = user?.username && user.username === key;
   if (opts.needsAuth && !isSelf) {
@@ -83,40 +80,46 @@ export async function useCache<
   const useHashCache = searchParams.get('useHashCache') === 'true';
   const extraKeys = opts.extraKeys || [];
 
-  // should probably wrap this in try catch,
-  // throw error with reason for failure and status code,
-  // return error as NextResponse
-  const params = Object.keys(opts.params || {}).reduce((params, param) => {
-    const paramObj = opts.params![param];
-    const paramStr = searchParams.get(param);
-    if (!paramStr) {
-      if (paramObj.required) {
-        throw Error(`Param ${param} is required`);
-      } else {
-        // param does not exist but isn't required, so just do nothing
-        return params;
+  let params: InferredParams<P>;
+  try {
+    params = Object.keys(opts.params || {}).reduce((params, param) => {
+      const paramObj = opts.params![param];
+      const paramStr = searchParams.get(param);
+      if (!paramStr) {
+        if (paramObj.required) {
+          throw Error(`Param ${param} is required`);
+        } else {
+          // param does not exist but isn't required, so just do nothing
+          return params;
+        }
       }
-    }
-    // param exists
-    const paramVal = paramConverters[paramObj.type](paramStr);
+      // param exists
+      const paramVal = paramConverters[paramObj.type](paramStr);
 
-    // validate
-    if (paramObj.validator && !isValid({ [paramObj.validator]: paramVal })) {
-      throw Error(`Param ${param} is not valid`);
-    }
+      // validate param
+      if (paramObj.validator && !isValid({ [paramObj.validator]: paramVal })) {
+        throw Error(`Param ${param} is not valid`);
+      }
 
-    params[param] = paramVal;
-    return params;
-  }, {} as { [param: string]: any }) as InferredParams<P>;
+      params[param] = paramVal;
+      return params;
+    }, {} as { [param: string]: any }) as InferredParams<P>;
+  } catch (error) {
+    return NextResponse.json(error, { status: 400 });
+  }
   console.log('ParamsResult', params);
 
   let parsedBody;
-  if (opts.body) {
-    const result = await bodyConverters[opts.body.type](req);
-    if (opts.body.validate && !isValid(result)) {
-      throw Error('body invalid');
+  try {
+    if (opts.body) {
+      const result = await bodyConverters[opts.body.type](req);
+      if (opts.body.validate && !isValid(result)) {
+        throw Error('body invalid');
+      }
+      parsedBody = result;
     }
-    parsedBody = result;
+  } catch (error) {
+    return NextResponse.json(error, { status: 422 });
   }
 
   const dbArgs: Required<DbArgs<P>> = {
@@ -151,7 +154,7 @@ export async function useCache<
   if (isSelf && useHashCache) {
     await serverHashCache.update(
       req,
-      key as string, // if type is 'users' then key is username
+      key, // if type is 'users' then key is username
       data as any,
       method,
       resource as any,

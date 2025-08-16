@@ -8,7 +8,6 @@ import useCenteredItem from '@/hooks/useCenteredItem';
 import { getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo, MediaKeys } from '@/types';
 
-// FIX ME, delete comments
 export default function SliderView(
   {
     sorted,
@@ -23,22 +22,10 @@ export default function SliderView(
   }
 ) {
   const [showDialog, setShowDialog] = useState(false);
-  // const [viewIndex, setViewIndex] = useState(0);
 
   const { containerRef, centeredElement } = useCenteredItem<HTMLDivElement>();
 
   const viewIndex = Number(centeredElement?.dataset.index);
-  // FIX ME, possibly deprecated by key on optionalScrollArea
-  // useEffect(() => {
-  //   setViewIndex(Number(centeredElement?.dataset.index));
-  // }, [centeredElement?.dataset.index]);
-
-  // useEffect(() => {
-  //   setViewIndex(0);
-  //   const firstItem = document.querySelector<HTMLDivElement>(`[data-index='0']`);
-  //   if (!firstItem || !containerRef.current) return;
-  //   scrollToCenter(firstItem, containerRef.current);
-  // }, [sorted]);
 
   function scrollToCenter(item: HTMLElement, container: HTMLElement) {
     const itemCenter = item.offsetLeft + item.offsetWidth / 2;
@@ -90,6 +77,7 @@ export default function SliderView(
               key={i}
             >
               {/*
+              // FIX ME
               // pick a 'sortBy' column, toggle sort direction a couple times and then go back to default order,
               // some images won't reload, and that needs fixed
               */}
@@ -127,7 +115,6 @@ export default function SliderView(
           >Go To Media Page</Link>
         }
       >
-        {/* // FIX ME, scrollbar too close to edge of ConfirmModal */}
         <div className='flex flex-col gap-4 overflow-y-scroll pr-2'>
           {sorted[viewIndex]?.imdbId && <MediaInfo imdbId={sorted[viewIndex].imdbId} />}
         </div>

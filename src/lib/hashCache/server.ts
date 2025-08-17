@@ -45,7 +45,6 @@ export default class ServerHashCache {
       }, userHashes[resource] as any)
     );
 
-    console.log('SETTING', res, resource, keys)
     if (res.isResource) {
       // RESOURCE ALREADY EXISTS
       if (method === 'GET') {

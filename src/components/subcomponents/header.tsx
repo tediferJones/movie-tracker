@@ -55,7 +55,9 @@ export default function Header() {
           </DropdownMenu>
           {userData.current &&
             <>
-              {userData.current.username}
+              <span onClick={() => fetch('/api/sync', { method: 'DELETE' })}>
+                {userData.current.username}
+              </span>
               <UserButton />
             </>
           }

@@ -84,7 +84,6 @@ export default class Cache {
       if (cacheDataSymbol in cache[key]) {
         const timeDiff = time - cache[key].date;
         if (timeDiff > maxTime) {
-          console.log('DELETING', cache[key])
           delete cache[key];
         }
       } else {

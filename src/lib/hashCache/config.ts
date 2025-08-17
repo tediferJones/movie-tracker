@@ -99,6 +99,5 @@ export const serverHashCache = (
   globalThis.serverHashCacheGlobal || new ServerHashCache(config)
 );
 if (!globalThis.serverHashCacheGlobal) {
-  console.log('SETTING HASH CACHE')
   globalThis.serverHashCacheGlobal = serverHashCache;
 }

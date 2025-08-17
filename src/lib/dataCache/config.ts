@@ -33,6 +33,5 @@ export const cache = (
   globalThis.cacheGlobal || new Cache()
 );
 if (!globalThis.cacheGlobal) {
-  console.log('SETTING CACHEV2')
   globalThis.cacheGlobal = cache;
 }

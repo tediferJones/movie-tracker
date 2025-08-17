@@ -41,6 +41,7 @@ export default function ReviewsDisplay(
 
   // FIX ME this is still problematic,
   // we need to wait for both useIsSelf AND userData to settle
+  // and this displays reviews in the wrong order
   useAsyncEffect(async () => {
     if (isSelf === null) return;
     if (!username && !imdbId) {
@@ -58,9 +59,9 @@ export default function ReviewsDisplay(
           : `/api/media/${imdbId}/reviews`,
         method: 'GET',
       });
-      setReviews(reviews);
-      setAllReviews(reviews);
     }
+    setReviews(reviews);
+    setAllReviews(reviews);
   }, [userData, isSelf]);
 
   return (

@@ -50,25 +50,18 @@ export default class ClientHashCache {
     this.setSyncState('syncing');
 
     // load state from localStorage, if no state, build from config
-    this.cache = this.load() || this.init(config);
+    // this.cache = this.load() || this.init(config);
+    const existingState = this.load();
+    if (existingState) {
+      this.cache = existingState;
+      this.save();
+    } else {
+      this.cache = this.init(config);
+    }
     this.sync();
   }
 
-  // setSyncStatus(state: SyncOpts) {
-  //   this.isSynced = state;
-  //   this.setSyncState(state);
-  // }
-
   init(config: Config): DataCache<Resource> {
-    // const isDependent = new Set<string>();
-    // const revDependencies = Object.keys(config).reduce((obj, key) => {
-    //   if (config[key].dependent) {
-    //     isDependent.add(key);
-    //     const dep = config[key].dependent!;
-    //     obj[dep.name] = { name: key, key: dep.key };
-    //   }
-    //   return obj;
-    // }, {} as { [key: string]: Dependent });
     const { revDeps, dependents } = reverseDependencies(config);
 
     return Object.keys(config).reduce((cache, key) => {
@@ -103,20 +96,6 @@ export default class ClientHashCache {
     if (!serverHashes) {
       await this.getAll();
     } else {
-      // we need to address cases where server has more or less keys than client
-      // this is especially needed for listContents resource
-      // if a list is added on device A, listnames will get synced to device B but listContents[newListId] will not
-      // if we include URL server side, it will be much easier to update keys that do not yet exist on the client
-      // if a key exists on the client but not on the server, just delete it
-      // try {
-      //   await this.compare(serverHashes);
-      // } catch {
-      //   // this isn't a real solution and it defeats the purpose of the hashCache
-      //   // we want to fetch each individual resource if doesn't match
-      //   console.log('failed to compare, fetching all')
-      //   this.cache = this.init(this.config);
-      //   await this.getAll();
-      // }
       console.log('COMPARING')
       await this.compare(serverHashes)
     }
@@ -171,20 +150,20 @@ export default class ClientHashCache {
           needsSynced: [] as string[],
           needsAdded: [] as string[],
           needsDeleted: [] as string[],
-        })
-    )
+        }
+      )
+    );
 
     // console.log({ needsDeleted, needsAdded, needsSynced })
-    if (needsDeleted.length) {
-      console.log({ server, client })
-      throw Error(`want to delete: ${needsDeleted.join(', ')}`)
-    }
+    // if (needsDeleted.length) {
+    //   console.log({ server, client })
+    //   throw Error(`want to delete: ${needsDeleted.join(', ')}`)
+    // }
     needsDeleted.forEach(key => delete client[key]);
     await Promise.all(
       needsAdded.map(async key => {
         console.log('server has new resource, adding and syncing')
         const url = server[key].url;
-        // console.log(server, key, url)
         if (typeof url !== 'string') throw Error('Url is not a string');
         const resource = new Resource({ url });
         client[key] = resource;
@@ -207,22 +186,6 @@ export default class ClientHashCache {
         }
       })
     );
-
-    // await Promise.all(
-    //   Object.keys(server).map(async key => {
-    //     if (!client[key]) throw Error('no client key')
-    //     if (client[key].isResource) {
-    //       if (server[key].hash !== client[key].hash) {
-    //         await (client[key] as Resource).update(this, 'GET');
-    //       }
-    //     } else {
-    //       await this.compare(
-    //         server[key] as DataCache<ServerResource>,
-    //         client[key] as DataCache<Resource>
-    //       );
-    //     }
-    //   })
-    // );
   }
 
   save() {
@@ -232,7 +195,6 @@ export default class ClientHashCache {
     );
     allState[this.username] = JSON.stringify(this.cache);
     localStorage.setItem(storageKey, JSON.stringify(allState));
-    // this.setState({ current: null });
     this.setState({ current: this });
   }
 
@@ -261,8 +223,6 @@ export default class ClientHashCache {
     }, {} as DataCache<Resource>);
   }
 
-  // async update<R extends Resources, M extends Methods>(
-  //   data: ClientTypes<R, M>,
   async update<R extends Resources, M extends keyof ClientTypes[R] & Methods>(
     data: ClientTypes[R][M] & EasyFetchData,
     method: M,
@@ -276,26 +236,15 @@ export default class ClientHashCache {
     }, this.cache[resource] as any);
     if (!res.isResource) throw Error('not a resource');
     await res.update(this, method, data);
-    // await this.sync();
     if (!this.deferSync) {
       await this.sync();
-    } else {
-      console.log('DEFERING SYNC')
     }
   }
 
   getResource<R extends Resources>(resource: R, ...keys: (string | number)[]) {
-    // this should return the resource's .data attribute, not the whole resource
-    // unless there is a reason to access other attributes client side
-    // but so far there is no need
-    // return keys.reduce((data, key) => {
-    //   if (!data[key]) throw Error(`Key: ${key} does not exist`);
-    //   return data[key]
-    // }, this.cache[resource] as { [key: string]: any }) as Resource<ServerTypes<R, 'GET'>>
     const res = keys.reduce((data, key) => {
       if (!data[key]) throw Error(`Key: ${key} does not exist`);
-      return data[key]
-    // }, this.cache[resource] as { [key: string]: any }) as Resource<ServerTypes<R, 'GET'>>
+      return data[key];
     }, this.cache[resource] as { [key: string]: any }) as Resource<ServerTypes[R]['GET']>
     return res.data;
   }

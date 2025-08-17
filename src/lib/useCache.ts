@@ -107,7 +107,6 @@ export async function useCache<
   } catch (error) {
     return NextResponse.json(error, { status: 400 });
   }
-  console.log('ParamsResult', params);
 
   let parsedBody;
   try {

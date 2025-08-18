@@ -15,13 +15,14 @@ import { config } from '@/lib/hashCache/config';
 const UserDataContext = createContext<UserContext>({ current: null });
 
 export function UserDataProvider({ children }: { children: ReactNode }) {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const [hashCache, setHashCache] = useState<UserContext>({ current: null });
   const [syncState, setSyncState] = useState<SyncOpts>('');
 
   useEffect(() => {
+    if (!isLoaded) return;
     if (!user?.username) {
-      setHashCache({ current: null });
+      setHashCache({ current: false });
       return;
     }
     new ClientHashCache(

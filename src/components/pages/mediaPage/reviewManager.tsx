@@ -21,6 +21,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
   const [buttonText, setButtonText] = useState('Waiting...');
   const [modalVisibile, setModalVisible] = useState(false);
   const [changeRating, setChangeRating] = useState(false);
+  const [extTrigger, setExtTrigger] = useState(false);
   const ratingContainer = useRef<HTMLDivElement>(null);
 
   const reviewMismatch = (
@@ -186,6 +187,7 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
               existingReview?.username ? 'PUT' : 'POST',
               'reviews',
             );
+            setExtTrigger(!extTrigger);
           }}
         >{buttonText || defaultButtonText}</Button>
       </div>
@@ -198,10 +200,11 @@ export default function ReviewManager({ imdbId }: { imdbId: string }) {
           await userData.current.update({
             params: { imdbId }
           }, 'DELETE', 'reviews');
+          setExtTrigger(!extTrigger);
         }}
       >
         <p>Are you sure you want to delete this review?</p>
       </ConfirmModal>
-      <ReviewsDisplay imdbId={imdbId} />
+      <ReviewsDisplay imdbId={imdbId} key={JSON.stringify(extTrigger)} />
     </>
 }

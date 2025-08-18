@@ -7,8 +7,8 @@ import Loading from '@/components/subcomponents/loading';
 import AutoPaging from '@/components/subcomponents/AutoPaging';
 import SortAndFilter from '@/components/subcomponents/SortAndFilter';
 import StarRating from '@/components/subcomponents/StarRating';
-import useIsSelf from '@/hooks/useIsSelf';
 import useAsyncEffect from '@/hooks/useAsyncEffect';
+import useIsSettled from '@/hooks/isSettled';
 import easyFetch from '@/lib/easyFetch';
 import { formatTimestamp } from '@/lib/formatters';
 import { watchAgainConfig, ratingConfig } from '@/lib/reviewHelpers';
@@ -26,7 +26,7 @@ export default function ReviewsDisplay(
     imdbId?: string,
   }
 ) {
-  const [reviews, setReviews] = useState<ReviewOptTitle[]>();
+  const [reviews, setReviews] = useState<ReviewOptTitle[] | undefined>([]);
   // FIX ME
   // Could this be repalced with a ref?
   // This data does not change once set
@@ -34,35 +34,32 @@ export default function ReviewsDisplay(
   const [page, setPage] = useState(1);
   
   const userData = useUserData();
-  const isSelf = useIsSelf(username || '');
+  const isSettled = useIsSettled(username || '');
 
   const pageSize = 5;
   const displayType = username ? 'title' : 'username';
 
-  // FIX ME this is still problematic,
-  // we need to wait for both useIsSelf AND userData to settle
-  // and this displays reviews in the wrong order
   useAsyncEffect(async () => {
-    if (isSelf === null) return;
+    if (isSettled === null) return;
     if (!username && !imdbId) {
       throw Error('either username or imdbId is requied');
     }
 
     let reviews: ReviewOptTitle[];
-    if (userData.current && isSelf) {
-      console.log('USING CONTEXT')
+    if (isSettled) {
+      if (!userData.current) throw Error('should be checked by isSettled');
       reviews = userData.current.getResource('reviews');
     } else {
-      console.log('FETCHING')
       reviews = await easyFetch<ReviewOptTitle[]>({
         route: username ? `/api/users/${username}/reviews`
           : `/api/media/${imdbId}/reviews`,
         method: 'GET',
       });
     }
-    setReviews(reviews);
+    // Do not try to set both allReviews and reviews at the same time
+    // this will cause stale renders
     setAllReviews(reviews);
-  }, [userData, isSelf]);
+  }, [userData.current, isSettled]);
 
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[90vh]'>
@@ -111,10 +108,10 @@ export default function ReviewsDisplay(
                   description,
                 } = watchAgainConfig[`${review.watchAgain}`];
                 return (
-                  <Fragment key={`reviewsDisplay-${i}`}>
+                  <Fragment key={`reviewsDisplay-${JSON.stringify(review)}`}>
                     {i > 0 && <hr className='my-2' />}
                     <Link className='text-foreground group flex flex-col gap-4 p-4 hover:bg-secondary rounded-lg snap-center'
-                      key={`review-${i}`}
+                      key={`review-${JSON.stringify(review)}`}
                       href={imdbId ? `/users/${review.username}` : `/media/${review.imdbId}`}
                     >
                       <div className='flex gap-4 flex-wrap'>

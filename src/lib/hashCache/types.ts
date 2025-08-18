@@ -26,9 +26,9 @@ export type Config = {
   }
 }
 
-export type Resources = keyof typeof config;
+export type Resources = keyof typeof config
 
-export type UserContext = { current: ClientHashCache | null }
+export type UserContext = { current: ClientHashCache | null | false }
 
 export type SyncOpts = 'notSynced' | 'syncing' | 'synced' | ''
 

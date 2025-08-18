@@ -19,7 +19,7 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState
+  useState,
 } from 'react';
 import {
   ArrowDownAz,
@@ -28,7 +28,7 @@ import {
   Dices,
   ListRestart,
   Lock,
-  X
+  X,
 } from 'lucide-react';
 import FancyInput from '@/components/subcomponents/fancyInput';
 import { fromCamelCase } from '@/lib/formatters';
@@ -109,26 +109,12 @@ export default function SortAndFilter<T>(
   const [searchTerm, setSearchTerm] = useState(defaultStates.searchTerm);
   const [searchType, setSearchType] = useState(defaultStates.searchType);
   const [sortBy, setSortBy] = useState<DefaultStates<T>['sortBy']>(defaultStates.sortBy);
-  // const [sortBy, setSortBy] = useState<DefaultStates<T>['sortBy']>();
   const [sortType, setSortType] = useState<DefaultStates<T>['sortType']>(defaultStates.sortType);
   const [filters, setFilters] = useState<DefaultStates<T>['filters']>(defaultStates.filters);
   const [ranges, setRanges] = useState<DefaultStates<T>['ranges']>(defaultStates.ranges);
   const [isRandomized, setIsRandomized] = useState(false);
 
   useEffect(() => {
-    // const cacheStr = JSON.stringify({
-    //   searchTerm,
-    //   searchType,
-    //   sortBy,
-    //   sortType,
-    //   filters,
-    //   ranges,
-    // });
-    // if (cache.current[cacheStr]) {
-    //   console.log('using cache', cacheStr)
-    //   setSubsetData(cache.current[cacheStr]);
-    //   return;
-    // }
     const { cacheStr, cacheVal } = checkCache();
     if (cacheVal) {
       setSubsetData(cacheVal);
@@ -147,10 +133,6 @@ export default function SortAndFilter<T>(
       const searchTermLowerCase = searchTerm.toLowerCase();
 
       result = result.filter(item => {
-        // if (!item[typedKey]) return;
-        // if (typeof item[typedKey] !== 'string') throw Error('must be a string to search');
-        // return (item[typedKey] as string).toLowerCase().includes(searchTermLowerCase);
-
         if (typeof item[typedKey] === 'string') {
           return (item[typedKey] as string).toLowerCase().includes(searchTermLowerCase);
         }
@@ -159,7 +141,6 @@ export default function SortAndFilter<T>(
             throw Error('item of array is not string');
           }
           return (item[typedKey] as string[]).some(item => {
-            // console.log('array searching', item.toLowerCase(), searchTermLowerCase)
             return item.toLowerCase().includes(searchTermLowerCase)
           });
         }
@@ -198,16 +179,13 @@ export default function SortAndFilter<T>(
       filters,
       ranges,
     });
-    let cacheVal;
-    if (cache.current[cacheStr]) {
-      // console.log('using cache', cacheStr)
-      cacheVal = cache.current[cacheStr];
+    return {
+      cacheStr,
+      cacheVal: cache.current[cacheStr]
     }
-    return { cacheStr, cacheVal }
   }
 
   function reset() {
-    // console.log('resetting')
     setSearchTerm(defaultStates.searchTerm);
     setSearchType(defaultStates.searchType);
     setSortBy(defaultStates.sortBy);
@@ -414,11 +392,6 @@ export default function SortAndFilter<T>(
               }}
             >
               <div className={`absolute flex items-center justify-center bg-primary h-full aspect-square rounded-full transition-all duration-1000 ${!sortBy ? 'left-4 right-4 opacity-50 cursor-none' : sortType === 'asc' ? 'left-0 right-8' : 'left-8 right-0'}`}>
-                {/*
-                <Lock className={`h-3/4 cursor-default ${!sortBy ? 'w-full' : 'w-0'}`} />
-                <ArrowDownAz className={`h-3/4 transition-all duration-1000 ${sortBy && sortType === 'asc' ? 'w-full' : 'w-0'}`} />
-                <ArrowDownZa className={`h-3/4 transition-all duration-1000 ${sortBy && sortType === 'desc' ? 'w-full' : 'w-0'}`} />
-                */}
                 <Lock className={`absolute h-3/4 transition-all duration-300 ${!sortBy ? 'opacity-100' : 'opacity-0'}`} />
                 <ArrowDownAz className={`absolute h-3/4 transition-all duration-300 ${sortBy && sortType === 'asc' ? 'opacity-100' : 'opacity-0'}`} />
                 <ArrowDownZa className={`absolute h-3/4 transition-all duration-300 ${sortBy && sortType === 'desc' ? 'opacity-100' : 'opacity-0'}`} />

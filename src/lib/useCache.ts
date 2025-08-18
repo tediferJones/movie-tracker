@@ -139,6 +139,12 @@ export async function useCache<
       );
     } else {
       cache.delete(type, key, resource);
+      // FIX ME, this is a hack
+      // When user updates their review,
+      // reviews for imdbId also need to be cleared
+      if (type === 'users' && resource === 'reviews') {
+        cache.delete('media', dbArgs.params.imdbId as string, 'reviews');
+      }
       data = await dbQuery(dbArgs);
     }
   } catch (error) {

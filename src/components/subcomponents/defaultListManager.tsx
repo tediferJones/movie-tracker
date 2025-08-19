@@ -30,6 +30,7 @@ export default function DefaultListManager() {
   const [renameList, setRenameList] = useState('');
   const [newListname, setNewListname] = useState('');
   const [showNewListnameInput, setShowNewListnameInput] = useState(false);
+  const [username, setUsername] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const blurTimeout = useRef<NodeJS.Timeout>();
 
@@ -41,6 +42,7 @@ export default function DefaultListManager() {
     setDefaultList(listnames.find(listname => listname.defaultList));
     setButtonText('');
     setConfirmList(undefined);
+    setUsername(userData.current.username);
   }, [userData])
 
   function resetInput() {
@@ -55,7 +57,7 @@ export default function DefaultListManager() {
 
   return (
     <div className='showOutline flex flex-col justify-between gap-4 p-4 flex-1 max-h-96 min-w-72'>
-      {!listnames || !userData.current ? <Loading /> :
+      {!listnames || !userData.current || !username ? <Loading /> :
         <>
           <div className='text-center text-xl'>
             Default: {defaultList?.listname || 'No default list found'}
@@ -80,7 +82,7 @@ export default function DefaultListManager() {
                     }}
                   />
                   <Link className='w-full text-center p-2 hover:underline hover:bg-secondary transition-all duration-500 rounded-lg truncate m-auto'
-                    href={`/users/${userData.current!.username}/${listname.listname}`}
+                    href={`/users/${username}/${listname.listname}`}
                   >{listname.listname}</Link>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

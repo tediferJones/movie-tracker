@@ -6,7 +6,6 @@ import {
   Resources,
 } from '@/lib/hashCache/types';
 import {
-  hash,
   reverseDependencies
 } from '@/lib/hashCache/helpers';
 import { ServerTypes } from '@/lib/hashCache/config';
@@ -14,10 +13,12 @@ import { ServerTypes } from '@/lib/hashCache/config';
 export default class ServerHashCache {
   cache: { [username: string]: DataCache<ServerResource> | undefined };
   reverseDependencies: ReturnType<typeof reverseDependencies>;
+  hashFunc: Config['hashFunc'];
 
   constructor(config: Config) {
     this.cache = {};
     this.reverseDependencies = reverseDependencies(config);
+    this.hashFunc = config.hashFunc;
   }
 
   getHashes(username: string): ServerResponse {
@@ -48,9 +49,9 @@ export default class ServerHashCache {
     if (res.isResource) {
       // RESOURCE ALREADY EXISTS
       if (method === 'GET') {
-        res.hash = await hash(JSON.stringify(data));
+        res.hash = await this.hashFunc(JSON.stringify(data));
       } else {
-        res.hash = await hash(
+        res.hash = await this.hashFunc(
           `${res.hash},${method.toString()},${JSON.stringify(data)}`
         );
         if (res.dependent) {
@@ -79,7 +80,7 @@ export default class ServerHashCache {
       res.isResource = true;
       res.url = new URL(req.url).pathname;
       res.dependent = this.reverseDependencies.revDeps[resource];
-      res.hash = await hash(JSON.stringify(data));
+      res.hash = await this.hashFunc(JSON.stringify(data));
     }
   }
 }

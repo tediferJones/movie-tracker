@@ -1,7 +1,6 @@
-import { Dependent, EasyFetchData, Matcher } from '@/lib/hashCache/types';
+import { Config, Dependent, EasyFetchData, Matcher } from '@/lib/hashCache/types';
 import ClientHashCache from '@/lib/hashCache/client';
 import easyFetch from '@/lib/easyFetch';
-import { hash } from '@/lib/hashCache/helpers';
 import { Methods } from '@/types';
 
 type ResourceArgs = {
@@ -10,6 +9,7 @@ type ResourceArgs = {
   data?: any,
   hash?: string,
   match?: Matcher,
+  hashFunc: Config['hashFunc'],
 }
 
 type DataHandlers = {
@@ -53,13 +53,15 @@ export default class Resource<T = any> {
   isResource = true;
   lookupObj = {} as { [key: string]: { [key: string]: T } };
   match?: Matcher;
+  hashFunc: Config['hashFunc'];
 
-  constructor({ url, dependent, hash, data, match }: ResourceArgs) {
+  constructor({ url, dependent, hash, data, match, hashFunc }: ResourceArgs) {
     this.url = url;
     this.dependent = dependent;
     this.hash = hash || '';
     this.data = data;
     this.match = match;
+    this.hashFunc = hashFunc;
   }
 
   async update(cache: ClientHashCache, method: Methods, data?: EasyFetchData) {
@@ -79,10 +81,11 @@ export default class Resource<T = any> {
         const key = (result as any)[this.dependent.key];
         console.log('key is', key)
         console.log('add dependent', this.dependent)
-        const match = cache.config[this.dependent.name].match;
+        const match = cache.config.resources[this.dependent.name].match;
         (cache.cache[this.dependent.name] as any)[key] = new Resource({
+          hashFunc: this.hashFunc,
           url: `${this.url}/${key}`,
-          match
+          match,
         });
       } else if (method === 'DELETE') {
         console.log('pre key setting', result, this.dependent.key)
@@ -98,9 +101,9 @@ export default class Resource<T = any> {
     if (!modFunc) throw Error(`No modFunc found for ${method}`);
     this.data = modFunc(this.data, result, this.match);
     if (method === 'GET') {
-      this.hash = await hash(JSON.stringify(this.data));
+      this.hash = await this.hashFunc(JSON.stringify(this.data));
     } else {
-      this.hash = await hash(
+      this.hash = await this.hashFunc(
         `${this.hash},${method},${JSON.stringify(result)}`
       );
     }
@@ -130,9 +133,10 @@ export default class Resource<T = any> {
       if (!this.dependent) throw Error('no dependent found');
       const key = data[this.dependent.key];
       if (!key) throw Error(`key ${this.dependent.key} not found`);
-      const match = cache.config[this.dependent.name].match;
+      const match = cache.config.resources[this.dependent.name].match;
       console.log('creating nested', this.dependent.name);
       (cache.cache[this.dependent.name] as any)[key] = new Resource({
+        hashFunc: this.hashFunc,
         url: `${this.url}/${key}`,
         match
       });

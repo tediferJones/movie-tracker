@@ -14,8 +14,7 @@ import AutoPaging from '@/components/subcomponents/AutoPaging';
 import { fromCamelCase, getKeyFormatter } from '@/lib/formatters';
 import { ExistingMediaInfo, MediaKeys } from '@/types';
 
-// DELETE ME
-export default function MobileView(
+export default function ListView(
   {
     sorted,
     linkPrefix,

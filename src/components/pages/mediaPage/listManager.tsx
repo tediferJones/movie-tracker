@@ -25,6 +25,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmList, setConfirmList] = useState('');
   const [buttonText, setButtonText] = useState('Waiting...');
+  const [username, setUsername] = useState('');
 
   const userData = useUserData();
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
       defaultList?.listname || excluded[0]?.listname || illegalListname
     ); // listname of currently selected
     setButtonText('');
+    setUsername(userData.current.username);
   }, [userData]);
 
   return (
@@ -70,7 +72,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
       }}
     >
       <h1 className='text-xl text-center'>List Manager</h1>
-      {!userData.current || !matchingLists ? <Loading /> : 
+      {!userData.current || !matchingLists || !username ? <Loading /> : 
         !matchingLists.length ? <p className='text-center text-muted-foreground'>No Lists Found</p> :
           <div className='flex flex-col overflow-auto'>
             {matchingLists.map(({ listname, id }) => (
@@ -91,7 +93,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
                   <ChevronUp className='h-6 w-6' />
                 </button>
                 <Link className='flex-1 text-center hover:underline truncate p-2 hover:bg-secondary rounded-lg transition-all duration-300'
-                  href={`/users/${userData.current!.username}/${listname}`}
+                  href={`/users/${username}/${listname}`}
                 >{listname}</Link>
                 <button type='button'
                   onClick={() => {
@@ -139,7 +141,7 @@ export default function ListManager({ imdbId }: { imdbId: string }) {
         visible={modalVisible}
         setVisible={setModalVisible}
         action={async () => {
-          if (!userData.current?.username) return;
+          if (!userData.current) return;
           if (buttonText) return;
           setButtonText(`Deleting from ${confirmList}...`);
           const list = matchingLists?.find(list => list.listname === confirmList);

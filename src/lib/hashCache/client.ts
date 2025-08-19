@@ -12,7 +12,7 @@ import {
 import { Dispatch, SetStateAction } from 'react';
 import Resource from '@/lib/hashCache/resource';
 import { reverseDependencies } from '@/lib/hashCache/helpers';
-import { ServerTypes, ClientTypes, storageKey } from '@/lib/hashCache/config';
+import { ServerTypes, ClientTypes } from '@/lib/hashCache/config';
 import easyFetch from '@/lib/easyFetch';
 import { Methods } from '@/types';
 
@@ -68,11 +68,12 @@ export default class ClientHashCache {
       if (dependents.has(key)) {
         cache[key] = {};
       } else {
-        const url = config[key].url(this);
+        const url = config.resources[key].url(this);
         cache[key] = new Resource({
           url,
           dependent: revDeps[key],
-          match: config[key].match
+          match: config.resources[key].match,
+          hashFunc: this.config.hashFunc,
         });
       }
       return cache;
@@ -165,7 +166,7 @@ export default class ClientHashCache {
         console.log('server has new resource, adding and syncing')
         const url = server[key].url;
         if (typeof url !== 'string') throw Error('Url is not a string');
-        const resource = new Resource({ url });
+        const resource = new Resource({ url, hashFunc: this.config.hashFunc });
         client[key] = resource;
         await resource.update(this, 'GET');
       })
@@ -191,16 +192,16 @@ export default class ClientHashCache {
   save() {
     console.log('SAVING')
     const allState = JSON.parse(
-      localStorage.getItem(storageKey) || JSON.stringify({})
+      localStorage.getItem(this.config.storageKey) || JSON.stringify({})
     );
     allState[this.username] = JSON.stringify(this.cache);
-    localStorage.setItem(storageKey, JSON.stringify(allState));
+    localStorage.setItem(this.config.storageKey, JSON.stringify(allState));
     this.setState({ current: this });
   }
 
   load() {
     const allState = JSON.parse(
-      localStorage.getItem(storageKey) || JSON.stringify({})
+      localStorage.getItem(this.config.storageKey) || JSON.stringify({})
     );
     const userState: SerializedCache | undefined = (
       allState[this.username] && JSON.parse(allState[this.username])
@@ -215,7 +216,10 @@ export default class ClientHashCache {
     return Object.keys(userState).reduce((resources, key) => {
       if (userState[key].isResource) {
         const serialized = userState[key] as SerializedResource;
-        resources[key] = new Resource(serialized);
+        resources[key] = new Resource({
+          ...serialized,
+          hashFunc: this.config.hashFunc
+        });
       } else {
         resources[key] = this.deserialize(userState[key] as SerializedCache);
       }

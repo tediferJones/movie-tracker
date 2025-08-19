@@ -68,27 +68,33 @@ export type ServerTypes = FillResources<{
   },
 }>
 
-// FIX ME
-// this should also get moved into config
-export const storageKey = 'media-tracker';
-
 export const config = {
-  listnames: {
-    match: [ 'id' ],
-    url: (client) => `/api/users/${client.username}/lists`,
+  storageKey: 'media-tracker',
+  resources: {
+    listnames: {
+      match: [ 'id' ],
+      url: (client) => `/api/users/${client.username}/lists`,
+    },
+    listContents: {
+      match: [ 'imdbId' ],
+      dependent: { name: 'listnames', key: 'id' },
+      url: (client, listId: number) => `/api/users/${client.username}/lists/${listId}`,
+    },
+    watched: {
+      match: [ 'id' ],
+      url: (client) => `/api/users/${client.username}/watched`,
+    },
+    reviews: {
+      match: [ 'imdbId' ],
+      url: (client) => `/api/users/${client.username}/reviews`,
+    },
   },
-  listContents: {
-    match: [ 'imdbId' ],
-    dependent: { name: 'listnames', key: 'id' },
-    url: (client, listId: number) => `/api/users/${client.username}/lists/${listId}`,
-  },
-  watched: {
-    match: [ 'id' ],
-    url: (client) => `/api/users/${client.username}/watched`,
-  },
-  reviews: {
-    match: [ 'imdbId' ],
-    url: (client) => `/api/users/${client.username}/reviews`,
+  hashFunc: async (data: string) => {
+    const encoder = new TextEncoder();
+    const encodedData = encoder.encode(JSON.stringify(data));
+    const buffer = await crypto.subtle.digest('SHA-256', encodedData);
+    const byteArray = Array.from(new Uint8Array(buffer));
+    return byteArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
   },
 } as const satisfies Config
 

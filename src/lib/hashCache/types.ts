@@ -19,14 +19,18 @@ export type ServerResponse = DataCache<ServerResource> | null
 export type Matcher = string[] 
 
 export type Config = {
-  [key: string]: {
-    match: Matcher,
-    dependent?: Dependent,
-    url: (client: ClientHashCache, ...args: any[]) => string,
-  }
+  storageKey: string,
+  resources: {
+    [key: string]: {
+      match: Matcher,
+      dependent?: Dependent,
+      url: (client: ClientHashCache, ...args: any[]) => string,
+    }
+  },
+  hashFunc: (arg: string) => Promise<string>
 }
 
-export type Resources = keyof typeof config
+export type Resources = keyof typeof config['resources']
 
 export type UserContext = { current: ClientHashCache | null | false }
 

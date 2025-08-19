@@ -3,9 +3,6 @@ import Loading from '@/components/subcomponents/loading';
 
 export default function AutoPaging(
   {
-    // FIX ME
-    // also consider making this component increment when scrolled to bottom of container
-    // shouldn't necessarily need to be visible
     setPage, // adding 'use client' causes this to throw warning, fix that
     currentCount,
     maxCount,
@@ -15,16 +12,16 @@ export default function AutoPaging(
     maxCount: number,
   }
 ) {
+  // FIX ME
+  // also consider making this component increment when scrolled to bottom of container
+  // shouldn't necessarily need to be visible
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // if (!ref.current) throw Error('cant find ref');
-    // if (!ref.current) return console.log(ref.current);
     if (!ref.current) return;
     const observer = new IntersectionObserver(
       ([ entry ]) => {
         if (entry.isIntersecting) {
-          // console.log('increment page')
           setPage(prev => prev + 1);
         }
       },

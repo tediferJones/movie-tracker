@@ -36,14 +36,16 @@ export async function POST(req: Request, { params }: { params: Params }) {
         throw Error('Could not find imdbId');
       }
       const formattedMedia = formatMediaInfo(omdbResult);
-      await db.insert(media).values(formattedMedia.mediaInfo);
-      await db.insert(genres).values(formattedMedia.genres!);
-      await db.insert(countries).values(formattedMedia.countries!);
-      await db.insert(languages).values(formattedMedia.languages!);
-      await db.insert(people).values(formattedMedia.people!);
-
-      const [ mediaInfo ] = await getManyExistingMedia([ imdbId ]);
-      return mediaInfo
+      try {
+        await db.insert(media).values(formattedMedia.mediaInfo);
+        await db.insert(genres).values(formattedMedia.genres!);
+        await db.insert(countries).values(formattedMedia.countries!);
+        await db.insert(languages).values(formattedMedia.languages!);
+        await db.insert(people).values(formattedMedia.people!);
+      } finally {
+        const [ mediaInfo ] = await getManyExistingMedia([ imdbId ]);
+        return mediaInfo;
+      }
     }
   );
 }

@@ -88,7 +88,7 @@ export default function formatMediaInfo(
 ): FormattedMediaInfo {
   const formatted = getTypedKeys(info).reduce((newObj, oldKey) => {
     const newKey = toCamelCase(oldKey);
-    if (info[oldKey] !== 'N/A' || !skipKeys.includes(newKey)) {
+    if (info[oldKey] !== 'N/A' && !skipKeys.includes(newKey)) {
       if (formatterV2[newKey]) {
         newObj[newKey] = formatterV2[newKey](info[oldKey] as string);
       } else {

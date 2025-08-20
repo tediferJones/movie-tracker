@@ -5,6 +5,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb';
+import Link from 'next/link';
 
 import { Fragment } from 'react';
 
@@ -18,8 +19,8 @@ export default function GetBreadcrumbs({ crumbs }: { crumbs: Breadcrumb[] }) {
           return (
             <Fragment key={`${crumb.name}-${crumb.link}-${i}`}>
               <BreadcrumbItem>
-                <BreadcrumbLink href={crumb.link}>
-                  {crumb.name}
+                <BreadcrumbLink asChild>
+                  <Link href={crumb.link}>{crumb.name}</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               {i < crumbs.length - 1 ? <BreadcrumbSeparator /> : []}

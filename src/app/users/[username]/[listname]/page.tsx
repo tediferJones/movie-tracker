@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import GetBreadcrumbs from '@/components/subcomponents/getBreadcrumbs';
 import Loading from '@/components/subcomponents/loading';
 import MyTable from '@/components/table/myTable';
-import { ExistingMediaInfo } from '@/types';
+import { ExistingMediaInfo, Listname } from '@/types';
 import easyFetch from '@/lib/easyFetch';
+import useAsyncEffect from '@/hooks/useAsyncEffect';
 
 export default function UserList({ params }: { params: { username: string, listname: string } }) {
   const username = decodeURIComponent(params.username);
@@ -13,11 +14,18 @@ export default function UserList({ params }: { params: { username: string, listn
 
   const [listContents, setListContents] = useState<ExistingMediaInfo[]>();
 
-  useEffect(() => {
-    easyFetch<ExistingMediaInfo[]>({
-      route: `/api/users/${username}/lists/${listname}`,
+  useAsyncEffect(async () => {
+    const lists = await easyFetch<Listname[]>({
+      route: `/api/users/${username}/lists`,
       method: 'GET'
-    }).then(data => setListContents(data));
+    });
+    const matchingList = lists.find(list => list.listname === listname);
+    if (!matchingList) throw Error('no list found with given listname');
+    const listData = await easyFetch<ExistingMediaInfo[]>({
+      route: `/api/users/${username}/lists/${matchingList.id}`,
+      method: 'GET'
+    });
+    setListContents(listData);
   }, []);
 
   return (

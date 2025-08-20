@@ -59,7 +59,7 @@ export default function ReviewsDisplay(
     // Do not try to set both allReviews and reviews at the same time
     // this will cause stale renders
     setAllReviews(reviews);
-  }, [userData.current, isSettled]);
+  }, [userData, isSettled]);
 
   return (
     <div className='showOutline flex flex-col gap-2 p-4 max-h-[90vh]'>

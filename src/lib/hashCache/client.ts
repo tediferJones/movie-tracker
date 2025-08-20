@@ -64,7 +64,7 @@ export default class ClientHashCache {
   init(config: Config): DataCache<Resource> {
     const { revDeps, dependents } = reverseDependencies(config);
 
-    return Object.keys(config).reduce((cache, key) => {
+    return Object.keys(config.resources).reduce((cache, key) => {
       if (dependents.has(key)) {
         cache[key] = {};
       } else {

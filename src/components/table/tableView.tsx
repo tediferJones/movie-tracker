@@ -21,6 +21,10 @@ export default function DesktopView(
     setPage: Dispatch<SetStateAction<number>>,
   }
 ) {
+  // return Array(500).fill(0).map((_, i) => {
+  //   return <div className='h-64 w-64 bg-red-500'>{i}</div>
+  // })
+
   return (
     <div className='showOutline overflow-x-auto w-full'>
       <table className='w-full'>

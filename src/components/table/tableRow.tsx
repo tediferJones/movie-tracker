@@ -26,7 +26,7 @@ export default function TableRow(
   
   const dropDownTrigger = (
     <Button size='icon' variant='ghost' onClick={() => setIsOpen(!isOpen)}>
-      <span className='sr-only'>Expand row</span>
+      <span className='sr-only h-0'>Expand row</span>
       <ChevronLeft className={`transition-all ${isOpen ? '-rotate-90' : 'rotate-0'}`}/>
     </Button>
   )

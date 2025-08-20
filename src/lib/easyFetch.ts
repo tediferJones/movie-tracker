@@ -23,15 +23,15 @@ export default function easyFetch<T>({
     body: body ? JSON.stringify(body) : undefined,
   }).then(res => skipJSON ? res : res.json())
     .catch((err) => {
-      console.log(err)
-      console.log('fetch failed, attempt', retryCount)
-      if(retryCount < 5) return easyFetch({
+      console.log(err);
+      console.log('fetch failed, attempt', retryCount);
+      if (retryCount < 5) return easyFetch({
         route,
         method,
         params,
         body,
         skipJSON,
         retryCount: retryCount + 1
-      })
+      });
     });
 }

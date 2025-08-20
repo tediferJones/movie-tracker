@@ -48,7 +48,7 @@ export default function WatchedDisplay({ username }: { username: string }) {
         method: 'GET',
       }).then(data => setWatched(shallowSort(data, 'date', 'desc')));
     }
-  }, [userData.current, isSelf]);
+  }, [userData, isSelf]);
 
   return (
     <div className='showOutline p-4 flex-1 flex flex-col gap-4 max-h-96 min-w-72'>

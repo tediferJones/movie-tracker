@@ -47,10 +47,20 @@ export default function Header() {
                     <DropdownMenuItem asChild>
                       <Link href={`/${category}`}>{fromCamelCase(category)}</Link>
                     </DropdownMenuItem>
-                    {i < arr.length - 1 ? <DropdownMenuSeparator /> : []}
+                    <DropdownMenuSeparator />
                   </Fragment>
                 )
               })}
+              <DropdownMenuItem>
+                <button className='text-primary'
+                  onClick={async () => {
+                    const res = await fetch('/api/clearCache');
+                    if (res.ok) localStorage.removeItem('media-tracker');
+                  }}
+                >
+                  Reset Cache
+                </button>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           {userData.current &&

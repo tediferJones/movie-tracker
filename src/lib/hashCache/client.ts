@@ -15,6 +15,7 @@ import { reverseDependencies } from '@/lib/hashCache/helpers';
 import { ServerTypes, ClientTypes } from '@/lib/hashCache/config';
 import easyFetch from '@/lib/easyFetch';
 import { Methods } from '@/types';
+import * as hashCacheDb from '@/lib/indexedDb';
 
 type SetUserContext = Dispatch<SetStateAction<UserContext>>
 
@@ -45,20 +46,23 @@ export default class ClientHashCache {
     this.username = username;
     this.setState = setState;
     this.config = config;
+    this.cache = {};
 
     this.setSyncState = setSyncState;
     this.setSyncState('syncing');
 
     // load state from localStorage, if no state, build from config
-    // this.cache = this.load() || this.init(config);
-    const existingState = this.load();
-    if (existingState) {
-      this.cache = existingState;
-      this.save();
-    } else {
-      this.cache = this.init(config);
-    }
-    this.sync();
+    // this.cache = await this.load() || this.init(config);
+    (async () => {
+      const existingState = await this.load();
+      if (existingState) {
+        this.cache = existingState;
+        await this.save();
+      } else {
+        this.cache = this.init(config);
+      }
+      this.sync();
+    })();
   }
 
   init(config: Config): DataCache<Resource> {
@@ -109,7 +113,7 @@ export default class ClientHashCache {
     }
 
     // console.log('SYNCED V5')
-    this.save();
+    await this.save();
     this.setSyncState('synced');
     setTimeout(() => this.setSyncState(''), 1500);
   }
@@ -189,19 +193,19 @@ export default class ClientHashCache {
     );
   }
 
-  save() {
+  async save() {
     console.log('SAVING')
     const allState = JSON.parse(
-      localStorage.getItem(this.config.storageKey) || JSON.stringify({})
+      await hashCacheDb.get(this.config.storageKey) || JSON.stringify({})
     );
     allState[this.username] = JSON.stringify(this.cache);
-    localStorage.setItem(this.config.storageKey, JSON.stringify(allState));
+    await hashCacheDb.set(this.config.storageKey, JSON.stringify(allState));
     this.setState({ current: this });
   }
 
-  load() {
+  async load() {
     const allState = JSON.parse(
-      localStorage.getItem(this.config.storageKey) || JSON.stringify({})
+      await hashCacheDb.get(this.config.storageKey) || JSON.stringify({})
     );
     const userState: SerializedCache | undefined = (
       allState[this.username] && JSON.parse(allState[this.username])

@@ -77,7 +77,7 @@ export default function MediaInfo({ imdbId }: { imdbId: string }) {
       <ImageWithFallback src={media.poster || undefined} alt={`Poster for ${media.title}`} />
       <div className='showOutline flex-1 flex w-auto flex-col justify-around p-4 text-lg'>
         <h1 className='pb-4 text-center text-3xl flex flex-wrap justify-center gap-4'>
-          <Link href={`https://www.imdb.com/title/${media.imdbId}`}
+          <Link href={`https://www.imdb.com/title/${media.imdbId}/`}
             className='underline'
           >
             {media.title} 
